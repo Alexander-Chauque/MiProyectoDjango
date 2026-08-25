@@ -1,0 +1,13 @@
+# Ignorar entorno virtual
+venv/
+venv_311/
+
+# Ignorar archivos de caché
+__pycache__/
+*.pyc
+
+# Ignorar archivos estáticos generados
+staticfiles/
+
+# Ignorar archivo con las contraseñas 
+.env

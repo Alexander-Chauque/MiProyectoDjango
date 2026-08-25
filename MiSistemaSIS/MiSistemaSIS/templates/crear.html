@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Crear Nuevo Plato</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-grupo">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="nombre" class="form-control" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Precio</label>
+        <input type="number" name="precio" class="form-control" step="0.01" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Categoría</label>
+        <select name="categoria" class="form-control" required>
+            {% for categoria in categoria %}
+                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Ingredientes</label>
+        <select name="ingredientes" class="form-control" multiple>
+            {% for ingrediente in ingredientes %}
+                <option value="{{ ingrediente.id }}">{{ ingrediente.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn">Guardar</button>
+    <a href="{% url 'listar_platos' %}" class="btn-secundario">Cancelar</a>
+</form>
+{% endblock %}

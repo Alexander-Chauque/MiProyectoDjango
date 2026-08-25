@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Platos</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'Blog/base.css' %}">
+</head>
+<body class="contenedor">
+    <nav class="navbar">
+        <a href="{% url 'listar_platos' %}" class="navbar-brand">Gestion Platos</a>
+        <div class="navbar-links">
+            <a href="{% url 'listar_platos' %}">Listado</a>
+            <a href="{% url 'crear_plato' %}">Nuevo Plato</a>
+            <a href="{% url 'listar_ingredientes' %}">Ingredientes</a>
+            <a href="{% url 'listar_categorias' %}">Categorías</a>
+        </div>
+    </nav>
+    <div class="contenedor">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

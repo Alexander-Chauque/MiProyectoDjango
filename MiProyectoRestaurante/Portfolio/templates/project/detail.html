@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_content %}
+<main class="container mt-3 mb-5">
+    <div class="row">
+        <h1>{{ proyecto.nombre }}</h1>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-8">
+            <!-- Si la imagen está guardada con la ruta completa, esto la mostrará -->
+            <img src="{{ proyecto.imagen }}" class="img-fluid" alt="{{ proyecto.nombre }}">
+        </div>
+        <div class="col-12 col-md-4">
+            <h5>Sobre el Proyecto:</h5>
+            <p>{{ proyecto.descripcion }}</p>
+            <br>
+            <h5>Tecnologías usadas:</h5>
+            <p>{{ proyecto.tecnologias }}</p>
+            <br>
+            <h5>Link del proyecto:</h5>
+            <a href="{{ proyecto.link }}" target="_blank">{{ proyecto.link }}</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

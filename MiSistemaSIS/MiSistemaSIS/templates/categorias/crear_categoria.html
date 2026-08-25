@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Crear Categoria</h1>
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-grupo">
+        <label class="form-label">Nombre:</label>
+        <input type="text" name="nombre" class="form-control" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Descripcion:</label>
+        <input type="text" name="descripcion" class="form-control" required>
+    </div>
+    <button type="submit" class="btn-primario">Guardar</button>
+    <a href="{% url 'listar_categorias' %}" class="btn-secundario">Cancelar</a>
+</form>
+{% endblock %}

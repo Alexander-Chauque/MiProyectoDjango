@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="titulo">Editar Categoria</h1>
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-grupo">
+        <label class="form-label">Nombre:</label>
+        <input type="text" name="nombre" class="form-control" value="{{categoria.nombre}}">
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Descripcion:</label>
+        <input type="text" name="descripcion" class="form-control" value="{{categoria.descripcion}}">
+    </div>
+    <button type="submit" class="btn">Guardar</button>
+    <a href="{% url 'listar_categorias' %}" class="btn-secundario">Cancelar</a>
+
+</form>
+{% endblock %}

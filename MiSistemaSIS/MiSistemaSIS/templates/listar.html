@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Listado de Platos</h1>
+
+<div>
+    <a href="{% url 'crear_plato' %}" class="btn">Nuevo Plato</a>
+</div>
+
+<table class="tabla">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Categoría</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for plato in platos %}
+        <tr>
+            <td>{{ plato.nombre }}</td>
+            <td>{{ plato.precio }}</td>
+            <td>{{ plato.categoria }}</td>
+            <td>
+                <a href="{% url 'detalle_plato' plato.id %}" class="btn-tercero">Ver</a>
+                <a href="{% url 'editar_plato' plato.pk %}" class="btn-warning">Editar</a>
+                <a href="{% url 'eliminar_plato' plato.pk %}" class="btn-danger">Eliminar</a>
+
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="mensaje">No hay platos registrados</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

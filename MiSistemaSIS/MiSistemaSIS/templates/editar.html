@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Editar Plato</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-grupo">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="nombre" class="form-control" value="{{ plato.nombre }}" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Precio</label>
+        <input type="number" name="precio" class="form-control" step="0.01" value="{{ plato.precio }}" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Categoría</label>
+        <input type="text" name="categoria" class="form-control" value="{{ plato.categoria }}" required>
+    </div>
+    <button type="submit" class="btn">Guardar Cambios</button>
+    <a href="{% url 'listar_platos' %}" class="btn-secundario">Cancelar</a>
+</form>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_content %}
+<main class="container mt-3 mb-5">
+    <div class="row">
+        <h1>Portfolio</h1>
+    </div>
+    <div class="row">
+        {% for proyecto in proyectos %}
+        <div class="col-12 col-md-4">
+            <div class="card mb-2">
+                <!-- Usamos src="{{ proyecto.imagen }}" directamente -->
+                <img src="{{ proyecto.imagen }}" class="card-img-top img-fluid" alt="{{ proyecto.nombre }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ proyecto.nombre }}</h5>
+                    <p class="card-text">{{ proyecto.descripcion }}</p>
+                    <a href="{% url 'project_detail' proyecto.pk %}" class="btn btn-primary">Leer más</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}
