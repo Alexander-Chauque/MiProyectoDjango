@@ -6,7 +6,10 @@
     {% csrf_token %}
     <div class="form-grupo">
         <label class="form-label">Nombre</label>
-        <input type="text" name="nombre" class="form-control" value="{{ ingrediente.nombre }}" required>
+        <input type="text" name="nombre" class="form-control" 
+        pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+        title="Solo permite letras y espacios"
+        value="{{ ingrediente.nombre }}" required>
     </div>
     <div class="form-grupo">
         <label class="form-label">Unidad de Medida</label>

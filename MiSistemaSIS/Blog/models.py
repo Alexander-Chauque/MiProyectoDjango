@@ -23,8 +23,7 @@ class Plato(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     # Django crea automáticamente la tabla intermedia (tu DETALLE_PLATOS)
-    # ingredientes = models.ManyToManyField(Ingrediente, through='DetallePlato')
-    descripcion = models.TextField(default='', blank=True)
+    ingredientes = models.ManyToManyField(Ingrediente, through='DetallePlato')
 
     def __str__(self):
         return f"{self.nombre} - ${self.precio}"

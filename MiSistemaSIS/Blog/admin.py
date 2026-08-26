@@ -14,11 +14,16 @@ class IngredienteAdmin(admin.ModelAdmin):
     list_filter = ('unidad_medida',)
     search_fields = ('nombre',)
     pass
+class DetallePlatoInline(admin.TabularInline):
+    model = DetallePlato
+    extra = 1  
 
 @admin.register(Plato)
 class PlatoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', "precio")
+    list_display = ('nombre', 'precio', 'categoria')
     list_filter = ('categoria',)
-    search_fields = ('nombre',"precio")
-    list_per_page = 10
+    search_fields = ('nombre', 'precio')
+    fields = ('nombre', 'precio', 'categoria')  
+    inlines = [DetallePlatoInline]  
+
 

@@ -1,6 +1,22 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Plato, Categoria, Ingrediente, DetallePlato
 from django.db import models
+from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect
+
+#login
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('listar_platos')
+        else:
+            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
+    else:
+        return render(request, 'login.html')
 
 #Funciones para listar, crear, editar y eliminar platos
 def listar_platos(request):
@@ -14,15 +30,16 @@ def crear_plato(request):
         categoria_id = request.POST.get('categoria')
         categoria = Categoria.objects.get(id=categoria_id)
         ingredientes = request.POST.getlist('ingredientes')
-        plato = Plato.objects.create(nombre=nombre, precio=precio, categoria=categoria, ingredientes=ingredientes)
+        plato = Plato.objects.create(nombre=nombre, precio=precio, categoria=categoria)
         for ingrediente_id in ingredientes:
-            DetallePlato.objects.create(plato=plato, ingrediente=Ingrediente.objects.get(id=ingrediente_id), cantidad=1)
+            DetallePlato.objects.create(plato=plato, ingrediente=Ingrediente.objects.get(id=ingrediente_id))
         # plato.ingredientes.set(ingredientes)  
         return redirect('listar_platos')
     else:
         ingredientes = Ingrediente.objects.all()
         categoria = Categoria.objects.all()
         return render(request, 'crear.html', {'ingredientes': ingredientes, 'categoria': categoria})
+
 
 def editar_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
@@ -32,12 +49,14 @@ def editar_plato(request, pk):
         categoria_id = request.POST.get('categoria')
         plato.categoria = Categoria.objects.get(id=categoria_id)
         ingredientes = request.POST.getlist('ingredientes')
-        plato.detalleplato_set.all().delete()  # Elimina los detalles existentes
         for ingrediente_id in ingredientes:
-            DetallePlato.objects.create(plato=plato, ingrediente=Ingrediente.objects.get(id=ingrediente_id), cantidad=1)
+            DetallePlato.objects.create(plato=plato, ingrediente=Ingrediente.objects.get(id=ingrediente_id))
         plato.save()
         return redirect('listar_platos')
-    return render(request, 'editar.html', {'plato': plato})
+    else:
+        categorias = Categoria.objects.all()
+        ingredientes = Ingrediente.objects.all()
+        return render(request, 'editar.html', {'plato': plato, 'categorias': categorias, 'ingredientes': ingredientes})
 
 def eliminar_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
@@ -47,8 +66,8 @@ def eliminar_plato(request, pk):
     return render(request, 'eliminar.html', {'plato': plato})
 
 def detalle_plato(request, pk):
-    plato = get_object_or_404(Plato,pk=pk)
-    return render(request, 'detalle.html', {'plato':plato})
+    plato = get_object_or_404(Plato, pk=pk)
+    return render(request, 'detalle.html', {'plato': plato})
 
 #Funciones para listar, crear, editar y eliminar ingredientes
 

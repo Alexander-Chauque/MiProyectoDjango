@@ -7,7 +7,10 @@
     {% csrf_token %}
     <div class="form-grupo">
         <label class="form-label">Nombre:</label>
-        <input type="text" name="nombre" class="form-control" value="{{categoria.nombre}}">
+        <input type="text" name="nombre" 
+        pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+        title="Solo permite letras y espacios"
+        class="form-control" value="{{categoria.nombre}}">
     </div>
     <div class="form-grupo">
         <label class="form-label">Descripcion:</label>

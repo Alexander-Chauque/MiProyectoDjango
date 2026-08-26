@@ -21,15 +21,38 @@
             {% endfor %}
         </select>
     </div>
-    <div class="form-grupo">
+    <div class="form-group">
         <label class="form-label">Ingredientes</label>
         <select name="ingredientes" class="form-control" multiple>
-            {% for ingrediente in ingredientes %}
-                <option value="{{ ingrediente.id }}">{{ ingrediente.nombre }}</option>
+            {% for ing in ingredientes %}
+                <option value="{{ ing.id }}">{{ ing.nombre }}</option>
             {% endfor %}
         </select>
+                <!-- <input type="number" name="cantidad" class="form-control" min="1" value="1" style="width: 30%;"> -->
+        <!-- <button type="button" class="btn-secundario" id="agregar-ingrediente">Agregar otro ingrediente</button> -->
     </div>
+    
     <button type="submit" class="btn">Guardar</button>
     <a href="{% url 'listar_platos' %}" class="btn-secundario">Cancelar</a>
+    
 </form>
+<!-- <script>
+    document.getElementById('agregar-ingrediente').addEventListener('click', function() {
+        var container = document.getElementById('ingredientes-container');
+        var nuevo = document.createElement('div');
+        nuevo.className = 'ingrediente-item';
+        nuevo.style.display = 'flex';
+        nuevo.style.gap = '10px';
+        nuevo.style.marginBottom = '10px';
+        nuevo.innerHTML = `
+            <select name="ingredientes" class="form-control" style="width: 70%;">
+                {% for ing in ingredientes %}
+                <option value="{{ ing.id }}">{{ ing.nombre }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="cantidad" class="form-control" min="1" value="1" style="width: 30%;">
+        `;
+        container.appendChild(nuevo);
+    }); -->
+</script>
 {% endblock %}
