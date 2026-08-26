@@ -1,0 +1,4 @@
+Django==3.2
+mysqlclient==2.2.0
+python_dotenv==1.0.0
+cgi==0.1.0
