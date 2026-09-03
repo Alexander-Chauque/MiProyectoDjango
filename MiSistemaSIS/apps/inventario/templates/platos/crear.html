@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Crear Nuevo Plato</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="nombre" class="form-control" 
+            pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+" 
+            title="Solo letras y espacios" 
+            required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Precio</label>
+        <input type="number" name="precio" class="form-control" step="0.01" required>
+    </div>
+    <div class="form-group">
+    <label class="form-label">Categoría</label>
+    <select name="categoria" class="form-control" required>
+        {% for cat in categorias %}
+            <option value="{{ cat.id }}">{{ cat.nombre_categoria_plato }}</option>
+        {% endfor %}
+    </select>
+</div>
+    <div class="form-group">
+        <label class="form-label">Ingredientes</label>
+        <div class="grid-ingredientes">
+            {% for ing in ingredientes %}
+                <label>
+                    <input type="checkbox" name="ingredientes" value="{{ ing.id }}" title="Seleccione un ingrediente para continuar">
+                    {{ ing.nombre_ingrediente }}
+                </label>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <button type="submit" class="btn">Guardar</button>
+    <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">Cancelar</a>
+    
+</form>
+<!-- <script>
+    document.getElementById('agregar-ingrediente').addEventListener('click', function() {
+        var container = document.getElementById('ingredientes-container');
+        var nuevo = document.createElement('div');
+        nuevo.className = 'ingrediente-item';
+        nuevo.style.display = 'flex';
+        nuevo.style.gap = '10px';
+        nuevo.style.marginBottom = '10px';
+        nuevo.innerHTML = `
+            <select name="ingredientes" class="form-control" style="width: 70%;">
+                {% for ing in ingredientes %}
+                <option value="{{ ing.id }}">{{ ing.nombre }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="cantidad" class="form-control" min="1" value="1" style="width: 30%;">
+        `;
+        container.appendChild(nuevo);
+    }); -->
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Platos{% endblock %}
+{% block nav_brand %}🍽️ Gestión de Platos{% endblock %}
+{% block content %}
+<h1 class="titulo">Listado de Platos</h1>
+
+<div class="derecha_boton">
+    <a href="{% url 'inventario:crear_plato' %}" class="btn">Nuevo Plato</a>
+</div>
+
+<table class="tabla">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for plato in platos %}
+        <tr>
+            <td>{{ plato.nombre_plato }}</td>
+            <td>$ {{ plato.precio_plato }}</td>
+            <td>{{ plato.categoria.nombre_categoria_plato }}</td>
+            <td>
+                {% if plato.estado_plato %}
+                    <span class="estado_activo">Activo</span>
+                {% else %}
+                    <span class="estado_inactivo">Inactivo</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'inventario:detalle_plato' plato.id %}" class="btn-tercero">Ver</a>
+                <a href="{% url 'inventario:editar_plato' plato.id %}" class="btn-warning">Editar</a>
+                <a href="{% url 'inventario:eliminar_plato' plato.id %}" class="btn-danger">Eliminar</a>
+                <a href="{% url 'inventario:estado_plato' plato.id %}" class="{% if plato.estado_plato %}estado_inactivar{% else %}estado_activar{% endif %}"> 
+                        {% if plato.estado_plato %}Inactivar{% else %}Activar{% endif %}
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="mensaje">No hay platos registrados</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Dar de Baja Empleado</h1>
+
+    <div class="card">
+        <div class="card-body text-center">
+            <p>¿Estás seguro de dar de baja al empleado <strong>{{ empleado.user_auto }}</strong>?</p>
+            <p><strong>Nombre:</strong> {{ empleado.get_full_name }}</p>
+            <p><strong>Cargo:</strong> {{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="derecha_boton">
+                    <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn-danger">Sí, Dar de Baja</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

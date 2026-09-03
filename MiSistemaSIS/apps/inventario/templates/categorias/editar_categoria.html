@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="titulo">Editar Categoria</h1>
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-grupo">
+        <label class="form-label">Nombre:</label>
+        <input type="text" name="nombre" 
+        pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+        title="Solo permite letras y espacios"
+        class="form-control" value="{{categoria.nombre_categoria_plato}}" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Descripcion:</label>
+        <input type="text" name="descripcion" class="form-control" value="{{categoria.descripcion_categoria_plato}}" required>
+    </div>
+    <button type="submit" class="btn">Guardar</button>
+    <a href="{% url 'inventario:listar_categorias' %}" class="btn-secundario">Cancelar</a>
+
+</form>
+{% endblock %}

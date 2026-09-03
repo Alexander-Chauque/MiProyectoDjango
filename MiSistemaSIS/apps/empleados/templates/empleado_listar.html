@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Gestión de Empleados{% endblock %}
+{% block nav_brand %}👤 Gestión de Empleados{% endblock %}
+
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Lista de Empleados</h1>
+
+    <div class="derecha_boton">
+        <a href="{% url 'empleados:empleado_alta' %}" class="btn">Nuevo Empleado</a>
+    </div>
+
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Cargo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for empleado in empleados %}
+            <tr>
+                <td>{{ empleado.user_auto }}</td>
+                <td>{{ empleado.nombre_empleado }}</td>
+                <td>{{ empleado.apellido_empleado }}</td>
+                <td>{{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</td>
+                <td>
+                    {% if empleado.estado %}
+                        <span class="estado-activo">Activo</span>
+                    {% else %}
+                        <span class="estado-inactivo">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'empleados:empleado_detalle' pk=empleado.pk %}" class="btn btn-info">Detalle</a>
+                    <a href="{% url 'empleados:empleado_modificacion' pk=empleado.pk %}" class="btn btn-warning">Modificar</a>
+                    {% if empleado.estado %}
+                        <a href="{% url 'empleados:empleado_baja' pk=empleado.pk %}" class="btn btn-danger">Dar de Baja</a>
+                    {% else %}
+                        <a href="{% url 'empleados:empleado_reactivar' pk=empleado.pk %}" class="btn btn-success">Reactivar</a>
+                    {% endif %}
+                    <a href="{% url 'empleados:restablecer_contrasena' pk=empleado.pk %}" class="btn btn-secondary">Restablecer Contraseña</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="mensaje">No hay empleados registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

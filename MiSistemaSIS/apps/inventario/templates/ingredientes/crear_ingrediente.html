@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Crear Ingrediente</h1>
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-grupo">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="nombre" 
+        pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+        title="Solo permite letras y espacios"
+        class="form-control" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Unidad de Medida</label>
+        <input type="text" name="unidad_medida" class="form-control" required>
+    </div>
+    <div class="form-grupo">
+        <label class="form-label">Costo Unitario</label>
+        <input type="number" name="costo_unitario" class="form-control" step="0.01" required>
+    </div>
+    <button type="submit" class="btn">Guardar</button>
+    <a href="{% url 'inventario:listar_ingredientes' %}" class="btn-secundario">Cancelar</a>
+</form>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Detalle del Ingrediente</h1>
+
+<div class="contenedor">
+    <p><strong>Nombre:</strong> {{ ingrediente.nombre_ingrediente }}</p>
+    <p><strong>Unidad de Medida:</strong> {{ ingrediente.unidad_medida }}</p>
+    <p><strong>Costo Unitario:</strong> {{ ingrediente.costo_unitario }}</p>
+    
+    <div class="btn-volver">
+        <a href="{% url 'inventario:listar_ingredientes' %}" class="btn-secundario">Volver</a>
+    </div>
+</div>
+{% endblock %}

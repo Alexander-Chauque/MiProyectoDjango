@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Listado de Categorías</h1>
+    <div class="derecha_boton">
+        <a href="{% url 'inventario:crear_categoria' %}" class="btn">Crear Categoría</a>
+    </div>
+
+<div>
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for categoria in categorias %}
+            <tr>
+                <td>{{ categoria.nombre_categoria_plato }}</td>
+                <td>{{ categoria.descripcion_categoria_plato }}</td>
+                <td>
+                    {% if categoria.estado_categoria_plato %}
+                        <span class="estado-activo">Activo</span>
+                    {% else %}
+                        <span class="estado-inactivo">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'inventario:detalle_categoria' categoria.pk %}" class="btn-tercero">Ver</a>
+                    <a href="{% url 'inventario:editar_categoria' categoria.pk %}" class="btn-warning">Editar</a>
+                    <a href="{% url 'inventario:eliminar_categoria' categoria.pk %}" class="btn-danger">Eliminar</a>
+                    <a href="{% url 'inventario:estado_categoria' categoria.pk %}" class="{% if categoria.estado_categoria_plato %}estado_inactivar{% else %}estado_activar{% endif %}"> 
+                        {% if categoria.estado_categoria_plato %}Inactivar{% else %}Activar{% endif %}
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="mensaje">No hay categorías registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

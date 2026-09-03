@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="titulo">Detalle del Plato</h1>
+
+<div class="contenedor">
+    <p><strong>Nombre:</strong> {{ plato.nombre_plato }}</p>
+    <p><strong>Precio:</strong> $ {{ plato.precio_plato }}</p>
+    <p><strong>Categoría:</strong> {{ plato.categoria }}</p>
+
+    <h3>Ingredientes:</h3>
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Ingrediente</th>
+                <!-- <th>Cantidad</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in plato.detalleplato_set.all %}
+            <tr>
+                <td>{{ detalle.ingrediente.nombre_ingrediente }}</td>
+                <!-- <td>{{ detalle.cantidad }}</td> -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="btn-volver">
+        <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">Volver</a>
+    </div>
+    
+</div>
+{% endblock %}
