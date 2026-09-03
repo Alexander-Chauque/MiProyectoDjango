@@ -14,13 +14,13 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'inventario:listar_platos' %}" class="navbar-brand">
-                {% block nav_brand %}🍽️ Sistema Restaurante{% endblock %}
+                {% block nav_brand %}Sistema Restaurante{% endblock %}
             </a>
             <div class="navbar-links">
                 {% if user.is_authenticated %}
                     <!-- MÓDULO INVENTARIO -->
                     <div class="nav-modulo">
-                        <span class="modulo-titulo">📦 Inventario</span>
+                        <span class="modulo-titulo">Inventario</span>
                         <div class="modulo-links">
                             <a href="{% url 'inventario:listar_platos' %}">Platos</a>
                             <a href="{% url 'inventario:listar_ingredientes' %}">Ingredientes</a>
@@ -30,7 +30,7 @@
 
                     <!-- MÓDULO EMPLEADOS -->
                     <div class="nav-modulo">
-                        <span class="modulo-titulo">👤 Empleados</span>
+                        <span class="modulo-titulo">Empleados</span>
                         <div class="modulo-links">
                             <a href="{% url 'empleados:empleado_listar' %}">Listar</a>
                             <a href="{% url 'empleados:empleado_alta' %}">Nuevo</a>
