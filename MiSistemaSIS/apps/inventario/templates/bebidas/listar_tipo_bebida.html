@@ -1,0 +1,57 @@
+{% extends 'base_inventario.html' %}
+
+{% block title %}Listado de Tipos de Bebidas{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Listado de Tipos de Bebidas</h1>
+
+    <div class="derecha_boton">
+        <a href="{% url 'inventario:crear_tipo_bebida' %}" class="btn">+ Nuevo Tipo</a>
+        <a href="{% url 'inventario:listar_bebida' %}" class="btn btn-secundario">Ver Bebidas</a>
+    </div>
+
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo in tipos %}
+                <tr>
+                    <td><strong>{{ tipo.nombre_tipo_bebida }}</strong></td>
+                    <td>{{ tipo.descripcion_tipo_bebida|default:"-" }}</td>
+                    <td>
+                        {% if tipo.estado_tipo_bebida %}
+                            <span class="estado-activo">Activo</span>
+                        {% else %}
+                            <span class="estado-inactivo">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{% url 'inventario:editar_tipo_bebida' tipo.id %}" class="btn btn-warning ">Editar</a>
+                            <a href="{% url 'inventario:eliminar_tipo_bebida' tipo.id %}" class="btn btn-danger ">Eliminar</a>
+                            {% if tipo.estado_tipo_bebida %}
+                                <a href="{% url 'inventario:estado_tipo_bebida' tipo.id %}" class="estado_inactivar">Inactivar</a>
+                            {% else %}
+                                <a href="{% url 'inventario:estado_tipo_bebida' tipo.id %}" class="estado_activar">Activar</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="mensaje">No hay tipos de bebidas registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base_inventario.html' %}
+
+{% block title %}Crear Bebida{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Crear Bebida</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    {{ form.nombre_bebida }}
+                    {{ form.nombre_bebida.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Tipo de Bebida</label>
+                    {{ form.id_tipo_bebida }}
+                    {{ form.id_tipo_bebida.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Precio ($)</label>
+                    {{ form.precio_bebida }}
+                    {{ form.precio_bebida.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    {{ form.descripcion_bebida }}
+                    {{ form.descripcion_bebida.errors }}
+                </div>
+                
+                <div class="derecha_boton">
+                    <a href="{% url 'inventario:listar_bebida' %}" class="btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

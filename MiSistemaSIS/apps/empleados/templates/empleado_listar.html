@@ -1,9 +1,6 @@
-{% extends 'base.html' %}
-
-
+{% extends 'base_empleados.html' %}
 {% block title %}Gestión de Empleados{% endblock %}
 {% block nav_brand %}Gestión de Empleados{% endblock %}
-
 
 {% block content %}
 <div class="contenedor">
@@ -39,14 +36,14 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'empleados:empleado_detalle' pk=empleado.pk %}" class="btn btn-info">Detalle</a>
+                    <a href="{% url 'empleados:empleado_detalle' pk=empleado.pk %}" class="btn btn-tercero">Detalle</a>
                     <a href="{% url 'empleados:empleado_modificacion' pk=empleado.pk %}" class="btn btn-warning">Modificar</a>
                     {% if empleado.estado %}
                         <a href="{% url 'empleados:empleado_baja' pk=empleado.pk %}" class="btn btn-danger">Dar de Baja</a>
                     {% else %}
                         <a href="{% url 'empleados:empleado_reactivar' pk=empleado.pk %}" class="btn btn-success">Reactivar</a>
                     {% endif %}
-                    <a href="{% url 'empleados:restablecer_contrasena' pk=empleado.pk %}" class="btn btn-secondary">Restablecer Contraseña</a>
+                    <a href="{% url 'empleados:restablecer_contrasena' pk=empleado.pk %}" class="btn btn-secundario">Restablecer Contraseña</a>
                 </td>
             </tr>
             {% empty %}

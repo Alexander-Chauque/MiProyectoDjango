@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mesas - Los Cardones{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'ventas:listar_mesa' %}" class="navbar-brand">Mesas</a>
+            <div class="navbar-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'ventas:listar_mesa' %}">Mesas</a>
+                    <span class="separador">|</span>
+                    <a href="{% url 'home' %}" class="link-home">Inicio</a>
+                    <span class="user-info">
+                        {{ user.first_name|default:user.username }}
+                        {% if user.empleado and user.empleado.cargo %}
+                            <span class="badge-cargo">[{{ user.empleado.cargo.nombre_cargo }}]</span>
+                        {% endif %}
+                    </span>
+                    <a href="{% url 'logout' %}" class="logout">Cerrar Sesión</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Iniciar Sesión</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="contenedor">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer class="footer">
+        <div class="footer-contenido">
+            <p>© Mesas - <strong>Los Cardones</strong></p>
+            <p style="font-size: 12px; color: #8B6B4A;">&copy; 2026 </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.querySelectorAll('.alert').forEach(function(alert) {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(function() {
+                        alert.style.display = 'none';
+                    }, 500);
+                });
+            }, 5000);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_inventario.html' %}
 
 {% block content %}
 <h1 class="titulo">Detalle del Categoría</h1>
@@ -6,7 +6,7 @@
 <div class="contenedor">
     <p><strong>Nombre:</strong> {{ categoria.nombre_categoria_plato }}</p>
     <p><strong>Descripción:</strong> {{ categoria.descripcion_categoria_plato }}</p>
-
+                                                                        
     <div class="btn-volver">
         <a href="{% url 'inventario:listar_categorias' %}" class="btn-secundario">Volver</a>
     </div>

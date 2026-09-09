@@ -25,5 +25,19 @@ urlpatterns = [
         path('categorias/eliminar/<int:pk>/', views.eliminar_categoria, name='eliminar_categoria'),
         path('categorias/detalle/<int:pk>/', views.detalle_categoria, name='detalle_categoria'),
         path('categorias/estado/<int:pk>/', views.estado_categoria, name='estado_categoria'),
+
+    #TIPOS BEBIDAS
+    path('tipos-bebida/', views.listar_tipo_bebida, name='listar_tipo_bebida'),
+    path('tipos-bebida/crear/', views.crear_tipo_bebida, name='crear_tipo_bebida'),
+    path('tipos-bebida/editar/<int:pk>/', views.editar_tipo_bebida, name='editar_tipo_bebida'),
+    path('tipos-bebida/eliminar/<int:pk>/', views.eliminar_tipo_bebida, name='eliminar_tipo_bebida'),
+    path('tipos-bebida/estado/<int:pk>/', views.estado_tipo_bebida, name='estado_tipo_bebida'),
     
+    #BEBIDAS 
+    path('bebidas/', views.bebida_listar, name='listar_bebida'),
+    path('bebidas/crear/', views.bebida_crear, name='crear_bebida'),
+    path('bebidas/editar/<int:pk>/', views.bebida_editar, name='editar_bebida'),
+    path('bebidas/eliminar/<int:pk>/', views.bebida_eliminar, name='eliminar_bebida'),
+    path('bebidas/detalle/<int:pk>/', views.bebida_detalle, name='detalle_bebida'),
+    path('bebidas/estado/<int:pk>/', views.bebida_estado, name='estado_bebida'),
 ]

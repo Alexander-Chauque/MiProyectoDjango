@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_inventario.html' %}
 {% block title %}Gestión de Platos{% endblock %}
 {% block nav_brand %}Gestión de Platos{% endblock %}
 {% block content %}
@@ -32,8 +32,8 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'inventario:detalle_plato' plato.id %}" class="btn-tercero">Ver</a>
-                <a href="{% url 'inventario:editar_plato' plato.id %}" class="btn-warning">Editar</a>
+                <a href="{% url 'inventario:detalle_plato' plato.id %}" class="btn-tercero">Detalle</a>
+                <a href="{% url 'inventario:editar_plato' plato.id %}" class="btn-warning">Modificar</a>
                 <a href="{% url 'inventario:eliminar_plato' plato.id %}" class="btn-danger">Eliminar</a>
                 <a href="{% url 'inventario:estado_plato' plato.id %}" class="{% if plato.estado_plato %}estado_inactivar{% else %}estado_activar{% endif %}"> 
                         {% if plato.estado_plato %}Inactivar{% else %}Activar{% endif %}

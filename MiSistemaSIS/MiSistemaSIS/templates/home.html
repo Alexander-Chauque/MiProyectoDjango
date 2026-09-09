@@ -1,36 +1,44 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{% block title %} Los Cardones - Inicio{% endblock %}
 {% block content %}
-<div class="contenedor">
-    <h1 class="titulo">¡Bienvenido, {{ request.user.username }}!</h1>
-    <p class="subtitulo">Sistema de Gestión de Platos - Peña Los Cardones</p>
-    
-    <!-- Estadísticas -->
-    <div class="stats-container">
-        <div class="stat-card">
-            <h2>{{ total_platos }}</h2>
-            <p>Platos</p>
-            <a href="{% url 'listar_platos' %}" class="btn">Ver Platos</a>
-        </div>
+
+
+
+<div class="home-container">
+        <h1 class="titulo">Bienvenido a Los Cardones</h1>
+        <p class="subtitulo">Sistema de gestión del restaurante</p>
         
-        <div class="stat-card">
-            <h2>{{ total_ingredientes }}</h2>
-            <p>Ingredientes</p>
-            <a href="{% url 'listar_ingredientes' %}" class="btn">Ver Ingredientes</a>
-        </div>
-        
-        <div class="stat-card">
-            <h2>{{ total_categorias }}</h2>
-            <p>Categorías</p>
-            <a href="{% url 'listar_categorias' %}" class="btn">Ver Categorías</a>
+        <div class="modulos-grid">
+            <a href="{% url 'inventario:listar_platos' %}" class="modulo-card">
+                <div class="modulo-icon">
+                    <img src="{% static 'img/home/inventario.jpg' %}" alt="Inventario" class="modulo-img">
+                </div>
+                <h3>Inventario</h3>
+                <p>Gestiona platos, ingredientes y categorías</p>
+            </a>
+            <a href="{% url 'empleados:empleado_listar' %}" class="modulo-card">
+                <div class="modulo-icon">
+                    <img src="{% static 'img/home/empleados.png' %}" alt="Empleados" class="modulo-img">
+                </div>
+                <h3>Empleados</h3>
+                <p>Gestiona el personal del restaurante</p>
+            </a>
+            <a href="{% url 'ventas:listar_mesa' %}" class="modulo-card">
+                <div class="modulo-icon">
+                    <img src="{% static 'img/home/mesas.png' %}" alt="Mesas" class="modulo-img">
+                </div>
+                <h3>Mesas</h3>
+                <p>Control de mesas y comandas</p>
+            </a>
+            <a href="#" class="modulo-card">
+                <div class="modulo-icon">
+                    <img src="{% static 'img/home/ventas.png' %}" alt="Ventas" class="modulo-img">
+                </div>
+                <h3>Ventas</h3>
+                <p>Registro de ventas y caja</p>
+            </a>
         </div>
     </div>
-    
-    <!-- Acciones rápidas -->
-    <div class="acciones-rapidas">
-        <a href="{% url 'crear_plato' %}" class="btn">+ Crear Nuevo Plato</a>
-        <a href="{% url 'crear_ingrediente' %}" class="btn">+ Crear Nuevo Ingrediente</a>
-        <a href="{% url 'crear_categoria' %}" class="btn">+ Crear Nueva Categoría</a>
-    </div>
-</div>
 {% endblock %}
+

@@ -1,51 +1,41 @@
-<!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema Restaurante{% endblock %}</title>
+    <title>Los Cardones - Sistema Restaurante</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- ===== NAVBAR ===== -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{% url 'inventario:listar_platos' %}" class="navbar-brand">
-                {% block nav_brand %}Sistema Restaurante{% endblock %}
+            <a href="{% url 'home' %}" class="navbar-brand">
+                Los Cardones
             </a>
-            <div class="navbar-links">
+            <!-- <div class="navbar-links">
                 {% if user.is_authenticated %}
-                    <!-- MÓDULO INVENTARIO -->
-                    <div class="nav-modulo">
-                        <span class="modulo-titulo">Inventario</span>
-                        <div class="modulo-links">
-                            <a href="{% url 'inventario:listar_platos' %}">Platos</a>
-                            <a href="{% url 'inventario:listar_ingredientes' %}">Ingredientes</a>
-                            <a href="{% url 'inventario:listar_categorias' %}">Categorías</a>
-                        </div>
-                    </div>
-
-                    <!-- MÓDULO EMPLEADOS -->
-                    <div class="nav-modulo">
-                        <span class="modulo-titulo">Empleados</span>
-                        <div class="modulo-links">
-                            <a href="{% url 'empleados:empleado_listar' %}">Listar</a>
-                            <a href="{% url 'empleados:empleado_alta' %}">Nuevo</a>
-                        </div>
-                    </div>
-
-                    <a href="{% url 'logout' %}" class="nav-link logout">Cerrar Sesión</a>
+                    <a href="{% url 'inventario:listar_platos' %}">Inventario</a>
+                    <a href="{% url 'empleados:empleado_listar' %}">Empleados</a>
                 {% else %}
                     <a href="{% url 'login' %}">Iniciar Sesión</a>
+                {% endif %}
+            </div> -->
+            <div class="navbar-user">
+                {% if user.is_authenticated %}
+                    <span class="user-info">
+                        {{ user.first_name|default:user.username }}
+                        {% if user.empleado and user.empleado.cargo %}
+                            <span class="badge-cargo">[{{ user.empleado.cargo.nombre_cargo }}]</span>
+                        {% endif %}
+                    </span>
+                    <a href="{% url 'logout' %}" class="logout">Cerrar Sesión</a>
                 {% endif %}
             </div>
         </div>
     </nav>
 
-    <!-- ===== CONTENIDO ===== -->
     <div class="contenedor">
         {% if messages %}
             {% for message in messages %}
@@ -55,17 +45,26 @@
             {% endfor %}
         {% endif %}
 
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </div>
 
-    <!-- ===== FOOTER ===== -->
     <footer class="footer">
-        <div class="footer-contenido">
-            <p>{% block footer %}© 2026 Sistema Restaurante{% endblock %}</p>
-        </div>
+        <p>© 2026 Los Cardones</p>
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.querySelectorAll('.alert').forEach(function(alert) {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(function() {
+                        alert.style.display = 'none';
+                    }, 500);
+                });
+            }, 5000);
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

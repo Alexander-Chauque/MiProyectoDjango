@@ -35,7 +35,7 @@ class Plato(models.Model):
     nombre_plato = models.CharField(max_length=100)
     precio_plato = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.ForeignKey(CategoriaPlato, on_delete=models.CASCADE)
-    # Django crea automáticamente la tabla intermedia (tu DETALLE_PLATOS)
+    
     ingredientes = models.ManyToManyField(Ingrediente, through='DetallePlato')
     descripcion_plato = models.TextField(default="", blank=True)
     estado_plato = models.BooleanField(default=True)
@@ -58,19 +58,35 @@ class DetallePlato(models.Model):
 class TipoBebida(models.Model):
     nombre_tipo_bebida = models.CharField(max_length=50)
     descripcion_tipo_bebida=models.TextField(blank=True)
+    estado_tipo_bebida = models.BooleanField(default=True)
+
+    class Meta:
+        db_table='inventario_tipobebida'
+
+    def save(self, *args, **kwargs):
+        if self.nombre_tipo_bebida:
+            self.nombre_tipo_bebida=self.nombre_tipo_bebida.title()
+        super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.nombre_tipo_bebida}"
 
 #Bebidas
 class Bebida(models.Model):
-    nombre = models.CharField(max_length=50, unique= True)
-    tipo = models.ForeignKey(TipoBebida, on_delete=models.CASCADE)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    descripcion = models.TextField(blank=True)
-    disponible = models.BooleanField(default=True)
+    nombre_bebida = models.CharField(max_length=50, unique= True)
+    id_tipo_bebida = models.ForeignKey(TipoBebida, on_delete=models.CASCADE,db_column='tipo_id')
+    precio_bebida = models.DecimalField(max_digits=10, decimal_places=2)
+    descripcion_bebida = models.TextField(blank=True)
+    disponible_bebida = models.BooleanField(default=True)
 
+    class Meta:
+        db_table='inventario_bebida'
+
+    def save(self, *args, **kwargs):
+            if self.nombre_bebida:
+                self.nombre_bebida=self.nombre_bebida.title()
+            super().save(*args, **kwargs)
     def __str__(self):
-        return f'{self.nombre} - ${self.precio}'
+        return f'{self.nombre_bebida} - ${self.precio_bebida}'
 
 #Mesa
 class Mesa(models.Model):

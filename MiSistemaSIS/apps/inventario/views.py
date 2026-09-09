@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Plato, CategoriaPlato, Ingrediente, DetallePlato
-from django.db import models
+from .models import Plato, CategoriaPlato, Ingrediente, DetallePlato, TipoBebida, Bebida
+from .forms import TipoBebidaForm, BebidaForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+import re
 
 @login_required
 def home(request):
@@ -30,6 +31,13 @@ def login_view(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
+            try:
+                empleado = user.empleado
+                if empleado.debe_cambiar_contrasena:
+                    messages.warning(request, 'Debes cambiar tu contraseña antes de continuar.')
+                    return redirect('cambiar_clave_obligatorio')
+            except:
+                pass
             return redirect('inventario:listar_platos')
         else:
             return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
@@ -58,7 +66,7 @@ def crear_plato(request):
         try:
             if float(precio) <= 0:
                 messages.error(request, 'Precio inválido: el precio debe ser mayor a 0')
-                return render(request, 'inventario/platos/crear.html', {
+                return render(request, './platos/crear.html', {
                     'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente'),
                     'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
                 })
@@ -88,7 +96,7 @@ def crear_plato(request):
         # Validar que tenga al menos un ingrediente
         if not ingredientes_ids:
             messages.error(request, 'Debe seleccionar al menos un ingrediente')
-            return render(request, 'inventario/platos/crear.html', {
+            return render(request, './platos/crear.html', {
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente'),
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
             })
@@ -409,3 +417,123 @@ def estado_categoria(request, pk):
         messages.success(request, f'Categoría "{categoria.nombre_categoria_plato}" desactivada')
     
     return redirect(request.META.get('HTTP_REFERER,','inventario:listar_categorias'))
+
+#funcion de Tipo de Bebidas
+@login_required
+def listar_tipo_bebida(request):
+    tipos = TipoBebida.objects.all().order_by('nombre_tipo_bebida')
+    return render(request, 'bebidas/listar_tipo_bebida.html', {'tipos':tipos})
+
+@login_required
+def crear_tipo_bebida(request):
+    if request.method == 'POST':
+        form = TipoBebidaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, ' Tipo de bebida creado con exito')
+            return redirect ('inventario:listar_tipo_bebida')
+    else:
+        form = TipoBebidaForm()
+    return render (request,'bebidas/crear_tipo_bebida.html', {'form': form} )
+
+@login_required
+def editar_tipo_bebida(request, pk):
+    tipo = get_object_or_404(TipoBebida, pk=pk)
+    if request.method == 'POST':
+        form = TipoBebidaForm(request.POST, instance=tipo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, ' Tipo de bebida actualizado')
+            return redirect ('inventario:listar_tipo_bebida')
+        else:
+            form = TipoBebidaForm(instance=tipo)
+    return render(request, 'bebidas/crear_tipo_bebida.html', {'form': form})
+
+@login_required
+def eliminar_tipo_bebida(request,pk):
+    tipo = get_object_or_404(TipoBebida, pk=pk)
+    if request.method == 'POST':
+        nombre = tipo.nombre_tipo_bebida
+        tipo.delete()
+        messages.success(request, f'Tipo "{nombre} eliminado')
+        return redirect('inventario:listar_tipo_bebida')
+    return render (request,'bebidas/eliminar_tipo_bebida.html')
+
+@login_required
+def estado_tipo_bebida(request,pk):
+    tipo = get_object_or_404(TipoBebida, pk=pk)
+    tipo.estado_tipo_bebida = not tipo.estado_tipo_bebida
+    tipo.save()
+    if tipo.estado_tipo_bebida:
+        messages.success(request, f'Tipo "{tipo.nombre_tipo_bebida}" activado')
+    else:
+        messages.success(request,  f'Tipo "{tipo.nombre_tipo_bebida}" desactivado')
+
+    return redirect ( 'inventario:listar_tipo_bebida')
+#Funcion de Bebida
+@login_required
+def bebida_listar(request):
+    bebidas = Bebida.objects.all().order_by('nombre_bebida')
+    return render(request, 'bebidas/listar_bebida.html', {
+        'bebidas': bebidas,
+        'titulo': 'Listado de Bebidas'
+    })
+
+@login_required
+def bebida_crear(request):
+    if request.method == 'POST':
+        form = BebidaForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Bebida creada exitosamente')
+            return redirect('inventario:listar_bebida')
+    else:
+        form = BebidaForm()
+    return render(request, 'bebidas/crear_bebida.html', {
+        'form': form,
+        'titulo': 'Crear Bebida',
+        'boton': 'Guardar'
+    })
+
+@login_required
+def bebida_editar(request, pk):
+    bebida = get_object_or_404(Bebida, pk=pk)
+    if request.method == 'POST':
+        form = BebidaForm(request.POST, request.FILES, instance=bebida)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Bebida actualizada')
+            return redirect('inventario:listar_bebida')
+    else:
+        form = BebidaForm(instance=bebida)
+    return render(request, 'bebidas/editar_bebida.html', {
+        'form': form,
+        'titulo': 'Editar Bebida',
+        'boton': 'Actualizar'
+    })
+
+@login_required
+def bebida_eliminar(request, pk):
+    bebida = get_object_or_404(Bebida, pk=pk)
+    if request.method == 'POST':
+        nombre = bebida.nombre_bebida
+        bebida.delete()
+        messages.success(request, f'Bebida "{nombre}" eliminada')
+        return redirect('inventario:listar_bebida')
+    return render(request, 'bebidas/eliminar_bebida.html', {'bebida': bebida})
+
+@login_required
+def bebida_detalle(request, pk):
+    bebida = get_object_or_404(Bebida, pk=pk)
+    return render(request, 'bebidas/detalle_bebida.html', {'bebida': bebida})
+
+@login_required
+def bebida_estado(request, pk):
+    bebida = get_object_or_404(Bebida, pk=pk)
+    bebida.disponible_bebida = not bebida.disponible_bebida
+    bebida.save()
+    if bebida.disponible_bebida:
+        messages.success(request, f'Bebida "{bebida.nombre_bebida}" disponible')
+    else:
+        messages.success(request, f'Bebida "{bebida.nombre_bebida}" no disponible')
+    return redirect('inventario:listar_bebida')

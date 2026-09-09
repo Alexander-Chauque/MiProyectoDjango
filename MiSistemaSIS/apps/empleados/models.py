@@ -9,8 +9,14 @@ from django.contrib.auth.hashers import make_password
 class Cargo(models.Model):
     nombre_cargo = models.CharField(max_length=100)
     descripcion_cargo = models.TextField(blank=True)
+    nivel_acceso = models.BigIntegerField(default=1)
     def __str__(self):
         return self.nombre_cargo
+
+    def save(self, *args, **kwargs):
+        if self.nombre_cargo:
+            self.nombre_cargo=self.nombre_cargo.title()
+        super().save(*args, **kwargs)
 
 #Empleado
 class Empleado(models.Model):
@@ -72,7 +78,6 @@ class Empleado(models.Model):
     
 #Tipo permiso
 class TipoPermiso(models.Model):
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     modulo = models.CharField(max_length=50, choices=[
         ('platos', 'Platos'),
         ('bebidas', 'Bebidas'),
@@ -91,12 +96,16 @@ class TipoPermiso(models.Model):
         ('leer', 'Leer'), ('escribir', 'Escribir'), ('modificar', 'Modificar'), ('eliminar', 'Eliminar')
     ])
 
+    class Meta:
+        unique_together = ['modulo', 'accion']
+
     def __str__(self):
-        return f'{self.cargo.nombre_cargo} - ({self.modulo} - {self.accion})'
+        return f'({self.modulo} - {self.accion})'
 
 class PermisoXCargo(models.Model):
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     tipo_permiso = models.ForeignKey(TipoPermiso, on_delete=models.CASCADE)
+    fecha_asignacion = models.DateTimeField(auto_now_add=True, blank=True)
 
     def __str__(self):
         return f'{self.cargo.nombre_cargo} - ({self.tipo_permiso.modulo} - {self.tipo_permiso.accion})'
@@ -113,3 +122,4 @@ class Asistencia(models.Model):
     empleado=models.ForeignKey(Empleado, on_delete=models.CASCADE)
     tipo_asistencia=models.ForeignKey(TipoAsistencia, on_delete=models.CASCADE)
     fecha_asistencia=models.DateField()
+

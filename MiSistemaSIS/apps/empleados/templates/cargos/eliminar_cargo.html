@@ -1,0 +1,21 @@
+{% extends 'base_empleados.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Eliminar Cargo</h1>
+
+    <div class="card">
+        <div class="card-body text-center">
+            <p>¿Estás seguro de eliminar <strong>{{ cargo.nombre_cargo }}</strong>?</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="derecha_boton">
+                    <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

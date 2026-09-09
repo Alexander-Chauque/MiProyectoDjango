@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'finanzas',
     'ventas',
     'reportes',
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -149,3 +150,5 @@ MAILERS = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/inventario/platos/listar/' 
+LOGOUT_REDIRECT_URL = '/login/'

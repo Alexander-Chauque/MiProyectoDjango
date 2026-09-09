@@ -1,0 +1,70 @@
+{% extends 'base_empleados.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">{{ titulo }}</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Seleccione un Cargo</label>
+                    <select name="cargo" class="form-control" id="select-cargo" required>
+                        <option value="">Seleccione un cargo</option>
+                        {% for cargo in cargos %}
+                            <option value="{{ cargo.pk }}">{{ cargo.nombre_cargo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div id="permisos-container" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Permisos</label>
+                        <div class="row">
+                            {% for permiso in permisos %}
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input type="checkbox" name="permisos" value="{{ permiso.pk }}" 
+                                        class="form-check-input permiso-checkbox" id="permiso_{{ permiso.pk }}">
+                                    <label class="form-check-label" for="permiso_{{ permiso.pk }}">
+                                        {{ permiso.modulo|upper }} - {{ permiso.accion }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="derecha_boton">
+                        <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar Permisos</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// CORREGIDO: Pasamos de forma segura el diccionario que creamos en tu views.py a JavaScript
+const permisosAsignados = {{ permisos_assigned|default:"{}"|safe }};
+
+document.getElementById('select-cargo').addEventListener('change', function() {
+    var cargoId = this.value;
+    var container = document.getElementById('permisos-container');
+    
+    if (cargoId) {
+        container.style.display = 'block';
+        const listaPermisos = permisosAsignados[cargoId] || [];
+        
+        document.querySelectorAll('.permiso-checkbox').forEach(function(checkbox) {
+            checkbox.checked = listaPermisos.includes(parseInt(checkbox.value));
+        });
+    } else {
+        container.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

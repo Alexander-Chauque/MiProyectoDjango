@@ -1,0 +1,52 @@
+{% extends 'base_inventario.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">{{ titulo }}</h1>
+    <div class="derecha_boton">
+        <a href="{% url 'inventario:crear_bebida' %}" class="btn">+ Nueva Bebida</a>
+        <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn btn-secundario">Tipos de Bebida</a>
+    </div>
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Precio</th>
+                    <th>Disponible</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bebida in bebidas %}
+                <tr>
+                    <td><strong>{{ bebida.nombre_bebida }}</strong></td>
+                    <td>{{ bebida.id_tipo_bebida.nombre_tipo_bebida }}</td>
+                    <td>$ {{ bebida.precio_bebida }}</td>
+                    <td>
+                        {% if bebida.disponible_bebida %}
+                            <span class="estado-activo">Disponible</span>
+                        {% else %}
+                            <span class="estado-inactivo">No disponible</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'inventario:detalle_bebida' bebida.pk %}" class="btn-tercero ">Detalle</a>
+                        <a href="{% url 'inventario:editar_bebida' bebida.pk %}" class="btn-warning">Editar</a>
+                        <a href="{% url 'inventario:eliminar_bebida' bebida.pk %}" class="btn-danger">Eliminar</a>
+                        {% if bebida.disponible_bebida %}
+                            <a href="{% url 'inventario:estado_bebida' bebida.pk %}" class="estado-inactivar">Desactivar</a>
+                        {% else %}
+                            <a href="{% url 'inventario:estado_bebida' bebida.pk %}" class="estado-activar">Activar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="mensaje">No hay bebidas registradas</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

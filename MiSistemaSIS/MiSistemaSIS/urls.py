@@ -20,14 +20,16 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-
+from core.views import home
 
 urlpatterns = [
-    path ('', RedirectView.as_view(url='/inventario/platos/listar')),
+    path ('', home, name='home' ),
+    # path ('', RedirectView.as_view(url='/inventario/platos/listar')),
     path('admin/', admin.site.urls), 
     path ('inventario/', include('inventario.urls')),
 
     path ('empleados/', include('empleados.urls')),
+    path ('ventas/', include('ventas.urls')),
 
     path ('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path ('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),

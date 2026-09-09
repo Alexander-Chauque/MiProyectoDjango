@@ -1,0 +1,52 @@
+{% extends 'base_mesas.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo"> {{ titulo }}</h1>
+
+    <div class="derecha_boton">
+        <a href="{% url 'ventas:crear_mesa' %}" class="btn">+ Nueva Mesa</a>
+    </div>
+
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>N° Mesa</th>
+                    <th>Capacidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mesa in mesas %}
+                <tr>
+                    <td><strong>{{ mesa.numero_mesa }}</strong></td>
+                    <td>{{ mesa.capacidad }} personas</td>
+                    <td>
+                        {% if mesa.estado_mesa %}
+                            <span class="estado-activo">Activa</span>
+                        {% else %}
+                            <span class="estado-inactivo">Inactiva</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'ventas:editar_mesa' mesa.pk %}" class="btn btn-warning btn-sm">Editar</a>
+                        <a href="{% url 'ventas:eliminar_mesa' mesa.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% if mesa.estado_mesa %}
+                            <a href="{% url 'ventas:estado_mesa' mesa.pk %}" class="btn btn-secundario btn-sm">Desactivar</a>
+                        {% else %}
+                            <a href="{% url 'ventas:estado_mesa' mesa.pk %}" class="btn btn-success btn-sm">Activar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="mensaje">No hay mesas registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
