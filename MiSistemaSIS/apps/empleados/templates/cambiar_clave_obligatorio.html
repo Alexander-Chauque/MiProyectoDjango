@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambiar Contraseña - Los Cardones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'css/restablecer_contraseña.css' %}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h1 class="login-titulo">Cambiar Contraseña</h1>
+            <p class="login-subtitulo">
+                Por seguridad, debes cambiar tu contraseña antes de continuar
+            </p>
+            <div class="aviso-cambio">
+                <strong>Información</strong>
+                Esta es la primera vez que inicias sesión o tu contraseña fue restablecida.
+                Por seguridad, debes crear una nueva contraseña personal.
+            </div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <form method="POST" class="login-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="nueva_contrasena">Nueva Contraseña</label>
+                    <input type="password" name="nueva_contrasena" id="nueva_contrasena" class="form-control"
+                    placeholder="Mínimo 8 caracteres" required minlength="8" autocomplete="new-password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmar_contrasena">Confirmar Contraseña</label>
+                    <input type="password" name="confirmar_contrasena" id="confirmar_contrasena" class="form-control"
+                    placeholder="Repetí la contraseña" required minlength="8"autocomplete="new-password">
+                </div>
+                
+                <button type="submit" class="btn-login">
+                    Guardar Nueva Contraseña
+                </button>
+            </form>
+            
+            <p class="login-copyright">
+                © 2026 Los Cardones - Salta
+            </p>
+            
+        </div>
+    </div>
+</body>
+</html>

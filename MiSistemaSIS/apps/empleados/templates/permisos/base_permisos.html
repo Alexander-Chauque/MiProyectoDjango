@@ -1,0 +1,11 @@
+{% extends 'base_empleados.html' %}
+
+{% block title %}Gestión de Permisos{% endblock %}
+
+{# Mantener las mismas opciones del menú #}
+{% block navbar_links %}
+    <a href="{% url 'empleados:empleado_listar' %}">Empleados</a>
+    <a href="{% url 'empleados:listar_cargo' %}">Cargo</a>
+    <span class="separador">|</span>
+    <a href="{% url 'home' %}" class="link-home">Inicio</a>
+{% endblock %}

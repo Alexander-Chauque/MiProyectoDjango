@@ -1,0 +1,427 @@
+/*BADGES (estado y cargo) */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Oswald', sans-serif;
+}
+
+.badge-activo {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-inactivo {
+    background-color: #FEE2E2;
+    color: #991B1B;
+}
+
+.badge-sin-cargo {
+    background-color: #F3F4F6;
+    color: #6B7280;
+}
+/* ACCIONES DE LA TABLA */
+.acciones-tabla {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+/* BOTONES CON ICONOS (LISTA) */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+/* Colores de cada botón */
+.btn-detalle {
+    background-color: var(--color-azul-andes);
+}
+
+.btn-detalle:hover {
+    background-color: #1e4a6e;
+}
+
+.btn-editar {
+    background-color: #D97706;
+}
+
+.btn-editar:hover {
+    background-color: #B45309;
+}
+
+.btn-baja {
+    background-color: #DC2626;
+}
+
+.btn-baja:hover {
+    background-color: #B91C1C;
+}
+
+.btn-reactivar {
+    background-color: #2ecc71;
+}
+
+.btn-reactivar:hover {
+    background-color: #27AE60;
+}
+
+.btn-clave {
+    background-color: var(--color-gris-medio);
+}
+
+.btn-clave:hover {
+    background-color: var(--color-gris-oscuro);
+}
+
+/* Botón "Nuevo Empleado" con ícono */
+.btn i {
+    margin-right: 8px;
+    font-size: 13px;
+}
+/* 4. DETALLE DE EMPLEADO */
+
+.detalle-empleado {
+    background-color: var(--color-blanco);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(74, 74, 74, 0.08);
+    border: 1px solid #E5E7EB;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Cabecera */
+.detalle-header {
+    background-color: var(--color-gris-oscuro);
+    color: var(--color-blanco);
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 4px solid var(--color-cardones);
+}
+
+.detalle-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: var(--color-cardones);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--color-blanco);
+    font-family: 'Oswald', sans-serif;
+    flex-shrink: 0;
+}
+
+.detalle-info-principal {
+    flex: 1;
+}
+
+.detalle-info-principal h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--color-blanco);
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 1px;
+}
+
+.detalle-cargo {
+    margin: 4px 0 0 0;
+    font-size: 15px;
+    color: var(--color-crema);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.detalle-estado {
+    flex-shrink: 0;
+}
+
+/* Cuerpo */
+.detalle-cuerpo {
+    padding: 30px;
+}
+
+.detalle-seccion {
+    margin-bottom: 30px;
+}
+
+.detalle-seccion:last-child {
+    margin-bottom: 0;
+}
+
+.detalle-subtitulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-gris-oscuro);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--color-cardones);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detalle-subtitulo i {
+    color: var(--color-cardones);
+    font-size: 18px;
+}
+
+.detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.detalle-campo label {
+    display: block;
+    font-size: 12px;
+    color: var(--color-gris-medio);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.detalle-campo p {
+    margin: 0;
+    font-size: 15px;
+    color: var(--color-gris-oscuro);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    padding: 10px 15px;
+    background-color: var(--color-gris-claro);
+    border-radius: 6px;
+    border-left: 3px solid var(--color-cardones);
+}
+
+.detalle-campo p strong {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+}
+
+/* Acciones */
+.detalle-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px 30px;
+    background-color: var(--color-gris-claro);
+    border-top: 1px solid #E5E7EB;
+    flex-wrap: wrap;
+}
+/*FORMULARIO SIMPLE (Alta / Modificación) */
+
+.formulario-simple {
+    max-width: 700px;
+    margin: 30px auto;
+    background-color: var(--color-white);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(74, 74, 74, 0.08);
+}
+
+.grupo-campo {
+    margin-bottom: 20px;
+}
+
+.grupo-campo label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gris-oscuro);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.grupo-campo input,
+.grupo-campo select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: var(--color-gris-oscuro);
+    background-color: var(--color-white);
+    box-sizing: border-box;
+    transition: all 0.3s;
+}
+
+.grupo-campo input:focus,
+.grupo-campo select:focus {
+    outline: none;
+    border-color: var(--color-cardones);
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+.grupo-campo input:disabled {
+    background-color: var(--color-gris-claro);
+    color: var(--color-gris-medio);
+    cursor: not-allowed;
+}
+
+/* Errores */
+.error-campo {
+    color: #DC2626;
+    font-size: 12px;
+    margin-top: 5px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Acciones del formulario */
+.formulario-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid #E5E7EB;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.formulario-acciones .btn-secundario,
+.formulario-acciones .btn-primario {
+    padding: 10px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.formulario-acciones .btn-secundario {
+    background-color: var(--color-gris-medio);
+    color: var(--color-white);
+}
+
+.formulario-acciones .btn-secundario:hover {
+    background-color: var(--color-gris-oscuro);
+    transform: translateY(-2px);
+}
+
+.formulario-acciones .btn-primario {
+    background-color: #2ecc71;
+    color: var(--color-white);
+}
+
+.formulario-acciones .btn-primario:hover {
+    background-color: #27AE60;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+/* BOTONES ADICIONALES */
+
+/* Botón restablecer (para el formulario de reset de contraseña) */
+.btn-restablecer {
+    background-color: var(--color-cardones);
+    color: var(--color-white);
+    padding: 12px 25px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-restablecer:hover {
+    background-color: #E0951A;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
+}
+/*RESPONSIVE */
+
+@media (max-width: 768px) {
+    /* Lista */
+    .acciones-tabla {
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    
+    .btn-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+    }
+    
+    .badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+    
+    /* Detalle */
+    .detalle-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .detalle-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detalle-acciones {
+        justify-content: center;
+    }
+    
+    /* Formulario simple */
+    .formulario-simple {
+        padding: 20px;
+        margin: 20px auto;
+    }
+    
+    .formulario-acciones {
+        justify-content: center;
+    }
+    
+    .formulario-acciones .btn-secundario,
+    .formulario-acciones .btn-primario {
+        width: 100%;
+    }
+}

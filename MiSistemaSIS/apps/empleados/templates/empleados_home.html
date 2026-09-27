@@ -1,0 +1,42 @@
+{% extends 'base_empleados.html' %}
+{% load static %}
+
+{% block title %}Empleados - Los Cardones{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <h1 class="titulo">Gestión de Empleados</h1>
+    <p class="subtitulo">Seleccioná qué querés gestionar</p>
+
+    <div class="modulos-grid">
+        
+        {# EMPLEADOS #}
+        <a href="{% url 'empleados:empleado_listar' %}" class="modulo-card">
+            <div class="modulo-icon">
+                <img src="{% static 'img/home/empleados.png' %}" alt="Empleados" class="modulo-img">
+            </div>
+            <h3>Empleados</h3>
+            <p>Gestiona el personal del restaurante</p>
+        </a>
+        
+        {# CARGOS #}
+        <a href="{% url 'empleados:listar_cargo' %}" class="modulo-card">
+            <div class="modulo-icon">
+                <img src="{% static 'img/home/cargos.png' %}" alt="Cargos" class="modulo-img">
+            </div>
+            <h3>Cargos</h3>
+            <p>Define los perfiles del sistema</p>
+        </a>
+        
+        {# PERMISOS #}
+        <a href="{% url 'empleados:listar_permiso' %}" class="modulo-card">
+            <div class="modulo-icon">
+                <img src="{% static 'img/home/permisos.png' %}" alt="Permisos" class="modulo-img">
+            </div>
+            <h3>Permisos</h3>
+            <p>Administra los permisos de cada cargo</p>
+        </a>
+        
+    </div>
+</div>
+{% endblock %}

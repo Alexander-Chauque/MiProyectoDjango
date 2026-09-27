@@ -1,0 +1,39 @@
+{% extends 'base_inventario.html' %}
+
+{% block title %}Editar Tipo de Bebida{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Editar Tipo de Bebida</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    {{ form.nombre_tipo_bebida }}
+                    {{ form.nombre_tipo_bebida.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    {{ form.descripcion_tipo_bebida }}
+                    {{ form.descripcion_tipo_bebida.errors }}
+                </div>
+                
+                <div class="form-group form-check">
+                    {{ form.estado_tipo_bebida }}
+                    <label class="form-check-label">Activo</label>
+                </div>
+                
+                <div class="derecha_boton">
+                    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'comandas/base_comandas.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Eliminar Comanda</h1>
+
+    <div class="card">
+        <div class="card-body text-center">
+            
+            <p>¿Estás seguro de eliminar la <strong>Comanda #{{ comanda.id_comanda }}</strong>?</p>
+            <p>Mesa {{ comanda.mesa.numero_mesa }}</p>
+            <p>Mozo: {{ comanda.empleado.nombre_empleado }} {{ comanda.empleado.apellido_empleado }}</p>
+            <p>Total: $ {{ comanda.total_comanda }}</p>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="derecha_boton" style="justify-content: center;">
+                    <a href="{% url 'ventas:comanda_listar' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

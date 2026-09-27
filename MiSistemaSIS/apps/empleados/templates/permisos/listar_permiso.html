@@ -1,0 +1,42 @@
+{% extends 'permisos/base_permisos.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">{{ titulo }}</h1>
+
+    <div class="derecha_boton">
+        <a href="{% url 'empleados:empleado_listar' %}" class="btn btn-secundario">Empleados</a>
+        <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secundario">Cargos</a>
+        <a href="{% url 'empleados:crear_permiso' %}" class="btn-primario">Nuevo Permiso</a>
+    </div>
+
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Módulo</th>
+                    <th>Acción</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for permiso in permisos %}
+                <tr>
+                    <td><strong>{{ permiso.get_modulo_display }}</strong></td>
+                    <td>{{ permiso.get_accion_display }}</td>
+                    <td>{{ permiso.descripcion|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'empleados:eliminar_permiso' permiso.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="mensaje">No hay permisos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

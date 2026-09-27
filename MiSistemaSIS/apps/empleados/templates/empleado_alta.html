@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_empleados.html' %}
 
 {% block content %}
 <div class="contenedor">
@@ -59,7 +59,7 @@
 
                 <div class="derecha_boton">
                     <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
-                    <button type="submit" class="btn">{{ boton }}</button>
+                    <button type="submit" class="btn-primario">{{ boton }}</button>
                 </div>
             </form>
         </div>

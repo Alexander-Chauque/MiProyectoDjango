@@ -1,70 +1,104 @@
-{% extends 'base.html' %}
+{% extends 'base_empleados.html' %}
+{% load static %}
+
+{% block title %}Detalle de Empleado{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="contenedor">
     <h1 class="titulo">Detalle de Empleado</h1>
 
-    <div class="card">
-        <div class="card-body">
-            <table class="tabla">
-                <tr>
-                    <th>Usuario</th>
-                    <td>{{ empleado.user_auto }}</td>
-                </tr>
-                <tr>
-                    <th>Nombre</th>
-                    <td>{{ empleado.nombre_empleado }}</td>
-                </tr>
-                <tr>
-                    <th>Apellido</th>
-                    <td>{{ empleado.apellido_empleado }}</td>
-                </tr>
-                <tr>
-                    <th>DNI</th>
-                    <td>{{ empleado.dni }}</td>
-                </tr>
-                <tr>
-                    <th>Correo</th>
-                    <td>{{ empleado.correo }}</td>
-                </tr>
-                <tr>
-                    <th>Teléfono</th>
-                    <td>{{ empleado.telefono|default:"No registrado" }}</td>
-                </tr>
-                <tr>
-                    <th>Cargo</th>
-                    <td>{{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</td>
-                </tr>
-                <tr>
-                    <th>Estado</th>
-                    <td>
-                        {% if empleado.estado %}
-                            <span class="estado-activo">Activo</span>
-                        {% else %}
-                            <span class="estado-inactivo">Inactivo</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                <tr>
-                    <th>Fecha de Ingreso</th>
-                    <td>{{ empleado.fecha_ingreso }}</td>
-                </tr>
-                <tr>
-                    <th>Última Modificación</th>
-                    <td>{{ empleado.fecha_ultima_modificacion }}</td>
-                </tr>
-                {% if empleado.fecha_baja %}
-                <tr>
-                    <th>Fecha de Baja</th>
-                    <td>{{ empleado.fecha_baja }}</td>
-                </tr>
+    <div class="detalle-empleado">
+        <div class="detalle-header">
+            <div class="detalle-avatar">
+                <span class="avatar-inicial">
+                    {{ empleado.nombre_empleado|first }}{{ empleado.apellido_empleado|first }}
+                </span>
+            </div>
+            <div class="detalle-info-principal">
+                <h2>{{ empleado.nombre_empleado }} {{ empleado.apellido_empleado }}</h2>
+                <p class="detalle-cargo">
+                    {{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}
+                </p>
+            </div>
+            <div class="detalle-estado">
+                {% if empleado.estado %}
+                    <span class="badge badge-activo">Activo</span>
+                {% else %}
+                    <span class="badge badge-inactivo">Inactivo</span>
                 {% endif %}
-            </table>
-
-            <div class="derecha_boton">
-                <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Volver</a>
             </div>
         </div>
+
+        <div class="detalle-cuerpo">
+            
+            <div class="detalle-seccion">
+                <h3 class="detalle-subtitulo"> Datos Personales</h3>
+                <div class="detalle-grid">
+                    <div class="detalle-campo">
+                        <label>Usuario</label>
+                        <p><strong>{{ empleado.user_auto }}</strong></p>
+                    </div>
+                    <div class="detalle-campo">
+                        <label>DNI</label>
+                        <p>{{ empleado.dni }}</p>
+                    </div>
+                    <div class="detalle-campo">
+                        <label>Correo Electrónico</label>
+                        <p>{{ empleado.correo }}</p>
+                    </div>
+                    <div class="detalle-campo">
+                        <label>Teléfono</label>
+                        <p>{{ empleado.telefono|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detalle-seccion">
+                <h3 class="detalle-subtitulo">Datos Laborales</h3>
+                <div class="detalle-grid">
+                    <div class="detalle-campo">
+                        <label>Cargo</label>
+                        <p><strong>{{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</strong></p>
+                    </div>
+                    <div class="detalle-campo">
+                        <label>Fecha de Ingreso</label>
+                        <p>{{ empleado.fecha_ingreso|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="detalle-campo">
+                        <label>Última Modificación</label>
+                        <p>{{ empleado.fecha_ultima_modificacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div class="detalle-campo">
+                        <label>Estado</label>
+                        <p>
+                            {% if empleado.estado %}
+                                <span class="btn_activo">Activo</span>
+                            {% else %}
+                                <span class="btn_inactivo">Inactivo</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="detalle-acciones">
+            <a href="{% url 'empleados:empleado_listar' %}" class="btn btn-secundario">
+                Volver
+            </a>
+            <a href="{% url 'empleados:empleado_modificacion' pk=empleado.pk %}" class="btn btn-warning">
+            Editar Correo
+            </a>
+            <a href="{% url 'empleados:restablecer_contrasena' pk=empleado.pk %}" class="btn btn-tercero">
+            Restablecer Contraseña
+            </a>
+        </div>
+
     </div>
 </div>
 {% endblock %}

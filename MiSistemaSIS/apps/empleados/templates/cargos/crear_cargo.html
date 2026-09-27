@@ -1,0 +1,52 @@
+{% extends 'base_empleados.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">{{ titulo }}</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    {{ form.nombre_cargo }}
+                    {{ form.nombre_cargo.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    {{ form.descripcion_cargo }}
+                    {{ form.descripcion_cargo.errors }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Nivel de Acceso</label>
+                    <select name="nivel_acceso" class="form-control" required>
+                        <option value="1" {% if form.nivel_acceso.value == 1 %}selected{% endif %}>
+                            1 - Básico (Solo lectura)
+                        </option>
+                        <option value="2" {% if form.nivel_acceso.value == 2 %}selected{% endif %}>
+                            2 - Operador (Lectura y creación)
+                        </option>
+                        <option value="3" {% if form.nivel_acceso.value == 3 %}selected{% endif %}>
+                            3 - Supervisor (Lectura, creación y modificación)
+                        </option>
+                        <option value="4" {% if form.nivel_acceso.value == 4 %}selected{% endif %}>
+                            4 - Gerente (Todos excepto eliminar)
+                        </option>
+                        <option value="5" {% if form.nivel_acceso.value == 5 %}selected{% endif %}>
+                            5 - Administrador (Todos los permisos)
+                        </option>
+                    </select>
+                
+                <div class="derecha_boton">
+                    <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn btn-primario">{{ boton }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

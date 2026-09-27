@@ -1,0 +1,793 @@
+/* CONTENEDORES PRINCIPALES */
+.contenedor-comanda {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.contenido-comandas {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 30px;
+}
+
+/* TARJETAS (Formulario crear/editar) */
+.tarjeta {
+    background-color: var(--color-white);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(74, 74, 74, 0.08);
+    margin-bottom: 30px;
+    overflow: hidden;
+    border-left: 5px solid var(--color-cardones);
+}
+
+.tarjeta-encabezado {
+    background-color: var(--color-gris-oscuro);
+    color: var(--color-white);
+    padding: 15px 25px;
+    border-bottom: 3px solid var(--color-cardones);
+}
+
+.tarjeta-encabezado h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.tarjeta-cuerpo {
+    padding: 25px;
+}
+
+/* FILAS Y COLUMNAS */
+.fila {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.columna-mitad {
+    flex: 1;
+    min-width: 250px;
+}
+
+.grupo-campo {
+    margin-bottom: 15px;
+}
+
+.etiqueta-campo {
+    display: block;
+    font-weight: 600;
+    color: var(--color-gris-oscuro);
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* MOSTRAR MOZO (Formulario) */
+.mostrar-mozo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--color-gris-claro);
+    padding: 12px 15px;
+    border-radius: 6px;
+    border: 2px solid #E2E8F0;
+    min-height: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nombre-mozo {
+    font-weight: bold;
+    color: var(--color-gris-oscuro);
+    font-size: 15px;
+}
+
+.insignia-cargo {
+    background-color: var(--color-cardones);
+    color: var(--color-white);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+/* TABLA DE DETALLES (Formulario) */
+.tabla-detalles {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(74, 74, 74, 0.08);
+}
+
+.tabla-detalles thead {
+    background-color: var(--color-gris-oscuro);
+    color: var(--color-white);
+}
+
+.tabla-detalles th {
+    padding: 14px 12px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    border-bottom: 3px solid var(--color-cardones);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tabla-detalles td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #E2E8F0;
+    background-color: var(--color-white);
+    vertical-align: middle;
+}
+
+/* Anchos de columnas */
+.tabla-detalles th:first-child,
+.tabla-detalles td:first-child {
+    width: 30%;
+}
+
+.tabla-detalles th:nth-child(2),
+.tabla-detalles td:nth-child(2) {
+    width: 12%;
+    text-align: center;
+}
+
+.tabla-detalles th:nth-child(3),
+.tabla-detalles td:nth-child(3) {
+    width: 30%;
+}
+
+.tabla-detalles th:nth-child(4),
+.tabla-detalles td:nth-child(4) {
+    width: 12%;
+    text-align: center;
+}
+
+.tabla-detalles th:last-child,
+.tabla-detalles td:last-child {
+    width: 10%;
+    text-align: center;
+}
+
+/* Inputs y selects */
+.tabla-detalles select,
+.tabla-detalles input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 2px solid #E2E8F0;
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--color-gris-oscuro);
+    box-sizing: border-box;
+    background-color: var(--color-white);
+    transition: border-color 0.3s;
+}
+
+.tabla-detalles select:focus,
+.tabla-detalles input[type="number"]:focus {
+    outline: none;
+    border-color: var(--color-cardones);
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+.tabla-detalles .centrado {
+    text-align: center;
+}
+
+.fila-detalle {
+    height: 55px;
+}
+
+.fila-detalle:hover td {
+    background-color: var(--color-gris-claro);
+}
+
+.tabla-detalles input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-cardones);
+    cursor: pointer;
+}
+/* 6. BOTONES GENERALES */
+
+.botones-derecha {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+/* Botón verde (Nuevo, Guardar) */
+.btn-verde {
+    background-color: #2ecc71;
+    color: var(--color-white);
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-verde:hover {
+    background-color: #27AE60;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+/* SUBMENÚ DE COMANDAS */
+.submenu-comandas {
+    background-color: var(--color-gris-claro);
+    border-bottom: 3px solid var(--color-cardones);
+    padding: 0;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(74, 74, 74, 0.08);
+}
+
+.submenu-contenedor {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.submenu-enlace {
+    display: inline-block;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: var(--color-gris-oscuro);
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 4px solid transparent;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.submenu-enlace:hover {
+    background-color: rgba(245, 166, 35, 0.1);
+    color: var(--color-cardones);
+    border-bottom-color: var(--color-cardones);
+}
+
+.submenu-enlace.activo {
+    background-color: var(--color-white);
+    color: var(--color-cardones);
+    border-bottom-color: var(--color-cardones);
+    font-weight: bold;
+}
+/* LISTA DE COMANDAS */
+
+/* Badges de estado */
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    min-width: 100px;
+}
+
+.badge-pendiente {
+    background-color: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #F59E0B;
+}
+
+.badge-en_preparacion {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+    border: 1px solid #3B82F6;
+}
+
+.badge-entregado {
+    background-color: #D1FAE5;
+    color: #065F46;
+    border: 1px solid #10B981;
+}
+
+.badge-pagado {
+    background-color: #E0E7FF;
+    color: #3730A3;
+    border: 1px solid #6366F1;
+}
+
+.badge-cancelado {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #DC2626;
+}
+
+/* Acciones de la tabla */
+.acciones-comanda {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+/* Botones con iconos */
+.acciones-comanda {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+.btn-accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    border-radius: 6px;
+    color: var(--color-white);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-accion:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: var(--color-white);
+}
+
+/* Colores de los botones */
+.btn-detalle {
+    background-color: #2C5F8A;
+}
+
+.btn-detalle:hover {
+    background-color: #1e4a6e;
+}
+
+.btn-editar {
+    background-color: #D97706;
+}
+
+.btn-editar:hover {
+    background-color: #B45309;
+}
+
+.btn-eliminar {
+    background-color: #DC2626;
+}
+
+.btn-eliminar:hover {
+    background-color: #B91C1C;
+}
+
+
+.btn-detalle {
+    background-color: #2C5F8A;
+}
+
+.btn-detalle:hover {
+    background-color: #1e4a6e;
+}
+
+.btn-editar {
+    background-color: #D97706;
+}
+
+.btn-editar:hover {
+    background-color: #B45309;
+}
+
+.btn-baja {
+    background-color: #DC2626;
+}
+
+.btn-baja:hover {
+    background-color: #B91C1C;
+}
+
+/* Select de estado personalizado */
+.form-estado {
+    display: inline-block;
+    margin: 0;
+}
+
+.select-estado {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    min-width: 140px;
+    height: 32px;
+}
+.select-estado:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.3);
+}
+
+.select-estado-pendiente {
+    background-color: #FEF3C7;
+    color: #B45309;
+    border-color: #F59E0B;
+}
+
+.select-estado-en_preparacion {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+    border-color: #3B82F6;
+}
+
+.select-estado-entregado {
+    background-color: #D1FAE5;
+    color: #065F46;
+    border-color: #10B981;
+}
+
+.select-estado-pagado {
+    background-color: #E0E7FF;
+    color: #3730A3;
+    border-color: #6366F1;
+}
+
+.select-estado-cancelado {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border-color: #DC2626;
+}
+
+.select-estado:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================== */
+/* 9. DETALLE DE COMANDA (Diseño Factura) */
+/* ========================================== */
+
+/* Cabecera con título y botones */
+.detalle-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.detalle-header-top .titulo {
+    margin-bottom: 5px;
+}
+
+.detalle-header-top .subtitulo {
+    margin-bottom: 0;
+}
+
+.detalle-header-botones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Tarjeta factura */
+.factura {
+    background-color: var(--color-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(74, 74, 74, 0.1);
+    overflow: hidden;
+    border: 1px solid #E5E7EB;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Header de la factura */
+.factura-header {
+    background-color: var(--color-gris-oscuro);
+    color: var(--color-white);
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-bottom: 4px solid var(--color-cardones);
+}
+
+.factura-info {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.factura-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.factura-label {
+    font-size: 11px;
+    color: var(--color-crema);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.factura-valor {
+    font-size: 15px;
+    color: var(--color-white);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-weight: 500;
+}
+
+/* Cuerpo de la factura */
+.factura-cuerpo {
+    padding: 0;
+}
+
+.tabla-factura {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-factura thead {
+    background-color: var(--color-gris-claro);
+}
+
+.tabla-factura th {
+    padding: 15px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-gris-oscuro);
+    font-weight: 600;
+    border-bottom: 2px solid var(--color-cardones);
+}
+
+.tabla-factura td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #F0F0F0;
+    font-size: 14px;
+    color: var(--color-gris-oscuro);
+}
+
+.tabla-factura tbody tr:hover {
+    background-color: var(--color-gris-claro);
+}
+
+.tabla-factura .centrado {
+    text-align: center;
+}
+
+.tabla-factura .derecha {
+    text-align: right;
+}
+
+/* Anchos de columnas */
+.tabla-factura th:nth-child(1),
+.tabla-factura td:nth-child(1) {
+    width: 12%;
+}
+
+.tabla-factura th:nth-child(2),
+.tabla-factura td:nth-child(2) {
+    width: 38%;
+}
+
+.tabla-factura th:nth-child(3),
+.tabla-factura td:nth-child(3) {
+    width: 10%;
+}
+
+.tabla-factura th:nth-child(4),
+.tabla-factura td:nth-child(4) {
+    width: 18%;
+}
+
+.tabla-factura th:nth-child(5),
+.tabla-factura td:nth-child(5) {
+    width: 22%;
+}
+
+/* Observaciones */
+.factura-observaciones {
+    padding: 15px 30px;
+    background-color: #FFFBEB;
+    border-top: 1px solid #FDE68A;
+    border-bottom: 1px solid #FDE68A;
+}
+
+.factura-observaciones .factura-label {
+    color: #B45309;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.factura-observaciones p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-gris-oscuro);
+    font-style: italic;
+}
+
+/* Total destacado */
+.factura-total {
+    background-color: var(--color-cardones);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.factura-total-contenido {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.factura-total-label {
+    font-size: 14px;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-white);
+    font-weight: 500;
+}
+
+.factura-total-valor {
+    font-size: 28px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    color: var(--color-white);
+    letter-spacing: 1px;
+}
+
+/* Badges de tipo (Plato/Bebida) */
+.badge-tipo {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-plato {
+    background-color: rgba(245, 166, 35, 0.15);
+    color: #B45309;
+}
+
+.badge-bebida {
+    background-color: rgba(44, 95, 138, 0.15);
+    color: #1E40AF;
+}
+
+/* ========================================== */
+/* 10. RESPONSIVE */
+/* ========================================== */
+
+@media (max-width: 768px) {
+    .fila {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .tabla-detalles {
+        font-size: 12px;
+    }
+    
+    .tabla-detalles th,
+    .tabla-detalles td {
+        padding: 8px 6px;
+    }
+    
+    .botones-derecha {
+        justify-content: center;
+    }
+    
+    .submenu-contenedor {
+        padding: 0 10px;
+    }
+    
+    .submenu-enlace {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+    
+    .contenido-comandas {
+        padding: 0 10px 20px;
+    }
+    
+    .factura-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .factura-info {
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+    }
+    
+    .tabla-factura {
+        font-size: 12px;
+    }
+    
+    .tabla-factura th,
+    .tabla-factura td {
+        padding: 10px 8px;
+    }
+    
+    .factura-total-valor {
+        font-size: 22px;
+    }
+    
+    .detalle-header-top {
+        flex-direction: column;
+    }
+    
+    .detalle-header-botones {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .acciones-comanda {
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    
+    .btn-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+    
+    .select-estado {
+        min-width: 100px;
+        font-size: 10px;
+        padding: 4px 25px 4px 8px;
+    }
+}

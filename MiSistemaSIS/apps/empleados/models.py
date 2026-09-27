@@ -7,17 +7,23 @@ from django.contrib.auth.hashers import make_password
 #USUARIO GESTION
 #Cargo
 class Cargo(models.Model):
-    nombre_cargo = models.CharField(max_length=100)
+    nombre_cargo = models.CharField(max_length=100, unique=True)
     descripcion_cargo = models.TextField(blank=True)
+    nivel_acceso = models.BigIntegerField(default=1)
     def __str__(self):
         return self.nombre_cargo
+
+    def save(self, *args, **kwargs):
+        if self.nombre_cargo:
+            self.nombre_cargo=self.nombre_cargo.title()
+        super().save(*args, **kwargs)
 
 #Empleado
 class Empleado(models.Model):
     nombre_empleado = models.CharField(max_length=100)
     apellido_empleado = models.CharField ( max_length=100)
-    dni = models.CharField(max_length=100)
-    telefono = models.CharField(max_length=20, blank=True)
+    dni = models.CharField(max_length=100, unique=True)
+    telefono = models.CharField(max_length=20, blank=True, unique=True)
     correo = models.EmailField(max_length=80, blank=True)
     user_auto = models.CharField(max_length=100, unique=True, blank=True)
 
@@ -30,7 +36,7 @@ class Empleado(models.Model):
     debe_cambiar_contrasena = models.BooleanField(default=False)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, null=True, )
+    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, null=True, blank=True)
 
 
     def __str__(self):
@@ -38,9 +44,20 @@ class Empleado(models.Model):
 
     def generate_user_auto(self):
         if self.nombre_empleado and self.apellido_empleado:
-            nombre = self.nombre_empleado.lower()
-            apellido = self.apellido_empleado.lower()
-            user_auto = f"{nombre}.{apellido}"
+            nombre = self.nombre_empleado.lower().strip()
+            apellido = self.apellido_empleado.lower().strip()
+            primera_letra = nombre[0] if nombre else ''
+            
+            # Base del usuario: apellido + primera letra del nombre
+            base = f"{apellido}{primera_letra}"
+            
+            # Verificar si ya existe y agregar número si es necesario
+            user_auto = base
+            contador = 1
+            while Empleado.objects.filter(user_auto=user_auto).exists():
+                user_auto = f"{base}{contador}"
+                contador += 1
+            
             return user_auto
         return None
 
@@ -72,7 +89,6 @@ class Empleado(models.Model):
     
 #Tipo permiso
 class TipoPermiso(models.Model):
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     modulo = models.CharField(max_length=50, choices=[
         ('platos', 'Platos'),
         ('bebidas', 'Bebidas'),
@@ -91,12 +107,19 @@ class TipoPermiso(models.Model):
         ('leer', 'Leer'), ('escribir', 'Escribir'), ('modificar', 'Modificar'), ('eliminar', 'Eliminar')
     ])
 
+    class Meta:
+        unique_together = ['modulo', 'accion']
+
     def __str__(self):
-        return f'{self.cargo.nombre_cargo} - ({self.modulo} - {self.accion})'
+        return f'({self.modulo} - {self.accion})'
 
 class PermisoXCargo(models.Model):
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     tipo_permiso = models.ForeignKey(TipoPermiso, on_delete=models.CASCADE)
+    fecha_asignacion = models.DateTimeField(auto_now_add=True, blank=True)
+
+    class Meta:
+        unique_together = ['cargo', 'tipo_permiso']
 
     def __str__(self):
         return f'{self.cargo.nombre_cargo} - ({self.tipo_permiso.modulo} - {self.tipo_permiso.accion})'
@@ -113,3 +136,4 @@ class Asistencia(models.Model):
     empleado=models.ForeignKey(Empleado, on_delete=models.CASCADE)
     tipo_asistencia=models.ForeignKey(TipoAsistencia, on_delete=models.CASCADE)
     fecha_asistencia=models.DateField()
+

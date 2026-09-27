@@ -1,10 +1,11 @@
-{% extends 'base.html' %}
+{% extends 'base_inventario.html' %}
 
 {% block content %}
 <h1 class="titulo">Listado de Ingredientes</h1>
 <div class="derecha_boton">
     <div>
-        <a href="{% url 'inventario:crear_ingrediente' %}" class="btn">Nuevo Ingrediente</a>
+        <a href="{% url 'inventario:listar_platos' %}" class="btn">Volver a Platos</a>
+        <a href="{% url 'inventario:crear_ingrediente' %}" class="btn-primario">Nuevo Ingrediente</a>
     </div>
 </div>
 <table class="tabla">
@@ -25,14 +26,14 @@
             <td>{{ ingrediente.costo_unitario }}</td>
             <td>
                     {% if ingrediente.estado_ingrediente %}
-                        <span class="estado-activo">Activo</span>
+                        <span class="estado_activo">Activo</span>
                     {% else %}
-                        <span class="estado-inactivo">Inactivo</span>
+                        <span class="estado_inactivo">Inactivo</span>
                     {% endif %}
                 </td>
             <td>
-                <a href="{% url 'inventario:detalle_ingrediente' ingrediente.id %}" class="btn-tercero">Ver</a>
-                <a href="{% url 'inventario:editar_ingrediente' ingrediente.pk %}" class="btn-warning">Editar</a>
+                <a href="{% url 'inventario:detalle_ingrediente' ingrediente.id %}" class="btn-tercero">Detalle</a>
+                <a href="{% url 'inventario:editar_ingrediente' ingrediente.pk %}" class="btn-warning">Modificar</a>
                 <a href="{% url 'inventario:eliminar_ingrediente' ingrediente.pk %}" class="btn-danger">Eliminar</a>
                 <a href="{% url 'inventario:estado_ingrediente' ingrediente.pk %}" class="{% if ingrediente.estado_ingrediente %}estado_inactivar{% else %}estado_activar{% endif %}"> 
                         {% if ingrediente.estado_ingrediente %}Inactivar{% else %}Activar{% endif %}

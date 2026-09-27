@@ -1,0 +1,34 @@
+{% extends 'base_mesas.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Editar Mesa {{ mesa.numero_mesa }}</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Número de Mesa</label>
+                    {{ form.numero_mesa }}
+                    {{ form.numero_mesa.errors }}
+                    <small class="text-muted">Ej: 1, 2, 3, etc.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Capacidad (personas)</label>
+                    {{ form.capacidad }}
+                    {{ form.capacidad.errors }}
+                    <small class="text-muted">Ej: 2, 4, 6, 8 personas</small>
+                </div>
+                
+                <div class="derecha_boton">
+                    <a href="{% url 'ventas:listar_mesa' %}" class="btn btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn-primario">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Los Cardones - Bienvenido{% endblock %}
+
+{% block content %}
+<div class="bienvenida-container">
+    <div class="bienvenida-card">
+        <div class="bienvenida-logo">
+            <img src="{% static 'img/logo.jpg' %}" alt="Los Cardones" class="logo-bienvenida">
+        </div>
+        <h1 class="bienvenida-titulo">Los Cardones</h1>
+        <p class="bienvenida-subtitulo">Sistema de Gestión de Restaurante</p>
+        
+        <div class="bienvenida-info">
+            <p>Bienvenido al sistema de gestión. Para acceder a los módulos, por favor iniciá sesión.</p>
+        </div>
+        
+        <div class="bienvenida-botones">
+            <a href="{% url 'login' %}" class="btn-bienvenida">
+                Iniciar Sesión
+            </a>
+        </div>
+        
+        <p class="bienvenida-footer">
+            © 2026 Los Cardones - Todos los derechos reservados
+        </p>
+    </div>
+</div>
+
+<style>
+    .bienvenida-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 20px;
+    }
+    
+    .bienvenida-card {
+        background-color: var(--color-white);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(92, 61, 46, 0.15);
+        padding: 50px 40px;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+        border-top: 6px solid var(--color-cardones);
+    }
+    
+    .bienvenida-logo {
+        width: 120px;
+        height: auto;
+        margin-bottom: 20px;
+    }
+    
+    .bienvenida-titulo {
+        font-size: 36px;
+        color: var(--color-marron-oscuro);
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    
+    .bienvenida-subtitulo {
+        font-size: 16px;
+        color: var(--color-marron-claro);
+        margin-bottom: 30px;
+    }
+    
+    .bienvenida-info {
+        background-color: var(--color-beige);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .bienvenida-info p {
+        margin: 0;
+        color: var(--color-marron-oscuro);
+        font-size: 15px;
+        line-height: 1.6;
+    }
+    
+    .bienvenida-botones {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    
+    .btn-bienvenida {
+        display: inline-block;
+        background-color: var(--color-cardones);
+        color: var(--color-white);
+        padding: 15px 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .btn-bienvenida:hover {
+        background-color: var(--color-marron-oscuro);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(92, 61, 46, 0.3);
+    }
+    
+    .bienvenida-footer {
+        font-size: 12px;
+        color: var(--color-marron-claro);
+        margin: 0;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}

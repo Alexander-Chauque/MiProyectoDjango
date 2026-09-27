@@ -1,0 +1,60 @@
+{% extends 'base_mesas.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">{{ titulo }}</h1>
+
+    <div class="derecha_boton">
+        <a href="{% url 'ventas:crear_mesa' %}" class="btn-primario">Nueva Mesa</a>
+    </div>
+
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>N° Mesa</th>
+                    <th>Capacidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mesa in mesas %}
+                <tr>
+                    <td><strong>{{ mesa.numero_mesa }}</strong></td>
+                    <td>{{ mesa.capacidad }} personas</td>
+                    <td>
+                        {% if mesa.estado_mesa %}
+                            <span class="estado_activo">Disponible</span>
+                        {% else %}
+                            <span class="estado_inactivo">Ocupada</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'ventas:editar_mesa' mesa.pk %}" class="btn-warning">Editar</a>
+                        <a href="{% url 'ventas:eliminar_mesa' mesa.pk %}" class="btn-danger">Eliminar</a>
+                        {% if mesa.estado_mesa %}
+                            <a href="{% url 'ventas:estado_mesa' mesa.pk %}" 
+                            class="btn-secundario"
+                            onclick="return confirm('¿Marcar la Mesa {{ mesa.numero_mesa }} como OCUPADA?')">
+                                Ocupar
+                            </a>
+                        {% else %}
+                            <a href="{% url 'ventas:estado_mesa' mesa.pk %}" 
+                            class="btn-reactivar"
+                            onclick="return confirm('¿Marcar la Mesa {{ mesa.numero_mesa }} como DISPONIBLE?')">
+                                Liberar
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="mensaje">No hay mesas registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

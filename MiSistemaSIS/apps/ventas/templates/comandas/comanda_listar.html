@@ -1,0 +1,76 @@
+{% extends 'comandas/base_comandas.html' %}
+{% load static %}
+
+{% block title %}Listar Comandas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Listar Comandas</h1>
+
+    <div class="derecha_boton">
+        <a href="{% url 'ventas:comanda_crear' %}" class="btn-primario"> Nueva Comanda
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Mesa</th>
+                    <th>Mozo</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comanda in comandas %}
+                <tr>
+                    <td><strong>{{ comanda.id_comanda }}</strong></td>
+                    <td>Mesa {{ comanda.mesa.numero_mesa }}</td>
+                    <td>{{ comanda.empleado.nombre_empleado }} {{ comanda.empleado.apellido_empleado }}</td>
+                    <td><strong>${{ comanda.total_comanda|floatformat:0 }}</strong></td>
+                    <td>
+                        <span class="badge badge-{{ comanda.estado_comanda }}">
+                            {{ comanda.get_estado_comanda_display }}
+                        </span>
+                    </td>
+                    <td>{{ comanda.fecha_hora|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <div class="acciones-comanda">
+                            <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-accion btn-detalle">Detalle</a>
+                            <a href="{% url 'ventas:comanda_editar' comanda.id_comanda %}" class="btn-accion btn-editar">Editar</a>
+                            <!-- <a href="{% url 'ventas:comanda_eliminar' comanda.id_comanda %}" class="btn-accion btn-eliminar">Eliminar</a> -->
+                            
+                            <form method="POST" action="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}" class="form-estado">
+                                {% csrf_token %}
+                                <select name="estado" 
+                                        class="select-estado select-estado-{{ comanda.estado_comanda }}" 
+                                        <!-- onchange="this.form.submit()"> -->
+                                    <option value="pendiente" {% if comanda.estado_comanda == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                    <option value="en_preparacion" {% if comanda.estado_comanda == 'en_preparacion' %}selected{% endif %}>En Preparación</option>
+                                    <option value="entregado" {% if comanda.estado_comanda == 'entregado' %}selected{% endif %}>Entregado</option>
+                                    <option value="pagado" {% if comanda.estado_comanda == 'pagado' %}selected{% endif %}>Pagado</option>
+                                    <option value="cancelado" {% if comanda.estado_comanda == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                </select>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="mensaje">No hay comandas registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

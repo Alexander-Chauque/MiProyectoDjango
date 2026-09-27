@@ -1,0 +1,49 @@
+{% extends 'base_empleados.html' %}
+{% load static %}
+
+{% block title %}Eliminar Cargo{% endblock %}
+{% block nav_brand %}Gestión de Empleados{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Eliminar Cargo</h1>
+
+    <div class="tarjeta-confirmacion">
+        <h2 class="tarjeta-titulo">¿Estás seguro de eliminar este cargo?</h2>
+        
+        <p class="tarjeta-mensaje">
+            Estás a punto de eliminar el siguiente cargo:
+        </p>
+        
+        <div class="tarjeta-detalle">
+            <p class="detalle-linea">
+                <strong>Nombre:</strong> {{ cargo.nombre_cargo }}
+            </p>
+            {% if cargo.descripcion_cargo %}
+            <p class="detalle-linea">
+                <strong>Descripción:</strong> {{ cargo.descripcion_cargo }}
+            </p>
+            {% endif %}
+            <p class="detalle-linea">
+                <strong>Nivel de Acceso:</strong> {{ cargo.nivel_acceso }}
+            </p>
+        </div>
+        
+        <p class="tarjeta-advertencia">
+            <strong>Esta acción no se puede deshacer.</strong> Los empleados con este cargo quedarán sin cargo asignado.
+        </p>
+
+        <form method="POST" class="tarjeta-formulario">
+            {% csrf_token %}
+            <div class="tarjeta-botones">
+                <a href="{% url 'empleados:listar_cargo' %}" class="btn-secundario">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-danger">
+                    Sí, Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

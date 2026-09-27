@@ -1,13 +1,62 @@
-# Ignorar entorno virtual
+# ==========================================
+# ENTORNO VIRTUAL
+# ==========================================
 venv/
 venv_311/
+env/
+ENV/
 
-# Ignorar archivos de caché
+# ==========================================
+# PYTHON
+# ==========================================
 __pycache__/
-*.pyc
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+.eggs/
 
-# Ignorar archivos estáticos generados
+# ==========================================
+# DJANGO
+# ==========================================
+*.log
+db.sqlite3
+db.sqlite3-journal
 staticfiles/
+media/
 
-# Ignorar archivo con las contraseñas 
+# ==========================================
+# VARIABLES DE ENTORNO
+# ==========================================
 .env
+.env.local
+.env.*.local
+
+# ==========================================
+# VS CODE
+# ==========================================
+.vscode/
+*.code-workspace
+
+# ==========================================
+# SISTEMA OPERATIVO
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# IDE / EDITORES
+# ==========================================
+.idea/
+*.swp
+*.swo
+*~
+
+# ==========================================
+# COMPRIMIDOS Y TEMPORALES
+# ==========================================
+*.zip
+*.tar.gz
+*.rar
+*.bak

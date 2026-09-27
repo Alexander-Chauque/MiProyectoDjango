@@ -1,0 +1,56 @@
+{% extends 'permisos/base_permisos.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">{{ titulo }}</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label class="form-label">Módulo</label>
+                    <select name="modulo" class="form-control" required>
+                        <option value="">Seleccione un módulo</option>
+                        <option value="platos">Platos</option>
+                        <option value="bebidas">Bebidas</option>
+                        <option value="ingredientes">Ingredientes</option>
+                        <option value="categorias">Categorías</option>
+                        <option value="empleados">Empleados</option>
+                        <option value="cargos">Cargos</option>
+                        <option value="permisos">Permisos</option>
+                        <option value="comandas">Comandas</option>
+                        <option value="mesas">Mesas</option>
+                        <option value="ventas">Ventas</option>
+                        <option value="caja">Caja</option>
+                        <option value="gastos">Gastos</option>
+                        <option value="reportes">Reportes</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Acción</label>
+                    <select name="accion" class="form-control" required>
+                        <option value="">Seleccione una acción</option>
+                        <option value="leer">Leer</option>
+                        <option value="crear">Crear</option>
+                        <option value="modificar">Modificar</option>
+                        <option value="eliminar">Eliminar</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <input type="text" name="descripcion" class="form-control" placeholder="Descripción del permiso">
+                </div>
+                
+                <div class="derecha_boton">
+                    <a href="{% url 'empleados:listar_permiso' %}" class="btn btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn btn-primario">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base_inventario.html' %}
+
+{% block title %}Detalle de Bebida{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Detalle de Bebida</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="tabla">
+                        <tr>
+                            <th>Nombre</th>
+                            <td>{{ bebida.nombre_bebida }}</td>
+                        </tr>
+                        <tr>
+                            <th>Tipo</th>
+                            <td>{{ bebida.id_tipo_bebida.nombre_tipo_bebida }}</td>
+                        </tr>
+                        <tr>
+                            <th>Precio</th>
+                            <td>$ {{ bebida.precio_bebida }}</td>
+                        </tr>
+                        <tr>
+                            <th>Descripción</th>
+                            <td>{{ bebida.descripcion_bebida|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Estado</th>
+                            <td>
+                                {% if bebida.disponible_bebida %}
+                                    <span class="estado-activo">Disponible</span>
+                                {% else %}
+                                    <span class="estado-inactivo">No disponible</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="derecha_boton">
+                <a href="{% url 'inventario:listar_bebida' %}" class="btn btn-secondary">Volver</a>
+                <a href="{% url 'inventario:editar_bebida' bebida.pk %}" class="btn btn-warning">Editar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

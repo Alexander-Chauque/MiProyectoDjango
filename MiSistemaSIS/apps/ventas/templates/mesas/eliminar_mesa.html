@@ -1,0 +1,21 @@
+{% extends 'base_mesas.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Eliminar Mesa</h1>
+
+    <div class="card">
+        <div class="card-body text-center">
+            <p>¿Estás seguro de eliminar la <strong>Mesa {{ mesa.numero_mesa }}</strong>?</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="derecha_boton">
+                    <a href="{% url 'ventas:listar_mesa' %}" class="btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn-danger">Sí, Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'permisos/base_permisos.html' %}
+
+{% block title %}Asignar Permisos a Cargos{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1>Asignar Permisos a Cargos</h1>
+
+    <form method="POST" id="form-asignar-permisos">
+        {% csrf_token %}
+
+        <!-- Selección de Cargo -->
+        <div class="form-group">
+            <label for="cargo">Seleccione un Cargo</label>
+            <select name="cargo" id="cargo" class="form-control" required>
+                <option value="">-- Seleccione un cargo --</option>
+                {% for cargo in cargos %}
+                    <option value="{{ cargo.pk }}" 
+                        {% if permisos_asignados and cargo.pk in permisos_asignados %}selected{% endif %}>
+                        {{ cargo.nombre_cargo }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Botones de selección masiva -->
+        <div class="botones-masivos" style="margin: 15px 0;">
+            <button type="button" id="btn-seleccionar-todos" class="btn btn-secundario">Seleccionar todos</button>
+            <button type="button" id="btn-deseleccionar-todos" class="btn btn-secundario">Deseleccionar todos</button>
+        </div>
+
+        <!-- Lista de Permisos -->
+        <h3>Permisos</h3>
+        <div id="lista-permisos" class="lista-permisos">
+            {% for permiso in permisos %}
+                <label class="permiso-item">
+                    <input type="checkbox" name="permisos" value="{{ permiso.pk }}" class="checkbox-permiso">
+                    {{ permiso.modulo|upper }} - {{ permiso.accion }}
+                </label>
+            {% empty %}
+                <p>No hay permisos creados. <a href="{% url 'empleados:crear_permiso' %}">Crear permiso</a></p>
+            {% endfor %}
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="acciones-form" style="margin-top: 20px;">
+            <a href="{% url 'empleados:listar_cargo' %}" class=" btn btn-secundario">Cancelar</a>
+            <button type="submit" class="btn btn-success">Guardar Permisos</button>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript para seleccionar/deseleccionar todos -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnSeleccionar = document.getElementById('btn-seleccionar-todos');
+        const btnDeseleccionar = document.getElementById('btn-deseleccionar-todos');
+        const checkboxes = document.querySelectorAll('.checkbox-permiso');
+
+        if (btnSeleccionar) {
+            btnSeleccionar.addEventListener('click', function() {
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.checked = true;
+                });
+            });
+        }
+
+        if (btnDeseleccionar) {
+            btnDeseleccionar.addEventListener('click', function() {
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.checked = false;
+                });
+            });
+        }
+    });
+
+    const permisosAsignados = {
+        {% for cargo_pk, permisos_list in permisos_asignados.items %}
+            "{{ cargo_pk }}": [{% for p in permisos_list %}{{ p }},{% endfor %}],
+        {% endfor %}
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectCargo = document.getElementById('cargo');
+        const checkboxes = document.querySelectorAll('.checkbox-permiso');
+
+        function marcarPermisosDelCargo() {
+            const cargoSeleccionado = selectCargo.value;
+            const permisosDelCargo = permisosAsignados[cargoSeleccionado] || [];
+            
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = permisosDelCargo.includes(parseInt(checkbox.value));
+            });
+        }
+
+        selectCargo.addEventListener('change', marcarPermisosDelCargo);
+
+        if (selectCargo.value) {
+            marcarPermisosDelCargo();
+        }
+    });
+</script>
+
+<style>
+    .lista-permisos {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        max-height: 500px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #fafafa;
+    }
+
+    .permiso-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .permiso-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .botones-masivos {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-secundario {
+        background-color: #8B4513;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-secundario:hover {
+        background-color: #A0522D;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .acciones-form {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+</style>
+{% endblock %}

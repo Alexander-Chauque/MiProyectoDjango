@@ -1,0 +1,36 @@
+{% extends 'permisos/base_permisos.html' %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">{{ titulo }}</h1>
+    
+    <div class="derecha_boton">
+        <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secundario">Volver a Cargos</a>
+    </div>
+
+    <div class="table-container">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Módulo</th>
+                    <th>Acción Permiso</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in permisos %}
+                <tr>
+                    <td><strong>{{ item.tipo_permiso.modulo|upper }}</strong></td>
+                    <td><span class="estado-activo">{{ item.tipo_permiso.accion }}</span></td>
+                    <td>{{ item.tipo_permiso.descripcion }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="mensaje">Este cargo aún no tiene permisos asignados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

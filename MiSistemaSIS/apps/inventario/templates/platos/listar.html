@@ -1,11 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'base_inventario.html' %}
 {% block title %}Gestión de Platos{% endblock %}
 {% block nav_brand %}Gestión de Platos{% endblock %}
 {% block content %}
 <h1 class="titulo">Listado de Platos</h1>
 
 <div class="derecha_boton">
-    <a href="{% url 'inventario:crear_plato' %}" class="btn">Nuevo Plato</a>
+    <a href="{% url 'inventario:listar_categorias' %}" class="btn btn-secundario">Categorías</a>
+    {% if user.empleado.cargo.nivel_acceso >= 3 %}
+        <a href="{% url 'inventario:listar_ingredientes' %}" class="btn">Ingredientes</a>
+    {% endif %}   
+    <a href="{% url 'inventario:crear_plato' %}" class="btn-primario">Nuevo Plato</a>
 </div>
 
 <table class="tabla">
@@ -32,8 +36,8 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'inventario:detalle_plato' plato.id %}" class="btn-tercero">Ver</a>
-                <a href="{% url 'inventario:editar_plato' plato.id %}" class="btn-warning">Editar</a>
+                <a href="{% url 'inventario:detalle_plato' plato.id %}" class="btn-tercero">Detalle</a>
+                <a href="{% url 'inventario:editar_plato' plato.id %}" class="btn-warning">Modificar</a>
                 <a href="{% url 'inventario:eliminar_plato' plato.id %}" class="btn-danger">Eliminar</a>
                 <a href="{% url 'inventario:estado_plato' plato.id %}" class="{% if plato.estado_plato %}estado_inactivar{% else %}estado_activar{% endif %}"> 
                         {% if plato.estado_plato %}Inactivar{% else %}Activar{% endif %}
