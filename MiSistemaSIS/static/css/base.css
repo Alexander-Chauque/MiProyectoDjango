@@ -527,10 +527,7 @@ option {
     color: var(--color-blanco);
 }
 
-/* ========================================== */
 /* NOTIFICACIONES / ALERTAS */
-/* ========================================== */
-
 .alert {
     padding: 15px;
     border-radius: 6px;
@@ -571,10 +568,7 @@ option {
     text-align: center;
     font-family: 'Oswald', sans-serif;
 }
-
-/* ========================================== */
 /* FOOTER */
-/* ========================================== */
 
 .footer {
     background-color: var(--color-gris-oscuro);
@@ -629,10 +623,7 @@ option {
     width: auto;
     margin-bottom: 8px;
 }
-/* ========================================== */
 /* MÓDULOS (TARJETAS DEL HOME) */
-/* ========================================== */
-
 .modulos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -700,11 +691,7 @@ option {
     font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-
-/* ========================================== */
 /* DETALLE DE EMPLEADO */
-/* ========================================== */
-
 .detalle-empleado {
     background-color: var(--color-blanco);
     border-radius: 12px;
@@ -845,10 +832,7 @@ option {
     border-top: 1px solid #E5E7EB;
     flex-wrap: wrap;
 }
-
-/* ========================================== */
 /* RESPONSIVE */
-/* ========================================== */
 
 @media (max-width: 768px) {
     .navbar {

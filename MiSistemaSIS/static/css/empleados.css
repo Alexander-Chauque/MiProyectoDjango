@@ -1,11 +1,4 @@
-/* ========================================== */
-/* EMPLEADOS - ESTILOS */
-/* ========================================== */
-
-/* ========================================== */
-/* 1. BADGES (estado y cargo) */
-/* ========================================== */
-
+/*BADGES (estado y cargo) */
 .badge {
     display: inline-block;
     padding: 4px 12px;
@@ -31,22 +24,14 @@
     background-color: #F3F4F6;
     color: #6B7280;
 }
-
-/* ========================================== */
-/* 2. ACCIONES DE LA TABLA */
-/* ========================================== */
-
+/* ACCIONES DE LA TABLA */
 .acciones-tabla {
     display: flex;
     gap: 5px;
     justify-content: center;
     flex-wrap: nowrap;
 }
-
-/* ========================================== */
-/* 3. BOTONES CON ICONOS (LISTA) */
-/* ========================================== */
-
+/* BOTONES CON ICONOS (LISTA) */
 .btn-icon {
     display: inline-flex;
     align-items: center;
@@ -114,10 +99,7 @@
     margin-right: 8px;
     font-size: 13px;
 }
-
-/* ========================================== */
 /* 4. DETALLE DE EMPLEADO */
-/* ========================================== */
 
 .detalle-empleado {
     background-color: var(--color-blanco);
@@ -259,10 +241,7 @@
     border-top: 1px solid #E5E7EB;
     flex-wrap: wrap;
 }
-
-/* ========================================== */
-/* 5. FORMULARIO SIMPLE (Alta / Modificación) */
-/* ========================================== */
+/*FORMULARIO SIMPLE (Alta / Modificación) */
 
 .formulario-simple {
     max-width: 700px;
@@ -371,10 +350,7 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
 }
-
-/* ========================================== */
-/* 6. BOTONES ADICIONALES */
-/* ========================================== */
+/* BOTONES ADICIONALES */
 
 /* Botón restablecer (para el formulario de reset de contraseña) */
 .btn-restablecer {
@@ -399,10 +375,7 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
 }
-
-/* ========================================== */
-/* 7. RESPONSIVE */
-/* ========================================== */
+/*RESPONSIVE */
 
 @media (max-width: 768px) {
     /* Lista */

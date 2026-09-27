@@ -9,11 +9,7 @@
 
 {% block content %}
 <div class="contenedor-comanda">
-
-    <!-- TARJETA FACTURA -->
     <div class="factura">
-        
-        <!-- HEADER DE LA FACTURA -->
         <div class="factura-header">
             <div class="factura-info">
                 <div class="factura-campo">
@@ -36,7 +32,6 @@
             </div>
         </div>
 
-        <!-- TABLA DE DETALLES -->
         <div class="factura-cuerpo">
             <table class="tabla-factura">
                 <thead>
@@ -73,7 +68,6 @@
             </table>
         </div>
 
-        <!-- OBSERVACIONES -->
         {% if comanda.observaciones_comanda %}
         <div class="factura-observaciones">
             <span class="factura-label">Observaciones:</span>
@@ -81,7 +75,6 @@
         </div>
         {% endif %}
 
-        <!-- TOTAL DESTACADO -->
         <div class="factura-total">
             <div class="factura-total-contenido">
                 <span class="factura-total-label">Total a Pagar</span>

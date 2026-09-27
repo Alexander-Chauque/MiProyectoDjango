@@ -1,11 +1,4 @@
-/* ========================================== */
-/* COMANDAS - ESTILOS */
-/* ========================================== */
-
-/* ========================================== */
-/* 1. CONTENEDORES PRINCIPALES */
-/* ========================================== */
-
+/* CONTENEDORES PRINCIPALES */
 .contenedor-comanda {
     max-width: 1100px;
     margin: 0 auto;
@@ -17,10 +10,7 @@
     padding: 0 20px 30px;
 }
 
-/* ========================================== */
-/* 2. TARJETAS (Formulario crear/editar) */
-/* ========================================== */
-
+/* TARJETAS (Formulario crear/editar) */
 .tarjeta {
     background-color: var(--color-white);
     border-radius: 10px;
@@ -49,10 +39,7 @@
     padding: 25px;
 }
 
-/* ========================================== */
-/* 3. FILAS Y COLUMNAS */
-/* ========================================== */
-
+/* FILAS Y COLUMNAS */
 .fila {
     display: flex;
     gap: 20px;
@@ -80,10 +67,7 @@
     letter-spacing: 0.5px;
 }
 
-/* ========================================== */
-/* 4. MOSTRAR MOZO (Formulario) */
-/* ========================================== */
-
+/* MOSTRAR MOZO (Formulario) */
 .mostrar-mozo {
     display: flex;
     align-items: center;
@@ -114,11 +98,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-
-/* ========================================== */
-/* 5. TABLA DE DETALLES (Formulario) */
-/* ========================================== */
-
+/* TABLA DE DETALLES (Formulario) */
 .tabla-detalles {
     width: 100%;
     border-collapse: collapse;
@@ -219,10 +199,7 @@
     accent-color: var(--color-cardones);
     cursor: pointer;
 }
-
-/* ========================================== */
 /* 6. BOTONES GENERALES */
-/* ========================================== */
 
 .botones-derecha {
     display: flex;
@@ -258,11 +235,7 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
 }
-
-/* ========================================== */
-/* 7. SUBMENÚ DE COMANDAS */
-/* ========================================== */
-
+/* SUBMENÚ DE COMANDAS */
 .submenu-comandas {
     background-color: var(--color-gris-claro);
     border-bottom: 3px solid var(--color-cardones);
@@ -307,10 +280,7 @@
     border-bottom-color: var(--color-cardones);
     font-weight: bold;
 }
-
-/* ========================================== */
-/* 8. LISTA DE COMANDAS */
-/* ========================================== */
+/* LISTA DE COMANDAS */
 
 /* Badges de estado */
 .badge {
