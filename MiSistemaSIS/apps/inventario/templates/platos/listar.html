@@ -5,7 +5,11 @@
 <h1 class="titulo">Listado de Platos</h1>
 
 <div class="derecha_boton">
-    <a href="{% url 'inventario:crear_plato' %}" class="btn">Nuevo Plato</a>
+    <a href="{% url 'inventario:listar_categorias' %}" class="btn btn-secundario">Categorías</a>
+    {% if user.empleado.cargo.nivel_acceso >= 3 %}
+        <a href="{% url 'inventario:listar_ingredientes' %}" class="btn">Ingredientes</a>
+    {% endif %}   
+    <a href="{% url 'inventario:crear_plato' %}" class="btn-primario">Nuevo Plato</a>
 </div>
 
 <table class="tabla">

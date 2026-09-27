@@ -14,7 +14,7 @@
             <form method="POST">
                 {% csrf_token %}
                 <div class="derecha_boton">
-                    <a href="{% url 'inventario:bebida_listar' %}" class="btn btn-secondary">Cancelar</a>
+                    <a href="{% url 'inventario:listar_bebida' %}" class="btn btn-secundario">Cancelar</a>
                     <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
                 </div>
             </form>

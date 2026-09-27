@@ -1,11 +1,13 @@
-{% extends 'base_empleados.html' %}
+{% extends 'permisos/base_permisos.html' %}
 
 {% block content %}
 <div class="contenedor">
     <h1 class="titulo">{{ titulo }}</h1>
 
     <div class="derecha_boton">
-        <a href="{% url 'empleados:crear_permiso' %}" class="btn">+ Nuevo Permiso</a>
+        <a href="{% url 'empleados:empleado_listar' %}" class="btn btn-secundario">Empleados</a>
+        <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secundario">Cargos</a>
+        <a href="{% url 'empleados:crear_permiso' %}" class="btn-primario">Nuevo Permiso</a>
     </div>
 
     <div class="table-container">

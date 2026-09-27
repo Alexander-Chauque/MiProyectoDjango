@@ -1,0 +1,246 @@
+{% extends 'comandas/base_comandas.html' %}
+{% load static %}
+
+{% block title %}Nueva Comanda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+    <h1 class="titulo">Nueva Comanda</h1>
+
+    <form method="POST" id="form-comanda">
+        {% csrf_token %}
+        
+        <div class="tarjeta">
+            <div class="tarjeta-encabezado">
+                <h3>Datos de la Comanda</h3>
+            </div>
+            <div class="tarjeta-cuerpo">
+                <div class="fila">
+                    <div class="columna-mitad">
+                        <div class="grupo-campo">
+                            <label class="etiqueta-campo">Mesa</label>
+                            {{ form.mesa }}
+                            {{ form.mesa.errors }}
+                        </div>
+                    </div>
+                    <div class="columna-mitad">
+                        <div class="grupo-campo">
+                            <label class="etiqueta-campo">Mozo</label>
+                            <div class="mostrar-mozo">
+                                <span class="nombre-mozo">
+                                    {{ request.user.empleado.get_full_name|default:request.user.username }}
+                                </span>
+                                {% if request.user.empleado.cargo %}
+                                    <span class="insignia-cargo">
+                                        {{ request.user.empleado.cargo.nombre_cargo }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grupo-campo">
+                    <label class="etiqueta-campo">Observaciones</label>
+                    {{ form.observaciones_comanda }}
+                </div>
+            </div>
+        </div>
+
+        <div class="tarjeta">
+            <div class="tarjeta-encabezado">
+                <h3>Platos y Bebidas</h3>
+            </div>
+            <div class="tarjeta-cuerpo">
+                {{ formset.management_form }}
+                
+                <table class="tabla-detalles">
+                    <thead>
+                        <tr>
+                            <th>Plato</th>
+                            <th>Cant. Plato</th>
+                            <th>Bebida</th>
+                            <th>Cant. Bebida</th>
+                            <th>Eliminar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form_detalle in formset %}
+                        <tr class="fila-detalle">
+                            {{ form_detalle.id }}
+                            <td>{{ form_detalle.plato }}</td>
+                            <td>{{ form_detalle.cant_plato }}</td>
+                            <td>{{ form_detalle.bebida }}</td>
+                            <td>{{ form_detalle.cant_bebida }}</td>
+                            <td class="centrado">{{ form_detalle.DELETE }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 15px;">
+                    <button type="button" id="btn-agregar-fila" class="btn btn-secundario">Agregar fila</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="botones-derecha">
+            <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">Cancelar</a>
+            <button type="submit" class="btn-primario">Crear Comanda</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // ==========================================
+    // PRECIOS DE PLATOS Y BEBIDAS
+    // ==========================================
+    const preciosPlatos = {
+        {% for plato in platos %}
+            "{{ plato.id_plato }}": {{ plato.precio_plato }},
+        {% endfor %}
+    };
+    
+    const preciosBebidas = {
+        {% for bebida in bebidas %}
+            "{{ bebida.id_bebida }}": {{ bebida.precio_bebida }},
+        {% endfor %}
+    };
+
+    // ==========================================
+    // CALCULAR TOTAL DE LA COMANDA
+    // ==========================================
+    function calcularTotal() {
+        let total = 0;
+        
+        document.querySelectorAll('.fila-detalle').forEach(function(fila) {
+            // Saltar filas marcadas para eliminar
+            const casillaEliminar = fila.querySelector('input[name$="-DELETE"]');
+            if (casillaEliminar && casillaEliminar.checked) return;
+            
+            // Plato
+            const seleccionPlato = fila.querySelector('select[name$="-plato"]');
+            const cantidadPlato = fila.querySelector('input[name$="-cant_plato"]');
+            if (seleccionPlato && seleccionPlato.value && cantidadPlato) {
+                const precio = preciosPlatos[seleccionPlato.value] || 0;
+                const cantidad = parseInt(cantidadPlato.value) || 0;
+                total += precio * cantidad;
+            }
+            
+            // Bebida
+            const seleccionBebida = fila.querySelector('select[name$="-bebida"]');
+            const cantidadBebida = fila.querySelector('input[name$="-cant_bebida"]');
+            if (seleccionBebida && seleccionBebida.value && cantidadBebida) {
+                const precio = preciosBebidas[seleccionBebida.value] || 0;
+                const cantidad = parseInt(cantidadBebida.value) || 0;
+                total += precio * cantidad;
+            }
+        });
+        
+        const spanTotal = document.getElementById('total-comanda');
+        if (spanTotal) {
+            spanTotal.textContent = '$' + total.toFixed(2);
+        }
+    }
+
+    // AGREGAR EVENTOS A UNA FILA
+    function agregarEventosFila(fila) {
+        // Cambio en plato
+        const seleccionPlato = fila.querySelector('select[name$="-plato"]');
+        if (seleccionPlato) {
+            seleccionPlato.addEventListener('change', calcularTotal);
+        }
+        
+        // Cambio en bebida
+        const seleccionBebida = fila.querySelector('select[name$="-bebida"]');
+        if (seleccionBebida) {
+            seleccionBebida.addEventListener('change', calcularTotal);
+        }
+        
+        // Cambio en cantidades
+        const cantidadPlato = fila.querySelector('input[name$="-cant_plato"]');
+        if (cantidadPlato) {
+            cantidadPlato.addEventListener('input', calcularTotal);
+            cantidadPlato.addEventListener('change', calcularTotal);
+        }
+        
+        const cantidadBebida = fila.querySelector('input[name$="-cant_bebida"]');
+        if (cantidadBebida) {
+            cantidadBebida.addEventListener('input', calcularTotal);
+            cantidadBebida.addEventListener('change', calcularTotal);
+        }
+        
+        // Checkbox de eliminar
+        const casillaEliminar = fila.querySelector('input[name$="-DELETE"]');
+        if (casillaEliminar) {
+            casillaEliminar.addEventListener('change', calcularTotal);
+        }
+    }
+
+    // AGREGAR FILA DINÁMICAMENTE
+    const btnAgregar = document.getElementById('btn-agregar-fila');
+    const tablaDetalles = document.querySelector('.tabla-detalles tbody');
+    const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
+    
+    if (btnAgregar && tablaDetalles && totalForms) {
+        btnAgregar.addEventListener('click', function() {
+            const formCount = parseInt(totalForms.value);
+            
+            // Clonar la primera fila
+            const primeraFila = tablaDetalles.querySelector('.fila-detalle');
+            if (!primeraFila) return;
+            
+            const nuevaFila = primeraFila.cloneNode(true);
+            
+            // Actualizar los índices de los campos
+            nuevaFila.querySelectorAll('input, select').forEach(function(input) {
+                const name = input.getAttribute('name');
+                if (name) {
+                    // Reemplazar el índice viejo por el nuevo
+                    const nuevoName = name.replace(/-\d+-/, `-${formCount}-`);
+                    input.setAttribute('name', nuevoName);
+                    input.setAttribute('id', `id_${nuevoName}`);
+                    
+                    // Limpiar valores
+                    if (input.tagName === 'SELECT') {
+                        input.value = '';
+                    } else if (input.type === 'number') {
+                        input.value = '1';
+                    } else if (input.type === 'checkbox') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                }
+            });
+            
+            // Agregar la fila
+            tablaDetalles.appendChild(nuevaFila);
+            
+            // Actualizar TOTAL_FORMS
+            totalForms.value = formCount + 1;
+            
+            // Agregar eventos a la nueva fila
+            agregarEventosFila(nuevaFila);
+            
+            // Recalcular total
+            calcularTotal();
+        });
+    }
+
+    //
+    // INICIALIZAR EVENTOS EN LAS FILAS EXISTENTES=
+    document.querySelectorAll('.fila-detalle').forEach(agregarEventosFila);
+    
+    // Calcular al cargar
+    calcularTotal();
+});
+</script>
+{% endblock %}

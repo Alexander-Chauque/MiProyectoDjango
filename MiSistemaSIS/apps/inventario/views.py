@@ -3,49 +3,17 @@ from .models import Plato, CategoriaPlato, Ingrediente, DetallePlato, TipoBebida
 from .forms import TipoBebidaForm, BebidaForm
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
 import re
-
+from empleados.decorators import permiso_requerido
 @login_required
-def home(request):
-    total_platos = Plato.objects.count()
-    total_ingredientes = Ingrediente.objects.count()
-    total_categorias = CategoriaPlato.objects.count()
-    
-    activos_platos = Plato.objects.filter(estado=True).count()
-    
-    context = {
-        'total_platos': total_platos,
-        'total_ingredientes': total_ingredientes,
-        'total_categorias': total_categorias,
-        'activos_platos': activos_platos,
-    }
-    return render(request, 'home.html', context)
-
-#login
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            login(request, user)
-            try:
-                empleado = user.empleado
-                if empleado.debe_cambiar_contrasena:
-                    messages.warning(request, 'Debes cambiar tu contraseña antes de continuar.')
-                    return redirect('cambiar_clave_obligatorio')
-            except:
-                pass
-            return redirect('inventario:listar_platos')
-        else:
-            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos'})
-    else:
-        return render(request, 'login.html')
+def inventario_home(request):
+    return render(request, 'inventario_home.html')
 
 #Funciones para listar, crear, editar y eliminar platos
 @login_required
+@permiso_requerido('platos', 'leer')
 def listar_platos(request):
     platos = Plato.objects.all().order_by('nombre_plato')
     categorias = CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
@@ -53,6 +21,7 @@ def listar_platos(request):
 
 
 @login_required
+@permiso_requerido('platos', 'escribir')
 def crear_plato(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -61,7 +30,6 @@ def crear_plato(request):
         precio = request.POST.get('precio')
         categoria_id = request.POST.get('categoria')
         ingredientes_ids = request.POST.getlist('ingredientes')
-
         # Validar precio
         try:
             if float(precio) <= 0:
@@ -76,7 +44,6 @@ def crear_plato(request):
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente'),
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
             })
-
         # Validar nombre
         if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s/-]+$', nombre):
             messages.error(request, 'Nombre inválido: solo se permiten letras, espacios, / y -')
@@ -84,7 +51,6 @@ def crear_plato(request):
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente'),
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
             })
-
         # Validar que no exista
         if Plato.objects.filter(nombre_plato=nombre).exists():
             messages.error(request, f'Plato "{nombre}" ya existe')
@@ -92,7 +58,6 @@ def crear_plato(request):
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente'),
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
             })
-
         # Validar que tenga al menos un ingrediente
         if not ingredientes_ids:
             messages.error(request, 'Debe seleccionar al menos un ingrediente')
@@ -100,7 +65,6 @@ def crear_plato(request):
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente'),
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
             })
-
         # Crear el plato
         categoria = CategoriaPlato.objects.get(id=categoria_id)
         plato = Plato.objects.create(
@@ -108,7 +72,6 @@ def crear_plato(request):
             precio_plato=precio,
             categoria=categoria
         )
-
         # Agregar ingredientes
         for ingrediente_id in ingredientes_ids:
             DetallePlato.objects.create(
@@ -116,7 +79,6 @@ def crear_plato(request):
                 ingrediente=Ingrediente.objects.get(id=ingrediente_id),
                 cantidad=1
             )
-
         messages.success(request, f'Plato "{nombre}" creado exitosamente')
         return redirect('inventario:listar_platos')
     
@@ -130,6 +92,7 @@ def crear_plato(request):
 
 
 @login_required
+@permiso_requerido('platos', 'modificar')
 def editar_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
     
@@ -141,7 +104,6 @@ def editar_plato(request, pk):
         precio = request.POST.get('precio')
         categoria_id = request.POST.get('categoria')
         ingredientes_ids = request.POST.getlist('ingredientes')
-
         # Validar precio
         try:
             if float(precio) <= 0:
@@ -158,7 +120,6 @@ def editar_plato(request, pk):
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato'),
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente')
             })
-
         # Validar que tenga al menos un ingrediente
         if not ingredientes_ids:
             messages.error(request, 'Debe seleccionar al menos un ingrediente')
@@ -167,7 +128,6 @@ def editar_plato(request, pk):
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato'),
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente')
             })
-
         # Validar que no exista otro plato con el mismo nombre
         if Plato.objects.filter(nombre_plato=nombre).exclude(pk=pk).exists():
             messages.error(request, f'Plato "{nombre}" ya existe')
@@ -176,26 +136,21 @@ def editar_plato(request, pk):
                 'categorias': CategoriaPlato.objects.all().order_by('nombre_categoria_plato'),
                 'ingredientes': Ingrediente.objects.all().order_by('nombre_ingrediente')
             })
-
         # Actualizar plato
         plato.nombre_plato = nombre
         plato.precio_plato = precio
         plato.categoria = CategoriaPlato.objects.get(id=categoria_id)
         plato.save()
-
         # Eliminar ingredientes anteriores y agregar los nuevos
-        plato.detalleplato_set.all().delete()
-        
+        plato.detalleplato_set.all().delete()   
         for ingrediente_id in ingredientes_ids:
             DetallePlato.objects.create(
                 plato=plato,
                 ingrediente=Ingrediente.objects.get(id=ingrediente_id),
                 cantidad=1
             )
-
         messages.success(request, f'Plato "{nombre}" editado exitosamente')
         return redirect('inventario:listar_platos')
-    
     else:
         categorias = CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
         ingredientes = Ingrediente.objects.all().order_by('nombre_ingrediente')
@@ -207,6 +162,7 @@ def editar_plato(request, pk):
 
 
 @login_required
+@permiso_requerido('platos', 'eliminar')
 def eliminar_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
     
@@ -218,8 +174,8 @@ def eliminar_plato(request, pk):
     
     return render(request, 'platos/eliminar.html', {'plato': plato})
 
-
 @login_required
+@permiso_requerido('platos', 'leer')
 def detalle_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
     detalles = plato.detalleplato_set.all().select_related('ingrediente')
@@ -228,8 +184,8 @@ def detalle_plato(request, pk):
         'detalles': detalles
     })
 
-
 @login_required
+@permiso_requerido('platos', 'modificar')
 def estado_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
     plato.estado_plato = not plato.estado_plato
@@ -243,14 +199,14 @@ def estado_plato(request, pk):
     return redirect('inventario:listar_platos')
 
 # FUNCIONES PARA INGREDIENTES
-
 @login_required
+@permiso_requerido('ingredientes', 'leer')
 def listar_ingredientes(request):
     ingredientes = Ingrediente.objects.all().order_by('nombre_ingrediente')
     return render(request, 'ingredientes/listar_ingrediente.html', {'ingredientes': ingredientes})
 
-
 @login_required
+@permiso_requerido('ingredientes', 'escribir')
 def crear_ingrediente(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -271,9 +227,10 @@ def crear_ingrediente(request):
     else:
         return render(request, 'ingredientes/crear_ingrediente.html')
 
-
 @login_required
+@permiso_requerido('ingredientes', 'modificar')
 def editar_ingrediente(request, pk):
+    
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
     
     if request.method == 'POST':
@@ -297,8 +254,8 @@ def editar_ingrediente(request, pk):
             'ingrediente': ingrediente
         })
 
-
 @login_required
+@permiso_requerido('ingredientes', 'eliminar')
 def eliminar_ingrediente(request, pk):
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
     
@@ -312,16 +269,16 @@ def eliminar_ingrediente(request, pk):
             'ingrediente': ingrediente
         })
 
-
 @login_required
+@permiso_requerido('ingredientes', 'leer')
 def detalle_ingrediente(request, pk):
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
     return render(request, 'ingredientes/detalle_ingrediente.html', {
         'ingrediente': ingrediente
     })
 
-
 @login_required
+@permiso_requerido('ingredientes', 'modificar')
 def estado_ingrediente(request, pk):
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
     ingrediente.estado_ingrediente = not ingrediente.estado_ingrediente
@@ -335,14 +292,14 @@ def estado_ingrediente(request, pk):
     return redirect('inventario:listar_ingredientes')
 
 # FUNCIONES PARA CATEGORÍAS
-
 @login_required
+@permiso_requerido('categorias', 'leer')
 def listar_categorias(request):
     categorias = CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
     return render(request, 'categorias/listar_categoria.html', {'categorias': categorias})
 
-
 @login_required
+@permiso_requerido('categorias', 'escribir')
 def crear_categoria(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -359,8 +316,8 @@ def crear_categoria(request):
     else:
         return render(request, 'categorias/crear_categoria.html')
 
-
 @login_required
+@permiso_requerido('categorias', 'modificar')
 def editar_categoria(request, pk):
     categoria = get_object_or_404(CategoriaPlato, pk=pk)
     
@@ -379,8 +336,8 @@ def editar_categoria(request, pk):
             'categoria': categoria
         })
 
-
 @login_required
+@permiso_requerido('categorias', 'eliminar')
 def eliminar_categoria(request, pk):
     categoria = get_object_or_404(CategoriaPlato, pk=pk)
     
@@ -394,8 +351,8 @@ def eliminar_categoria(request, pk):
             'categoria': categoria
         })
 
-
 @login_required
+@permiso_requerido('categorias', 'leer')
 def detalle_categoria(request, pk):
     categoria = get_object_or_404(CategoriaPlato, pk=pk)
     platos = categoria.plato_set.all().order_by('nombre_plato')
@@ -404,8 +361,8 @@ def detalle_categoria(request, pk):
         'platos': platos
     })
 
-
 @login_required
+@permiso_requerido('categorias', 'modificar')
 def estado_categoria(request, pk):
     categoria = get_object_or_404(CategoriaPlato, pk=pk)
     categoria.estado_categoria_plato = not categoria.estado_categoria_plato
@@ -420,11 +377,13 @@ def estado_categoria(request, pk):
 
 #funcion de Tipo de Bebidas
 @login_required
+@permiso_requerido('bebidas', 'leer')
 def listar_tipo_bebida(request):
     tipos = TipoBebida.objects.all().order_by('nombre_tipo_bebida')
     return render(request, 'bebidas/listar_tipo_bebida.html', {'tipos':tipos})
 
 @login_required
+@permiso_requerido('bebidas', 'escribir')
 def crear_tipo_bebida(request):
     if request.method == 'POST':
         form = TipoBebidaForm(request.POST)
@@ -434,9 +393,10 @@ def crear_tipo_bebida(request):
             return redirect ('inventario:listar_tipo_bebida')
     else:
         form = TipoBebidaForm()
-    return render (request,'bebidas/crear_tipo_bebida.html', {'form': form} )
+    return render (request,'bebidas/crear_tipo_bebida.html', {'form':form} )
 
 @login_required
+@permiso_requerido('bebidas', 'modificar')
 def editar_tipo_bebida(request, pk):
     tipo = get_object_or_404(TipoBebida, pk=pk)
     if request.method == 'POST':
@@ -445,11 +405,12 @@ def editar_tipo_bebida(request, pk):
             form.save()
             messages.success(request, ' Tipo de bebida actualizado')
             return redirect ('inventario:listar_tipo_bebida')
-        else:
-            form = TipoBebidaForm(instance=tipo)
-    return render(request, 'bebidas/crear_tipo_bebida.html', {'form': form})
+    else:
+        form = TipoBebidaForm(instance=tipo)
+    return render(request, 'bebidas/crear_tipo_bebida.html', {'form':form})
 
 @login_required
+@permiso_requerido('bebidas', 'eliminar')
 def eliminar_tipo_bebida(request,pk):
     tipo = get_object_or_404(TipoBebida, pk=pk)
     if request.method == 'POST':
@@ -460,6 +421,7 @@ def eliminar_tipo_bebida(request,pk):
     return render (request,'bebidas/eliminar_tipo_bebida.html')
 
 @login_required
+@permiso_requerido('bebidas', 'modificar')
 def estado_tipo_bebida(request,pk):
     tipo = get_object_or_404(TipoBebida, pk=pk)
     tipo.estado_tipo_bebida = not tipo.estado_tipo_bebida
@@ -470,8 +432,10 @@ def estado_tipo_bebida(request,pk):
         messages.success(request,  f'Tipo "{tipo.nombre_tipo_bebida}" desactivado')
 
     return redirect ( 'inventario:listar_tipo_bebida')
+
 #Funcion de Bebida
 @login_required
+@permiso_requerido('bebidas', 'leer')
 def bebida_listar(request):
     bebidas = Bebida.objects.all().order_by('nombre_bebida')
     return render(request, 'bebidas/listar_bebida.html', {
@@ -480,6 +444,7 @@ def bebida_listar(request):
     })
 
 @login_required
+@permiso_requerido('bebidas', 'escribir')
 def bebida_crear(request):
     if request.method == 'POST':
         form = BebidaForm(request.POST, request.FILES)
@@ -496,6 +461,7 @@ def bebida_crear(request):
     })
 
 @login_required
+@permiso_requerido('bebidas', 'modificar')
 def bebida_editar(request, pk):
     bebida = get_object_or_404(Bebida, pk=pk)
     if request.method == 'POST':
@@ -513,6 +479,7 @@ def bebida_editar(request, pk):
     })
 
 @login_required
+@permiso_requerido('bebidas', 'eliminar')
 def bebida_eliminar(request, pk):
     bebida = get_object_or_404(Bebida, pk=pk)
     if request.method == 'POST':
@@ -523,11 +490,13 @@ def bebida_eliminar(request, pk):
     return render(request, 'bebidas/eliminar_bebida.html', {'bebida': bebida})
 
 @login_required
+@permiso_requerido('bebidas', 'leer')
 def bebida_detalle(request, pk):
     bebida = get_object_or_404(Bebida, pk=pk)
     return render(request, 'bebidas/detalle_bebida.html', {'bebida': bebida})
 
 @login_required
+@permiso_requerido('bebidas', 'modificar')
 def bebida_estado(request, pk):
     bebida = get_object_or_404(Bebida, pk=pk)
     bebida.disponible_bebida = not bebida.disponible_bebida

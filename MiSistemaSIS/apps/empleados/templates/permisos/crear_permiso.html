@@ -1,4 +1,4 @@
-{% extends 'base_empleados.html' %}
+{% extends 'permisos/base_permisos.html' %}
 
 {% block content %}
 <div class="contenedor">
@@ -46,8 +46,8 @@
                 </div>
                 
                 <div class="derecha_boton">
-                    <a href="{% url 'empleados:listar_permiso' %}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{% url 'empleados:listar_permiso' %}" class="btn btn-secundario">Cancelar</a>
+                    <button type="submit" class="btn btn-primario">Guardar</button>
                 </div>
             </form>
         </div>

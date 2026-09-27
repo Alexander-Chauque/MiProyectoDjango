@@ -1,0 +1,46 @@
+{% extends 'permisos/base_permisos.html' %}
+{% load static %}
+
+{% block title %}Eliminar Permiso{% endblock %}
+{% block nav_brand %}Gestión de Empleados{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+    <h1 class="titulo">Eliminar Permiso</h1>
+    <div class="tarjeta-confirmacion">
+        <h2 class="tarjeta-titulo">¿Estás seguro de eliminar este permiso?</h2>
+        <p class="tarjeta-mensaje">
+            Estás a punto de eliminar el permiso:
+        </p>
+        <div class="tarjeta-detalle">
+            <p class="detalle-linea">
+                <strong>Módulo:</strong> {{ permiso.modulo }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Acción:</strong> {{ permiso.accion }}
+            </p>
+            {% if permiso.descripcion %}
+            <p class="detalle-linea">
+                <strong>Descripción:</strong> {{ permiso.descripcion }}
+            </p>
+            {% endif %}
+        </div>
+        
+        <p class="tarjeta-advertencia">
+            <strong>Esta acción no se puede deshacer.</strong>
+        </p>
+
+        <form method="POST" class="tarjeta-formulario">
+            {% csrf_token %}
+            <div class="tarjeta-botones">
+                <a href="{% url 'empleados:listar_permiso' %}" class="btn-secundario">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-danger">
+                    Sí, Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

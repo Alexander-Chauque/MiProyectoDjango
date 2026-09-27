@@ -8,7 +8,7 @@ class CategoriaPlato(models.Model):
     estado_categoria_plato = models.BooleanField(default=True)
     def save(self, *args, **kwargs):
         if self.nombre_categoria_plato:
-            self.nombre=self.nombre_categoria_plato.title()
+            self.nombre_categoria_plato=self.nombre_categoria_plato.title()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -22,17 +22,21 @@ class Ingrediente(models.Model):
     ])
     costo_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     estado_ingrediente = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['nombre_ingrediente','unidad_medida']
     def save(self, *args, **kwargs):
             if self.nombre_ingrediente:
                 self.nombre_ingrediente=self.nombre_ingrediente.title()
             super().save(*args, **kwargs)
+
 
     def __str__(self):
         return self.nombre_ingrediente
 
 #Plato
 class Plato(models.Model):
-    nombre_plato = models.CharField(max_length=100)
+    nombre_plato = models.CharField(max_length=100, unique=True)
     precio_plato = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.ForeignKey(CategoriaPlato, on_delete=models.CASCADE)
     
@@ -41,9 +45,17 @@ class Plato(models.Model):
     estado_plato = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
-            if self.nombre_plato:
-                self.nombre_plato=self.nombre_plato.title()
-            super().save(*args, **kwargs)
+        if self.nombre_plato:
+            # Capitaliza cada palabra pero deja las preposiciones en minúscula
+            palabras = self.nombre_plato.split()
+            palabras_corregidas = []
+            for i, palabra in enumerate(palabras):
+                if i > 0 and palabra.lower() in ['de', 'del', 'la', 'las', 'los', 'y', 'a', 'al', 'con', 'sin', 'en', 'por', 'para']:
+                    palabras_corregidas.append(palabra.lower())
+                else:
+                    palabras_corregidas.append(palabra.capitalize())
+            self.nombre_plato = ' '.join(palabras_corregidas)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.nombre_plato} - ${self.precio_plato}"
@@ -92,8 +104,8 @@ class Bebida(models.Model):
 class Mesa(models.Model):
     numero_mesa = models.IntegerField(unique=True)
     capacidad = models.IntegerField()
-    estado_mewasdo = models.CharField(max_length=20, choices=[
-        ('disponible', 'Disponible'), ('ocupada', 'Ocupada'), ('reservada', 'Reservada')
+    estado_mesa = models.CharField(max_length=20, choices=[
+        ('disponible', 'Disponible'), ('ocupada', 'Ocupada')
     ], default='disponible')
 
     def __str__(self):

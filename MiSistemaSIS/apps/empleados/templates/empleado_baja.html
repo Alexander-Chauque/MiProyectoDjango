@@ -1,23 +1,50 @@
-{% extends 'base.html' %}
+{% extends 'base_empleados.html' %}
+{% load static %}
+
+{% block title %}Dar de Baja Empleado{% endblock %}
+{% block nav_brand %}Gestión de Empleados{% endblock %}
 
 {% block content %}
 <div class="contenedor">
     <h1 class="titulo">Dar de Baja Empleado</h1>
 
-    <div class="card">
-        <div class="card-body text-center">
-            <p>¿Estás seguro de dar de baja al empleado <strong>{{ empleado.user_auto }}</strong>?</p>
-            <p><strong>Nombre:</strong> {{ empleado.get_full_name }}</p>
-            <p><strong>Cargo:</strong> {{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</p>
-            
-            <form method="POST">
-                {% csrf_token %}
-                <div class="derecha_boton">
-                    <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
-                    <button type="submit" class="btn-danger">Sí, Dar de Baja</button>
-                </div>
-            </form>
+    <div class="tarjeta-confirmacion">
+        <h2 class="tarjeta-titulo">¿Estás seguro de dar de baja este empleado?</h2>
+        
+        <p class="tarjeta-mensaje">
+            Estás a punto de dar de baja al siguiente empleado:
+        </p>
+        
+        <div class="tarjeta-detalle">
+            <p class="detalle-linea">
+                <strong>Usuario:</strong> {{ empleado.user_auto }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Nombre:</strong> {{ empleado.nombre_empleado }} {{ empleado.apellido_empleado }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Cargo:</strong> {{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Correo:</strong> {{ empleado.correo }}
+            </p>
         </div>
+        
+        <p class="tarjeta-advertencia">
+            <strong>El empleado no podrá acceder al sistema hasta que sea reactivado.</strong>
+        </p>
+
+        <form method="POST" class="tarjeta-formulario">
+            {% csrf_token %}
+            <div class="tarjeta-botones">
+                <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-danger">
+                    Sí, Dar de Baja
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

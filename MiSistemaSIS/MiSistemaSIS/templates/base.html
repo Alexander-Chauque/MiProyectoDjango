@@ -5,32 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Los Cardones - Sistema Restaurante</title>
     {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+
     <nav class="navbar">
         <div class="nav-container">
             <a href="{% url 'home' %}" class="navbar-brand">
-                Los Cardones
+                <img src="{% static 'img/logo/topo.jpg' %}" alt="Los Cardones" class="logo-navbar">
             </a>
-            <!-- <div class="navbar-links">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'inventario:listar_platos' %}">Inventario</a>
-                    <a href="{% url 'empleados:empleado_listar' %}">Empleados</a>
-                {% else %}
-                    <a href="{% url 'login' %}">Iniciar Sesión</a>
-                {% endif %}
-            </div> -->
             <div class="navbar-user">
                 {% if user.is_authenticated %}
                     <span class="user-info">
                         {{ user.first_name|default:user.username }}
                         {% if user.empleado and user.empleado.cargo %}
-                            <span class="badge-cargo">[{{ user.empleado.cargo.nombre_cargo }}]</span>
+                            <span class="badge-cargo">{{ user.empleado.cargo.nombre_cargo }}</span>
                         {% endif %}
                     </span>
                     <a href="{% url 'logout' %}" class="logout">Cerrar Sesión</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Iniciar Sesión</a>
                 {% endif %}
             </div>
         </div>
@@ -48,9 +46,9 @@
         {% block content %}{% endblock %}
     </div>
 
-    <footer class="footer">
-        <p>© 2026 Los Cardones</p>
-    </footer>
+    {% block footer %}
+        {% include 'includes/footer.html' with modulo_actual="Sistema" %}
+    {% endblock %}
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -65,6 +63,7 @@
             }, 5000);
         });
     </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

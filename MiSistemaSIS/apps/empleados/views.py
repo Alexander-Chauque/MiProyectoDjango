@@ -5,23 +5,29 @@ from django.contrib.auth import update_session_auth_hash
 from .models import Empleado, Cargo, TipoPermiso, PermisoXCargo
 from .forms import EmpleadoAltaForm, EmpleadoModificacionForm, RestablecerContrasenaForm, CargoForm, PermisoXCargoForm, AsignarPermisosCargoForm
 from django.contrib.auth import authenticate, login
-
+from empleados.decorators import permiso_requerido
+from django.contrib.auth.models import User
 # Create your views here.
 
+@login_required
+def empleados_home(request):
+    return render(request, 'empleados_home.html')
 #Empleado Listado
 @login_required
+@permiso_requerido('empleados', 'leer')
 def empleado_listar (request):
     empleados = Empleado.objects.all().order_by('apellido_empleado')
     return render(request, 'empleado_listar.html', {'empleados': empleados, 'titulo': 'Listado de Empleados'})
 
 @login_required
+@permiso_requerido('empleados', 'escribir')
 def empleado_alta(request):
     if request.method == 'POST':
         form  = EmpleadoAltaForm(request.POST)
         if form.is_valid():#verficar si el formulario es válido
             try:
                 empleado = form.save()
-                messages.success(request, f'Empleado {empleado.nombre_empleado} {empleado.apellido_empleado} creado exitosamente.')
+                messages.success(request, f'Empleado {empleado.nombre_empleado} {empleado.apellido_empleado} creado exitosamente. Usuario: {empleado.user_auto}')
                 return redirect('login')
             except Exception as e:
                 messages.error(request, f'Error al crear el empleado: {(e)}')
@@ -31,33 +37,46 @@ def empleado_alta(request):
         form = EmpleadoAltaForm()
     return render(request, 'empleado_alta.html', {'form': form, 'titulo': 'Alta de Empleado', 'boton': 'Crear Empleado'})
 
-
 @login_required
+@permiso_requerido('empleados', 'modificar')
 def empleado_modificacion(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
+    
     if request.method == 'POST':
-        form = EmpleadoModificacionForm(request.POST, instance=empleado)
-        if form.is_valid():
-            form.save() 
-
-            messages.success(request, f'Correo actualizado para {empleado.user_auto}')
-            return redirect('empleados:empleado_listar')
+        empleado.nombre_empleado = request.POST.get('nombre_empleado', empleado.nombre_empleado)
+        empleado.apellido_empleado = request.POST.get('apellido_empleado', empleado.apellido_empleado)
+        empleado.dni = request.POST.get('dni', empleado.dni)
+        empleado.telefono = request.POST.get('telefono', empleado.telefono)
+        empleado.correo = request.POST.get('correo', empleado.correo)
+        cargo_id = request.POST.get('cargo')
+        if cargo_id:
+            empleado.cargo = Cargo.objects.get(pk=cargo_id)
         else:
-            messages.error(request, 'Por favor corrija los errores')
-    else:
-        form = EmpleadoModificacionForm(instance=empleado)
+            empleado.cargo = None
+        empleado.save()
+        if empleado.user:
+            empleado.user.email = empleado.correo
+            empleado.user.first_name = empleado.nombre_empleado
+            empleado.user.last_name = empleado.apellido_empleado
+            empleado.user.save()
         
+        messages.success(request, f'Empleado {empleado.user_auto} actualizado exitosamente.')
+        return redirect('empleados:empleado_listar')
+    cargos = Cargo.objects.all().order_by('nombre_cargo')
+    
     return render(request, 'empleado_modificar.html', {
-        'form': form, 
-        'empleado': empleado, 
+        'empleado': empleado,
+        'cargos': cargos,
         'titulo': f'Modificar Empleado - {empleado.user_auto}'
     })
 
-
-
 @login_required
+@permiso_requerido('empleados', 'eliminar')
 def empleado_baja(request,pk):
     empleado = get_object_or_404(Empleado, pk=pk)
+    if empleado.user == request.user:
+        messages.error(request, 'No puedes darte de baja a ti mismo')
+        return redirect('empleados:empleado_listar')
 
     if request.method == 'POST':
         empleado.dar_baja()
@@ -66,8 +85,8 @@ def empleado_baja(request,pk):
     
     return render( request, 'empleado_baja.html', {'empleado': empleado, 'titulo': f'Dar de baja Empleado - {empleado.user_auto}'})
 
-
 @login_required
+@permiso_requerido('empleados', 'modificar')
 def empleado_reactivar(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     empleado.reactivar()
@@ -76,11 +95,13 @@ def empleado_reactivar(request, pk):
 
 
 @login_required
+@permiso_requerido('empleados', 'leer')
 def empleado_detalle(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     return render(request, 'empleado_detalle.html', {'empleado': empleado, 'titulo': f'Detalle Empleado - {empleado.user_auto}'})
 
 @login_required
+@permiso_requerido('empleados', 'modificar')
 def empleado_restablecer_contrasena(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     if request.method == 'POST':
@@ -97,65 +118,127 @@ def empleado_restablecer_contrasena(request, pk):
         form = RestablecerContrasenaForm()
     return render(request, 'restablecer_contrasena.html', {'form': form, 'empleado': empleado, 'titulo': f'Restablecer Contraseña - {empleado.user_auto}'})
 
-@login_required
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        identificador = request.POST.get('username')  # Puede ser usuario, correo o nombre
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        # Intentar encontrar el username real
+        username_real = None
+        #Probar como username directo
+        if User.objects.filter(username=identificador).exists():
+            username_real = identificador
+        else:
+            #Probar como correo
+            try:
+                empleado = Empleado.objects.get(correo=identificador)
+                if empleado.user:
+                    username_real = empleado.user.username
+            except Empleado.DoesNotExist:
+                pass
+            # Probar como nombre completo (Nombre Apellido o Apellido Nombre)
+            if not username_real:
+                try:
+                    empleado = Empleado.objects.get(
+                        nombre_empleado__iexact=identificador
+                    )
+                    if empleado.user:
+                        username_real = empleado.user.username
+                except Empleado.DoesNotExist:
+                    pass
+                
+                # Probar "Apellido Nombre"
+                if not username_real:
+                    partes = identificador.split()
+                    if len(partes) >= 2:
+                        # Probar Apellido Nombre
+                        try:
+                            empleado = Empleado.objects.get(
+                                apellido_empleado__iexact=partes[0],
+                                nombre_empleado__iexact=partes[1]
+                            )
+                            if empleado.user:
+                                username_real = empleado.user.username
+                        except Empleado.DoesNotExist:
+                            pass
+        
+        # Autenticar con el username real
+        user = authenticate(request, username=username_real or identificador, password=password)
+        print("\n" + "=" * 60)
+        print(f"USUARIO: {user}")
         
         if user is not None:
             login(request, user)
+            print(f"LOGIN OK: {user.username}")
             
             try:
                 empleado = user.empleado
+                print(f"EMPLEADO: {empleado}")
+                print(f"DEBE CAMBIAR CONTRASEÑA: {empleado.debe_cambiar_contrasena}")
+                
                 if empleado.debe_cambiar_contrasena:
+                    print(">>> REDIRIGIENDO A CAMBIO OBLIGATORIO")
                     messages.warning(request, 'Debes cambiar tu contraseña antes de continuar.')
                     return redirect('empleados:cambiar_clave_obligatorio')
-            except:
-                pass
+                else:
+                    print(">>> FLAG EN FALSE, REDIRIGIENDO A HOME")
+            except Exception as e:
+                print(f"ERROR: {e}")
             
-            return redirect('inventario:listar_platos')
+            print(">>> REDIRIGIENDO A HOME (por defecto)")
+            print("=" * 60 + "\n")
+            
+            return redirect('home')
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos')
+            print("USUARIO NO AUTENTICADO")
+            print("=" * 60 + "\n")
+            messages.error(request, 'Usuario, correo o contraseña incorrectos')
     
     return render(request, 'login.html')
+        #if user is not None:
+    #         login(request, user)
+    #         # Verificar si debe cambiar la contraseña
+            
+    #         try:
+    #             empleado = user.empleado
+    #             if empleado.debe_cambiar_contrasena:
+    #                 messages.warning(request, 'Debes cambiar tu contraseña antes de continuar.')
+    #                 return redirect('empleados:cambiar_clave_obligatorio')
+    #         except Empleado.DoesNotExist:
+    #             messages.info(request, 'Bienvenido al sistema')
+
+    #         except Exception as e:
+    #             messages.error(request, f'Error: {e}')
+    #         return redirect('login')
+    #     else:
+    #         messages.error(request, 'Usuario, correo o contraseña incorrectos')
+    # return render(request, 'login.html')
 
 @login_required
 def cambiar_clave_obligatorio(request):
     empleado = request.user.empleado
-    
-    # Si no debe cambiar clave, redirigir
     if not empleado.debe_cambiar_contrasena:
         return redirect('empleados:empleado_listar')
-    
     if request.method == 'POST':
         nueva = request.POST.get('nueva_contrasena')
         confirmar = request.POST.get('confirmar_contrasena')
-        
         if nueva and confirmar and nueva == confirmar:
             if len(nueva) >= 8:
                 request.user.set_password(nueva)
                 request.user.save()
-                
                 empleado.debe_cambiar_contrasena = False
                 empleado.save()
-                
                 update_session_auth_hash(request, request.user)
-                
                 messages.success(request, 'Contraseña actualizada exitosamente')
                 return redirect('login')
             else:
                 messages.error(request, ' La contraseña debe tener al menos 8 caracteres')
         else:
             messages.error(request, 'Las contraseñas no coinciden')
-    
     return render(request, 'cambiar_clave_obligatorio.html')
 
-
 # VISTAS PARA CARGOS
-
 @login_required
+@permiso_requerido('cargos', 'leer')
 def cargo_listar(request):
     cargos = Cargo.objects.all().order_by('nombre_cargo')
     return render(request, 'cargos/listar_cargos.html', {
@@ -164,6 +247,7 @@ def cargo_listar(request):
     })
 
 @login_required
+@permiso_requerido('cargos', 'escribir')
 def cargo_crear(request):
     if request.method == 'POST':
         form = CargoForm(request.POST)
@@ -180,6 +264,7 @@ def cargo_crear(request):
     })
 
 @login_required
+@permiso_requerido('cargos', 'modificar')
 def cargo_editar(request, pk):
     cargo = get_object_or_404(Cargo, pk=pk)
     if request.method == 'POST':
@@ -197,6 +282,7 @@ def cargo_editar(request, pk):
     })
 
 @login_required
+@permiso_requerido('cargos', 'eliminar')
 def cargo_eliminar(request, pk):
     cargo = get_object_or_404(Cargo, pk=pk)
     if request.method == 'POST':
@@ -206,10 +292,9 @@ def cargo_eliminar(request, pk):
         return redirect('empleados:listar_cargo')
     return render(request, 'cargos/eliminar_cargo.html', {'cargo': cargo})
 
-
 # VISTAS PARA PERMISOS
-
 @login_required
+@permiso_requerido('cargos', 'leer')
 def permiso_listar(request):
     permisos = TipoPermiso.objects.all().order_by('modulo', 'accion')
     return render(request, 'permisos/listar_permiso.html', {
@@ -218,6 +303,7 @@ def permiso_listar(request):
     })
 
 @login_required
+@permiso_requerido('cargos', 'escribir')
 def permiso_crear(request):
     if request.method == 'POST':
         modulo = request.POST.get('modulo')
@@ -238,6 +324,7 @@ def permiso_crear(request):
     return render(request, 'permisos/crear_permiso.html', {'titulo': 'Crear Permiso'})
 
 @login_required
+@permiso_requerido('cargos', 'eliminar')
 def permiso_eliminar(request, pk):
     permiso = get_object_or_404(TipoPermiso, pk=pk)
     if request.method == 'POST':
@@ -245,21 +332,19 @@ def permiso_eliminar(request, pk):
         permiso.delete()
         messages.success(request, f'Permiso "{descripcion}" eliminado')
         return redirect('empleados:listar_permiso')
-    return render(request, 'permiso/eliminar_permiso.html', {'permiso': permiso})
+    return render(request, 'permisos/eliminar_permiso.html', {'permiso': permiso})
 
 # VISTAS PARA ASIGNAR PERMISOS A CARGOS
 
 @login_required
+@permiso_requerido('cargos', 'modificar')
 def asignar_permisos(request):
     if request.method == 'POST':
         cargo_id = request.POST.get('cargo')
         permisos_ids = request.POST.getlist('permisos')
-        
-        cargo = get_object_or_404(Cargo, pk=cargo_id)
-        
+        cargo = get_object_or_404(Cargo, pk=cargo_id)  
         # Eliminar permisos anteriores
         PermisoXCargo.objects.filter(cargo=cargo).delete()
-        
         # Asignar nuevos permisos
         for permiso_id in permisos_ids:
             tipo_permiso = get_object_or_404(TipoPermiso, pk=permiso_id)
@@ -267,10 +352,8 @@ def asignar_permisos(request):
                 cargo=cargo,
                 tipo_permiso=tipo_permiso
             )
-        
         messages.success(request, f'Permisos asignados a "{cargo.nombre_cargo}"')
-        return redirect('empleados:asignar_permisos')
-    
+        return redirect('empleados:ver_permisos_cargo', pk=cargo.pk)
     cargos = Cargo.objects.all().order_by('nombre_cargo')
     permisos = TipoPermiso.objects.all().order_by('modulo', 'accion')
     
@@ -280,7 +363,6 @@ def asignar_permisos(request):
         permisos_asignados_por_cargo[cargo.pk] = list(
             PermisoXCargo.objects.filter(cargo=cargo).values_list('tipo_permiso_id', flat=True)
         )
-    
     return render(request, 'permisos/asignar_permisos.html', {
         'cargos': cargos,
         'permisos': permisos,
@@ -289,8 +371,8 @@ def asignar_permisos(request):
     })
 
 @login_required
+@permiso_requerido('cargos', 'leer')
 def ver_permisos_cargo(request, pk):
-
     cargo = get_object_or_404(Cargo, pk=pk)
     permisos = PermisoXCargo.objects.filter(cargo=cargo).select_related('tipo_permiso')
     

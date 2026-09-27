@@ -4,8 +4,8 @@
 <div class="contenedor">
     <h1 class="titulo">{{ titulo }}</h1>
     <div class="derecha_boton">
-        <a href="{% url 'inventario:crear_bebida' %}" class="btn">+ Nueva Bebida</a>
-        <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn btn-secundario">Tipos de Bebida</a>
+        <a href="{% url 'inventario:crear_bebida' %}" class="btn-primario">Nueva Bebida</a>
+        <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn">Tipos de Bebida</a>
     </div>
     <div class="table-container">
         <table class="tabla">
@@ -26,9 +26,9 @@
                     <td>$ {{ bebida.precio_bebida }}</td>
                     <td>
                         {% if bebida.disponible_bebida %}
-                            <span class="estado-activo">Disponible</span>
+                            <span class="estado_activo">Disponible</span>
                         {% else %}
-                            <span class="estado-inactivo">No disponible</span>
+                            <span class="estado_inactivo">No disponible</span>
                         {% endif %}
                     </td>
                     <td>
@@ -36,9 +36,9 @@
                         <a href="{% url 'inventario:editar_bebida' bebida.pk %}" class="btn-warning">Editar</a>
                         <a href="{% url 'inventario:eliminar_bebida' bebida.pk %}" class="btn-danger">Eliminar</a>
                         {% if bebida.disponible_bebida %}
-                            <a href="{% url 'inventario:estado_bebida' bebida.pk %}" class="estado-inactivar">Desactivar</a>
+                            <a href="{% url 'inventario:estado_bebida' bebida.pk %}" class="estado_inactivar">Desactivar</a>
                         {% else %}
-                            <a href="{% url 'inventario:estado_bebida' bebida.pk %}" class="estado-activar">Activar</a>
+                            <a href="{% url 'inventario:estado_bebida' bebida.pk %}" class="estado_activar">Activar</a>
                         {% endif %}
                     </td>
                 </tr>

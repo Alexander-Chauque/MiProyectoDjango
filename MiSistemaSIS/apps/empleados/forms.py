@@ -41,7 +41,7 @@ class EmpleadoAltaForm(forms.ModelForm):
         if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', apellido):
             raise forms.ValidationError("El apellido solo puede contener letras y espacios.")
         return apellido
-#l
+
     def clean_contrasenas(self):
         cleaned_data = super().clean()
         contrasena = cleaned_data.get("contrasena")
@@ -66,6 +66,7 @@ class EmpleadoAltaForm(forms.ModelForm):
 
         if commit: #recien guardar el empleado si commit es True
             empleado.save()
+        self.usuario_generado = empleado.user_auto
         return empleado
 
 class EmpleadoModificacionForm(forms.ModelForm):
@@ -119,8 +120,15 @@ class CargoForm(forms.ModelForm):
     
     def clean_nombre_cargo(self):
         nombre = self.cleaned_data.get('nombre_cargo')
-        if Cargo.objects.filter(nombre_cargo__iexact=nombre).exists():
+        
+        # Buscar cargos con el mismo nombre, excluyendo el actual si estamos editando
+        cargos_existentes = Cargo.objects.filter(nombre_cargo__iexact=nombre)
+        if self.instance and self.instance.pk:
+            cargos_existentes = cargos_existentes.exclude(pk=self.instance.pk)
+        
+        if cargos_existentes.exists():
             raise forms.ValidationError('Este cargo ya existe')
+        
         return nombre.title()
 
     NIVELES_ACCESO = [

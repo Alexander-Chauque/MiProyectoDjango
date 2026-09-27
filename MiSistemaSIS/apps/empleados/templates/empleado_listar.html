@@ -7,7 +7,9 @@
     <h1 class="titulo">Lista de Empleados</h1>
 
     <div class="derecha_boton">
-        <a href="{% url 'empleados:empleado_alta' %}" class="btn">Nuevo Empleado</a>
+        <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secundario">Cargos</a>
+        <a href="{% url 'empleados:listar_permiso' %}" class="btn btn-secundario">Permisos</a>
+        <a href="{% url 'empleados:empleado_alta' %}" class="btn-primario">Nuevo Empleado</a>
     </div>
 
     <table class="tabla">
@@ -30,18 +32,18 @@
                 <td>{{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</td>
                 <td>
                     {% if empleado.estado %}
-                        <span class="estado-activo">Activo</span>
+                        <span class="estado_activo">Activo</span>
                     {% else %}
-                        <span class="estado-inactivo">Inactivo</span>
+                        <span class="estado_inactivo">Inactivo</span>
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'empleados:empleado_detalle' pk=empleado.pk %}" class="btn btn-tercero">Detalle</a>
-                    <a href="{% url 'empleados:empleado_modificacion' pk=empleado.pk %}" class="btn btn-warning">Modificar</a>
+                    <a href="{% url 'empleados:empleado_detalle' pk=empleado.pk %}" class="btn-tercero">Detalle</a>
+                    <a href="{% url 'empleados:empleado_modificacion' pk=empleado.pk %}" class="btn-warning">Modificar</a>
                     {% if empleado.estado %}
-                        <a href="{% url 'empleados:empleado_baja' pk=empleado.pk %}" class="btn btn-danger">Dar de Baja</a>
+                        <a href="{% url 'empleados:empleado_baja' pk=empleado.pk %}" class="btn-danger">Dar de Baja</a>
                     {% else %}
-                        <a href="{% url 'empleados:empleado_reactivar' pk=empleado.pk %}" class="btn btn-success">Reactivar</a>
+                        <a href="{% url 'empleados:empleado_reactivar' pk=empleado.pk %}" class="btn-reactivar">Reactivar</a>
                     {% endif %}
                     <a href="{% url 'empleados:restablecer_contrasena' pk=empleado.pk %}" class="btn btn-secundario">Restablecer Contraseña</a>
                 </td>

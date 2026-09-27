@@ -5,38 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gestión de Inventario{% endblock %}</title>
     {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-container">
-            <a href="{% url 'inventario:listar_platos' %}" class="navbar-brand">
-                Gestión de Inventario
-            </a>
-            
-            <div class="navbar-links">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'inventario:listar_platos' %}" class="{% if 'plato' in request.path %}active{% endif %}">Platos</a>
-                    <a href="{% url 'inventario:listar_ingredientes' %}" class="{% if 'ingrediente' in request.path %}active{% endif %}">Ingredientes</a>
-                    <a href="{% url 'inventario:listar_categorias' %}" class="{% if 'categoria' in request.path %}active{% endif %}">Categorías</a>
-                    <a href="{% url 'inventario:listar_bebida' %}" class="{% if 'bebida' in request.path %}active{% endif %}">Bebidas</a>
-                    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="{% if 'tipo_bebida' in request.path %}active{% endif %}">Tipos Bebida</a>
-                    <span class="separador">|</span>
-                    <a href="{% url 'home' %}" class="link-home">Inicio</a>
-                    
-                    <span class="user-info">
-                        {{ user.first_name|default:user.username }}
-                        {% if user.empleado and user.empleado.cargo %}
-                            <span class="badge-cargo">[{{ user.empleado.cargo.nombre_cargo }}]</span>
-                        {% endif %}
-                    </span>
+    <div class="nav-container">
+        <a href="{% url 'home' %}" class="navbar-brand">
+            <img src="{% static 'img/logo/topo.jpg' %}" alt="Los Cardones" class="logo-navbar">
+        </a>
+        
+        <div class="navbar-links">
+            {% if user.is_authenticated %}
+                <a href="{% url 'inventario:inventario_home' %}" class="{% if 'inventario_home' in request.resolver_match.url_name %}active{% endif %}">
+                    Inventario
+                </a>
+                <span class="separador">|</span>
+                <a href="{% url 'home' %}">Inicio</a>
+                
+                <span class="user-info">
+                    {{ user.first_name|default:user.username }}
+                    {% if user.empleado and user.empleado.cargo %}
+                        <span class="badge-cargo">{{ user.empleado.cargo.nombre_cargo }}</span>
+                    {% endif %}
+                </span>
                 <a href="{% url 'logout' %}" class="logout">Cerrar Sesión</a>
-                {% else %}
-                    <a href="{% url 'login' %}">Iniciar Sesión</a>
-                {% endif %}
-            </div>
+            {% else %}
+                <a href="{% url 'login' %}">Iniciar Sesión</a>
+            {% endif %}
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="contenedor">
         {% if messages %}
@@ -50,9 +52,7 @@
         {% block content %}{% endblock %}
     </div>
 
-    <footer class="footer">
-        <p>© 2026 Los Cardones - Gestión de Inventario</p>
-    </footer>
+    {% include 'includes/footer.html' with modulo_actual="Inventario" %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {

@@ -1,12 +1,14 @@
-{% extends 'base_empleados.html' %}
+{% extends 'cargos/base_cargos.html' %}
 
 {% block content %}
 <div class="contenedor">
     <h1 class="titulo">{{ titulo }}</h1>
 
     <div class="derecha_boton">
-        <a href="{% url 'empleados:crear_cargo' %}" class="btn">+ Nuevo Cargo</a>
-        <a href="{% url 'empleados:asignar_permisos' %}" class="btn btn-secondary">Asignar Permisos</a>
+        <a href="{% url 'empleados:empleado_listar' %}" class="btn btn-secundario">Empleados</a>
+        <a href="{% url 'empleados:listar_permiso' %}" class="btn btn-secundario">Permisos</a>
+        <a href="{% url 'empleados:crear_cargo' %}" class="btn-primario"> Nuevo Cargo</a>
+        <a href="{% url 'empleados:asignar_permisos' %}" class="btn">Asignar Permisos</a>
     </div>
 
     <div class="table-container">
@@ -27,13 +29,13 @@
                     <td>{{ cargo.descripcion|default:"-" }}</td>
                     <td>{{ cargo.nivel_acceso }}</td>
                     <td>
-                        <a href="{% url 'empleados:ver_permisos_cargo' cargo.pk %}" class="btn btn-info btn-sm">
+                        <a href="{% url 'empleados:ver_permisos_cargo' cargo.pk %}" class="btn-tercero">
                             Ver Permisos
                         </a>
                     </td>
                     <td>
-                        <a href="{% url 'empleados:editar_cargo' cargo.pk %}" class="btn btn-warning btn-sm">Editar</a>
-                        <a href="{% url 'empleados:eliminar_cargo' cargo.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+                        <a href="{% url 'empleados:editar_cargo' cargo.pk %}" class="btn-warning">Editar</a>
+                        <a href="{% url 'empleados:eliminar_cargo' cargo.pk %}" class="btn-danger">Eliminar</a>
                     </td>
                 </tr>
                 {% empty %}

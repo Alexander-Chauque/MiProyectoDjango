@@ -5,22 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Mesas - Los Cardones{% endblock %}</title>
     {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{% url 'ventas:listar_mesa' %}" class="navbar-brand">Mesas</a>
+            <a href="{% url 'home' %}" class="navbar-brand">
+            <img src="{% static 'img/logo/topo.jpg' %}" alt="Los Cardones" class="logo-navbar">
+        </a>
             <div class="navbar-links">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'ventas:listar_mesa' %}">Mesas</a>
+                    <a href="{% url 'ventas:listar_mesa' %}"class="{% if 'mesas' in request.path %}active{% endif %}">Mesas</a>
                     <span class="separador">|</span>
                     <a href="{% url 'home' %}" class="link-home">Inicio</a>
                     <span class="user-info">
                         {{ user.first_name|default:user.username }}
                         {% if user.empleado and user.empleado.cargo %}
-                            <span class="badge-cargo">[{{ user.empleado.cargo.nombre_cargo }}]</span>
+                            <span class="badge-cargo">{{ user.empleado.cargo.nombre_cargo }}</span>
                         {% endif %}
                     </span>
                     <a href="{% url 'logout' %}" class="logout">Cerrar Sesión</a>
@@ -44,12 +49,7 @@
         {% endblock %}
     </div>
 
-    <footer class="footer">
-        <div class="footer-contenido">
-            <p>© Mesas - <strong>Los Cardones</strong></p>
-            <p style="font-size: 12px; color: #8B6B4A;">&copy; 2026 </p>
-        </div>
-    </footer>
+        {% include 'includes/footer.html' with modulo_actual="Mesas" %}
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -65,5 +65,6 @@
         });
     </script>
     {% block extra_js %}{% endblock %}
+
 </body>
 </html>

@@ -1,0 +1,53 @@
+    .aviso-cambio {
+        background-color: #FFFBEB;
+        border-left: 4px solid #F5A623;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        text-align: left;
+        font-size: 13px;
+        color: #5C3D2E;
+        line-height: 1.6;
+    }
+    
+    .aviso-cambio strong {
+        color: #B45309;
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .login-card .form-group {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .login-card .form-group label {
+        display: block;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    .login-card .form-group input[type="password"] {
+        display: block;
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 15px;
+        background-color: #FAFAFA;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #4A4A4A;
+    }
+    
+    .login-card .form-group input[type="password"]:focus {
+        outline: none;
+        border-color: #F5A623 ;
+        background-color: #FFFFFF;
+    }
+    
+    .login-card .form-group input[type="password"]::placeholder {
+        color: #B0B0B0;
+    }

@@ -1,71 +1,86 @@
 {% extends 'base_inventario.html' %}
+{% load static %}
+
+{% block title %}Editar Plato{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/platos.css' %}">
+{% endblock %}
+
 {% block content %}
-<h1 class="titulo">Editar Plato</h1>
+<div class="contenedor">
+    <h1 class="titulo">Editar Plato: {{ plato.nombre_plato }}</h1>
 
-<form method="POST">
-    {% csrf_token %}
-    <div class="form-grupo">
-        <label class="form-label">Nombre</label>
-        <input type="text" name="nombre" class="form-control" 
-        pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
-        title="Solo permite letras y espacios"
-        value="{{ plato.nombre_plato }}" required>
-    </div>
-    <div class="form-grupo">
-        <label class="form-label">Precio</label>
-        <input type="number" name="precio" class="form-control" step="0.01" value="{{ plato.precio_plato }}" required>
-    </div>
-    <div class="form-grupo">
-        <label class="form-label">Categoría</label>
-        <select name="categoria" class="form-control" required>
-            {% for cat in categorias %}
-                <option value="{{ cat.id }}" {% if cat.id == plato.categoria.id %}selected{% endif %}>
-                    {{ cat.nombre_categoria_plato }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="form-group">
-    <label class="form-label">Ingredientes</label>
-    <div class="grid-ingredientes">
-        {% for ing in ingredientes %}
-            <label>
-                <input type="checkbox" name="ingredientes" value="{{ ing.id }}" {% if ing in plato.ingredientes.all %}checked{% endif %}>
-                {{ ing.nombre_ingrediente }}
+    <form method="POST">
+        {% csrf_token %}
 
-            </label>
-        {% endfor %}
-    </div>
+        <!-- Datos del Plato -->
+        <div class="tarjeta">
+            <div class="tarjeta-encabezado">
+                <h3>Datos del Plato</h3>
+            </div>
+            <div class="tarjeta-cuerpo">
+                <div class="grupo-campo">
+                    <label class="etiqueta-campo">Nombre</label>
+                    <input type="text" name="nombre" class="form-control" 
+                           value="{{ plato.nombre_plato }}" required>
+                </div>
+                <div class="grupo-campo">
+                    <label class="etiqueta-campo">Precio</label>
+                    <input type="number" name="precio" class="form-control" 
+                           value="{{ plato.precio_plato }}" step="0.01" required>
+                </div>
+                <div class="grupo-campo">
+                    <label class="etiqueta-campo">Categoría</label>
+                    <select name="categoria" class="form-control" required>
+                        {% for cat in categorias %}
+                            <option value="{{ cat.id }}" 
+                                {% if cat.id == plato.categoria.id %}selected{% endif %}>
+                                {{ cat.nombre_categoria_plato }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="tarjeta">
+            <div class="tarjeta-encabezado">
+                <h3>Ingredientes</h3>
+            </div>
+            <div class="tarjeta-cuerpo">
+
+                <div class="buscador-ingredientes">
+                    <input type="text" id="buscador" placeholder="Buscar ingrediente..." class="form-control">
+                </div>
+
+                <div class="grid-ingredientes" id="lista-ingredientes">
+                    {% for ing in ingredientes %}
+                        <label class="ingrediente-item">
+                            <input type="checkbox" name="ingredientes" value="{{ ing.id }}"
+                                {% if ing in plato.ingredientes.all %}checked{% endif %}>
+                            {{ ing.nombre_ingrediente }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="botones-derecha">
+            <a href="{% url 'inventario:listar_platos' %}" class="btn btn-secundario">Cancelar</a>
+            <button type="submit" class="btn btn">Guardar Cambios</button>
+        </div>
+    </form>
 </div>
-<!--         
-        <button type="button" class="btn-secundario" id="agregar-ingrediente">Agregar otro ingrediente</button> -->
-    
-    <button type="submit" class="btn">Guardar Cambios</button>
-    <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">Cancelar</a>
-</form>
-<!-- 
 
 <script>
-    var agregarBtn = document.getElementById('agregar-ingrediente');
-    var container = document.getElementById('ingredientes-container');
-
-    agregarBtn.addEventListener('click', function() {
-        var nuevoItem = document.createElement('div');
-        nuevoItem.className = 'ingrediente-item';
-        nuevoItem.style.display = 'flex';
-        nuevoItem.style.gap = '10px';
-        nuevoItem.style.marginBottom = '10px';
-
-        nuevoItem.innerHTML = `
-            <select name="ingredientes" class="form-control" style="width: 70%;">
-                {% for ing in ingredientes %}
-                <option value="{{ ing.id }}">{{ ing.nombre }}</option>
-                {% endfor %}
-            </select>
-            <input type="number" name="cantidad" class="form-control" min="1" value="1" style="width: 30%;">
-        `;
-
-        container.appendChild(nuevoItem);
+    document.getElementById('buscador').addEventListener('input', function() {
+        const texto = this.value.toLowerCase();
+        document.querySelectorAll('.ingrediente-item').forEach(function(item) {
+            const nombre = item.textContent.toLowerCase();
+            item.style.display = nombre.includes(texto) ? 'flex' : 'none';
+        });
     });
-</script> -->
+</script>
 {% endblock %}

@@ -1,36 +1,54 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %} Los Cardones - Inicio{% endblock %}
+
 {% block content %}
-
-
-
 <div class="home-container">
-        <h1 class="titulo">Bienvenido a Los Cardones</h1>
-        <p class="subtitulo">Sistema de gestión del restaurante</p>
+    <h1 class="titulo">Bienvenido, {{ user.empleado.nombre_empleado|default:user.username }}</h1>
+    <p class="subtitulo">Sistema de gestión del restaurante</p>
+    
+    <div class="modulos-grid">
         
-        <div class="modulos-grid">
-            <a href="{% url 'inventario:listar_platos' %}" class="modulo-card">
+        {% if user.empleado.cargo.nivel_acceso >= 2 %}
+            <a href="{% url 'inventario:inventario_home' %}" class="modulo-card">
                 <div class="modulo-icon">
                     <img src="{% static 'img/home/inventario.jpg' %}" alt="Inventario" class="modulo-img">
                 </div>
                 <h3>Inventario</h3>
                 <p>Gestiona platos, ingredientes y categorías</p>
             </a>
-            <a href="{% url 'empleados:empleado_listar' %}" class="modulo-card">
+        {% endif %}
+        
+        {% if user.empleado.cargo.nivel_acceso >= 5 %}
+            <a href="{% url 'empleados:empleados_home' %}" class="modulo-card">
                 <div class="modulo-icon">
                     <img src="{% static 'img/home/empleados.png' %}" alt="Empleados" class="modulo-img">
                 </div>
                 <h3>Empleados</h3>
                 <p>Gestiona el personal del restaurante</p>
             </a>
-            <a href="{% url 'ventas:listar_mesa' %}" class="modulo-card">
+        {% endif %}
+        
+
+        <a href="{% url 'ventas:listar_mesa' %}" class="modulo-card">
+            <div class="modulo-icon">
+                <img src="{% static 'img/home/mesas.png' %}" alt="Mesas" class="modulo-img">
+            </div>
+            <h3>Mesas</h3>
+            <p>Control de mesas y su estado</p>
+        </a>
+        
+
+        {% if user.empleado.cargo.nivel_acceso >= 2 %}
+            <a href="{% url 'ventas:comanda_listar' %}" class="modulo-card">
                 <div class="modulo-icon">
-                    <img src="{% static 'img/home/mesas.png' %}" alt="Mesas" class="modulo-img">
+                    <img src="{% static 'img/home/comanda.png' %}" alt="Comandas" class="modulo-img">
                 </div>
-                <h3>Mesas</h3>
-                <p>Control de mesas y comandas</p>
+                <h3>Comandas</h3>
+                <p>Gestión de pedidos y comandas</p>
             </a>
+        {% endif %}
+        
+        {% if user.empleado.cargo.nivel_acceso >= 4 %}
             <a href="#" class="modulo-card">
                 <div class="modulo-icon">
                     <img src="{% static 'img/home/ventas.png' %}" alt="Ventas" class="modulo-img">
@@ -38,7 +56,9 @@
                 <h3>Ventas</h3>
                 <p>Registro de ventas y caja</p>
             </a>
-        </div>
+        {% endif %}
+        
     </div>
-{% endblock %}
+</div>
 
+{% endblock %}

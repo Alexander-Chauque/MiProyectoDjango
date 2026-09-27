@@ -1,0 +1,98 @@
+{% extends 'comandas/base_comandas.html' %}
+{% load static %}
+
+{% block title %}Detalle de Comanda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+
+    <!-- TARJETA FACTURA -->
+    <div class="factura">
+        
+        <!-- HEADER DE LA FACTURA -->
+        <div class="factura-header">
+            <div class="factura-info">
+                <div class="factura-campo">
+                    <span class="factura-label">Mesa</span>
+                    <span class="factura-valor">{{ comanda.mesa }}</span>
+                </div>
+                <div class="factura-campo">
+                    <span class="factura-label">Mozo</span>
+                    <span class="factura-valor">{{ comanda.empleado.get_full_name }}</span>
+                </div>
+                <div class="factura-campo">
+                    <span class="factura-label">Fecha</span>
+                    <span class="factura-valor">{{ comanda.fecha_hora|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+            <div class="factura-estado">
+                <span class="badge badge-{{ comanda.estado_comanda|lower }}">
+                    {{ comanda.get_estado_comanda_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- TABLA DE DETALLES -->
+        <div class="factura-cuerpo">
+            <table class="tabla-factura">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th class="centrado">Cant.</th>
+                        <th class="derecha">Precio Unit.</th>
+                        <th class="derecha">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                        {% if detalle.plato %}
+                        <tr>
+                            <td><span class="badge-tipo badge-plato">Plato</span></td>
+                            <td>{{ detalle.plato.nombre_plato }}</td>
+                            <td class="centrado">{{ detalle.cant_plato }}</td>
+                            <td class="derecha">${{ detalle.plato.precio_plato|floatformat:0 }}</td>
+                            <td class="derecha"><strong>${{ detalle.subtotal_plato|floatformat:0 }}</strong></td>
+                        </tr>
+                        {% endif %}
+                        {% if detalle.bebida %}
+                        <tr>
+                            <td><span class="badge-tipo badge-bebida">Bebida</span></td>
+                            <td>{{ detalle.bebida.nombre_bebida }}</td>
+                            <td class="centrado">{{ detalle.cant_bebida }}</td>
+                            <td class="derecha">${{ detalle.bebida.precio_bebida|floatformat:0 }}</td>
+                            <td class="derecha"><strong>${{ detalle.subtotal_bebida|floatformat:0 }}</strong></td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- OBSERVACIONES -->
+        {% if comanda.observaciones_comanda %}
+        <div class="factura-observaciones">
+            <span class="factura-label">Observaciones:</span>
+            <p>{{ comanda.observaciones_comanda }}</p>
+        </div>
+        {% endif %}
+
+        <!-- TOTAL DESTACADO -->
+        <div class="factura-total">
+            <div class="factura-total-contenido">
+                <span class="factura-total-label">Total a Pagar</span>
+                <span class="factura-total-valor">${{ comanda.total_comanda|floatformat:0 }}</span>
+            </div>
+        </div>
+        
+    </div>
+</div>
+<div class="detalle-botones">
+        <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">Volver</a>
+        <a href="{% url 'ventas:comanda_editar' comanda.id_comanda %}" class="btn-warning">Editar</a>
+    </div>
+{% endblock %}

@@ -150,5 +150,19 @@ MAILERS = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/inventario/platos/listar/' 
+LOGIN_REDIRECT_URL = '/' 
 LOGOUT_REDIRECT_URL = '/login/'
+
+# Configuración de email para desarrollo
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'Los Cardones <noreply@loscalderones.com>'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'tuemail@gmail.com'
+# EMAIL_HOST_PASSWORD = 'tu_contraseña_de_aplicacion'
+# ==========================================
+# EMAIL (Desarrollo)
+# ==========================================
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'Los Cardones <noreply@loscalderones.com>'

@@ -3,6 +3,7 @@ from . import views
 app_name = 'inventario'
 
 urlpatterns = [
+        path('', views.inventario_home, name='inventario_home'),
         path('platos/listar/', views.listar_platos, name='listar_platos'),
         path('platos/crear/', views.crear_plato, name='crear_plato'),
         path('platos/editar/<int:pk>/', views.editar_plato, name='editar_plato'),
