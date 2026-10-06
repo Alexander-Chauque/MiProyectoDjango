@@ -45,15 +45,20 @@ class Comanda(models.Model):
     mesa = models.ForeignKey(Mesa,on_delete=models.CASCADE,
         db_column='mesa_id',
         related_name='comandas',
-        verbose_name="Mesa", unique=True
-    )
+        verbose_name="Mesa")
     
     empleado = models.ForeignKey(Empleado,on_delete=models.CASCADE,
         db_column='empleado_id',
         related_name='comandas',
-        verbose_name="Mozo", unique=True
+        verbose_name="Mozo"
     )
-    
+    fecha_anulacion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de Anulación")
+    motivo_anulacion = models.TextField(blank=True, verbose_name="Motivo de Anulación")
+    usuario_anulacion = models.ForeignKey(Empleado, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='usuario_anulacion_id',
+        verbose_name="Usuario de Anulación"
+    )
+
     class Meta:
         db_table = 'ventas_comanda'
         verbose_name = 'Comanda'

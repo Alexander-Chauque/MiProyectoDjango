@@ -1,0 +1,128 @@
+{% extends 'comandas/base_comandas.html' %}
+{% load static %}
+
+{% block title %}Consultar Comandas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+    <h1 class="titulo">Consultar Comandas</h1>
+    <!-- FILTROS -->
+    <div class="tarjeta">
+        <div class="tarjeta-encabezado">
+            <h3>Filtros de Búsqueda</h3>
+        </div>
+        <div class="tarjeta-cuerpo">
+            <form method="GET" class="formulario-filtros">
+                <div class="fila">
+                    <div class="columna-mitad">
+                        <div class="grupo-campo">
+                            <label>Fecha Desde</label>
+                            <input type="date" name="fecha_desde" class="form-control" value="{{ filtros.fecha_desde|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="columna-mitad">
+                        <div class="grupo-campo">
+                            <label>Fecha Hasta</label>
+                            <input type="date" name="fecha_hasta" class="form-control" value="{{ filtros.fecha_hasta|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="fila">
+                    <div class="columna-mitad">
+                        <div class="grupo-campo">
+                            <label>Estado</label>
+                            <select name="estado" class="form-control">
+                                <option value="">-- Todos --</option>
+                                <option value="pendiente" {% if filtros.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                <option value="en_preparacion" {% if filtros.estado == 'en_preparacion' %}selected{% endif %}>En Preparación</option>
+                                <option value="entregado" {% if filtros.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+                                <option value="pagado" {% if filtros.estado == 'pagado' %}selected{% endif %}>Pagado</option>
+                                <option value="cancelado" {% if filtros.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="columna-mitad">
+                        <div class="grupo-campo">
+                            <label>Mesa</label>
+                            <select name="mesa" class="form-control">
+                                <option value="">-- Todas --</option>
+                                {% for mesa in mesas %}
+                                    <option value="{{ mesa.pk }}" 
+                                        {% if filtros.mesa == mesa.pk|stringformat:"s" %}selected{% endif %}>
+                                        Mesa {{ mesa.numero_mesa }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="formulario-acciones">
+                    <a href="{% url 'ventas:comanda_consultar' %}" class="btn-secundario">
+                        Limpiar
+                    </a>
+                    <button type="submit" class="btn-primario">
+                        Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- RESULTADOS -->
+    <div class="tarjeta">
+        <div class="tarjeta-encabezado">
+            <h3>Resultados ({{ comandas|length }} comandas)</h3>
+        </div>
+        <div class="tarjeta-cuerpo">
+            {% if comandas %}
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Fecha</th>
+                            <th>Mesa</th>
+                            <th>Mozo</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comanda in comandas %}
+                        <tr>
+                            <td><strong>{{ comanda.id_comanda }}</strong></td>
+                            <td>{{ comanda.fecha_hora|date:"d/m/Y H:i" }}</td>
+                            <td>Mesa {{ comanda.mesa.numero_mesa }}</td>
+                            <td>{{ comanda.empleado.get_full_name }}</td>
+                            <td><strong>${{ comanda.total_comanda|floatformat:0 }}</strong></td>
+                            <td>
+                                <span class="badge badge-{{ comanda.estado_comanda }}">
+                                    {{ comanda.get_estado_comanda_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="acciones-comanda">
+                                    <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-accion btn-detalle" title="Ver detalle">
+                                        Detalle
+                                    </a>
+                                    <a href="{% url 'ventas:comanda_comprobante' comanda.id_comanda %}" class="btn-accion btn-warning" title="Ver comprobante" target="_blank">
+                                        Comprobante
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="mensaje">No se encontraron comandas con esos filtros.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

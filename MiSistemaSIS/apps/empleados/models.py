@@ -22,9 +22,9 @@ class Cargo(models.Model):
 class Empleado(models.Model):
     nombre_empleado = models.CharField(max_length=100)
     apellido_empleado = models.CharField ( max_length=100)
-    dni = models.CharField(max_length=100, unique=True)
-    telefono = models.CharField(max_length=20, blank=True, unique=True)
-    correo = models.EmailField(max_length=80, blank=True)
+    dni = models.CharField(max_length=8, unique=True)
+    telefono = models.CharField(max_length=20, blank=True, null= True)
+    correo = models.EmailField(max_length=80, blank=True, unique=True)
     user_auto = models.CharField(max_length=100, unique=True, blank=True)
 
     fecha_ingreso = models.DateField (auto_now_add=True)
@@ -106,6 +106,7 @@ class TipoPermiso(models.Model):
     accion = models.CharField( max_length=50, choices=[
         ('leer', 'Leer'), ('escribir', 'Escribir'), ('modificar', 'Modificar'), ('eliminar', 'Eliminar')
     ])
+    descripcio_permiso = models.TextField(blank=True, null=True)
 
     class Meta:
         unique_together = ['modulo', 'accion']

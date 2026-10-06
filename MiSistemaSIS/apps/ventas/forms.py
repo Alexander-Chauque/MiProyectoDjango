@@ -54,8 +54,8 @@ class ComandaForm(forms.ModelForm):
 
 class DetalleComandaForm(forms.ModelForm):
     class Meta:
-        model = DetalleComanda#
-        fields = ['plato', 'cant_plato', 'bebida', 'cant_bebida'] 
+        model = DetalleComanda
+        fields = [ 'plato', 'cant_plato', 'bebida', 'cant_bebida'] 
         widgets = {
             'plato': forms.Select(attrs={'class': 'form-control'}),
             'cant_plato': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'value': 0}),

@@ -417,7 +417,48 @@
 .btn-baja:hover {
     background-color: #B91C1C;
 }
+.detalle-botones .btn-warning {
+    padding: 7px 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 
+.detalle-botones .btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
+}
+
+/* BOTÓN COMPROBANTE */
+.btn-comprobante {
+    background-color: #2C5F8A;
+    color: var(--color-white);
+    padding: 7px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-comprobante:hover {
+    background-color: #1e4a6e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(44, 95, 138, 0.3);
+    color: var(--color-white);
+}
 /* Select de estado personalizado */
 .form-estado {
     display: inline-block;
@@ -479,9 +520,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* ========================================== */
-/* 9. DETALLE DE COMANDA (Diseño Factura) */
-/* ========================================== */
+/* DETALLE DE COMANDA (Diseño Factura) */
 
 /* Cabecera con título y botones */
 .detalle-header-top {
@@ -505,6 +544,13 @@
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+}
+.detalle-botones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-top: 20px;
 }
 
 /* Tarjeta factura */
@@ -654,9 +700,11 @@
 /* Total destacado */
 .factura-total {
     background-color: var(--color-cardones);
-    padding: 20px 30px;
+    padding: 15px 25px;
     display: flex;
     justify-content: flex-end;
+    float: right;
+    border-radius: 0 0 12px 0;
 }
 
 .factura-total-contenido {
@@ -675,7 +723,7 @@
 }
 
 .factura-total-valor {
-    font-size: 28px;
+    font-size: 20px;
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
     color: var(--color-white);
@@ -702,6 +750,273 @@
 .badge-bebida {
     background-color: rgba(44, 95, 138, 0.15);
     color: #1E40AF;
+}
+
+/* ========================================== */
+/* TARJETA DE CONFIRMACIÓN (Anular) */
+/* ========================================== */
+
+.tarjeta-confirmacion {
+    background-color: var(--color-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(74, 74, 74, 0.1);
+    border: 1px solid #E5E7EB;
+    padding: 50px 40px;
+    max-width: 600px;
+    margin: 40px auto;
+    text-align: center;
+    border-top: 6px solid #DC2626;
+}
+
+.tarjeta-titulo {
+    font-size: 24px;
+    color: var(--color-gris-oscuro);
+    margin-bottom: 15px;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.tarjeta-mensaje {
+    font-size: 15px;
+    color: var(--color-gris-medio);
+    margin-bottom: 25px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.tarjeta-detalle {
+    background-color: var(--color-gris-claro);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: left;
+    border-left: 4px solid var(--color-cardones);
+}
+
+.detalle-linea {
+    margin: 8px 0;
+    font-size: 14px;
+    color: var(--color-gris-oscuro);
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.detalle-linea strong {
+    color: var(--color-gris-oscuro);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+    display: inline-block;
+    min-width: 140px;
+}
+
+.tarjeta-advertencia {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 25px;
+    /* border-left: 4px solid #DC2626; */
+    text-align: left;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.tarjeta-formulario {
+    margin: 0;
+}
+
+.tarjeta-botones {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.tarjeta-botones .btn-secundario,
+.tarjeta-botones .btn-danger {
+    padding: 12px 30px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-block;
+    min-width: 160px;
+    text-align: center;
+}
+
+.tarjeta-botones .btn-secundario {
+    background-color: var(--color-gris-medio);
+    color: var(--color-white);
+}
+
+.tarjeta-botones .btn-secundario:hover {
+    background-color: var(--color-gris-oscuro);
+    transform: translateY(-2px);
+}
+
+.tarjeta-botones .btn-danger {
+    background-color: #DC2626;
+    height: 45px;
+    color: var(--color-white);
+}
+
+.tarjeta-botones .btn-danger:hover {
+    background-color: #B91C1C;
+    transform: translateY(-2px);
+}
+
+.grupo-campo {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.grupo-campo label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gris-oscuro);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.grupo-campo textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: var(--color-gris-oscuro);
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.grupo-campo textarea:focus {
+    outline: none;
+    border-color: var(--color-cardones);
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+/* ========================================== */
+/* FORMULARIO DE FILTROS */
+/* ========================================== */
+
+.formulario-filtros {
+    width: 100%;
+}
+
+.formulario-filtros .fila {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.formulario-filtros .columna-mitad {
+    flex: 1;
+    min-width: 250px;
+}
+
+.formulario-filtros .grupo-campo {
+    margin-bottom: 0;
+}
+
+.formulario-filtros label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-gris-medio);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.formulario-filtros input,
+.formulario-filtros select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: var(--color-gris-oscuro);
+    background-color: var(--color-white);
+    box-sizing: border-box;
+    transition: all 0.3s;
+}
+
+.formulario-filtros input:focus,
+.formulario-filtros select:focus {
+    outline: none;
+    border-color: var(--color-cardones);
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+.formulario-filtros .formulario-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid #E5E7EB;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.formulario-filtros .btn-secundario,
+.formulario-filtros .btn-primario {
+    padding: 10px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.formulario-filtros .btn-secundario {
+    background-color: var(--color-gris-medio);
+    color: var(--color-white);
+}
+
+.formulario-filtros .btn-secundario:hover {
+    background-color: var(--color-gris-oscuro);
+    transform: translateY(-2px);
+}
+
+.formulario-filtros .btn-primario {
+    background-color: #2ecc71;
+    color: var(--color-white);
+}
+
+.formulario-filtros .btn-primario:hover {
+    background-color: #27AE60;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+/* Resultados */
+.mensaje {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-gris-medio);
+    font-size: 15px;
+    font-style: italic;
 }
 
 /* ========================================== */
