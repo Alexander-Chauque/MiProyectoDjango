@@ -84,7 +84,7 @@ class TipoBebida(models.Model):
 
 #Bebidas
 class Bebida(models.Model):
-    nombre_bebida = models.CharField(max_length=50, unique= True)
+    nombre_bebida = models.CharField(max_length=50, unique= True, null=False, blank=False)
     id_tipo_bebida = models.ForeignKey(TipoBebida, on_delete=models.CASCADE,db_column='tipo_id')
     precio_bebida = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion_bebida = models.TextField(blank=True)

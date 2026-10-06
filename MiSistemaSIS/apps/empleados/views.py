@@ -308,7 +308,7 @@ def permiso_crear(request):
     if request.method == 'POST':
         modulo = request.POST.get('modulo')
         accion = request.POST.get('accion')
-        descripcion = request.POST.get('descripcion', '')
+        descripcion_permiso = request.POST.get('descripcion', '')
         
         if TipoPermiso.objects.filter(modulo=modulo, accion=accion).exists():
             messages.error(request, 'Este permiso ya existe')
@@ -316,7 +316,6 @@ def permiso_crear(request):
             TipoPermiso.objects.create(
                 modulo=modulo,
                 accion=accion,
-                descripcion=descripcion
             )
             messages.success(request, 'Permiso creado exitosamente')
             return redirect('empleados:listar_permiso')

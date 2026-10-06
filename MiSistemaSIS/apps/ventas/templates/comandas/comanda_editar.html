@@ -74,8 +74,11 @@
                     <tbody>
                         {% for form_detalle in formset %}
                         <tr class="fila-detalle">
-                            {{ form_detalle.id }}
-                            <td>{{ form_detalle.plato }}</td>
+                            {{ form_detalle.id_detalle_com }}
+                            <td>
+                                
+                                {{ form_detalle.plato }}
+                            </td>
                             <td>{{ form_detalle.cant_plato }}</td>
                             <td>{{ form_detalle.bebida }}</td>
                             <td>{{ form_detalle.cant_bebida }}</td>

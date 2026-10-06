@@ -17,4 +17,7 @@ urlpatterns = [
     path('comandas/eliminar/<int:pk>/', views.comanda_eliminar, name='comanda_eliminar'),
     path('comandas/detalle/<int:pk>/', views.comanda_detalle, name='comanda_detalle'),
     path('comandas/estado/<int:pk>/', views.comanda_cambiar_estado, name='comanda_cambiar_estado'),
+    path('comandas/anular/<int:pk>/', views.comanda_anular, name='comanda_anular'),
+    path('comandas/consultar/', views.comanda_consultar, name='comanda_consultar'),
+    path('comandas/comprobante/<int:pk>/', views.comanda_comprobante, name='comanda_comprobante'),
 ]

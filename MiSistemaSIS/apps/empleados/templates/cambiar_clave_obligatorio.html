@@ -20,12 +20,12 @@
             </p>
             <div class="aviso-cambio">
                 <strong>Información</strong>
-                Esta es la primera vez que inicias sesión o tu contraseña fue restablecida.
+                Esta es la primera vez que inicias sesión.
                 Por seguridad, debes crear una nueva contraseña personal.
             </div>
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
+                    <div class="alert-{{ message.tags }}">
                         {{ message }}
                     </div>
                 {% endfor %}

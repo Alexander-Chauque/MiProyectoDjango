@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante Comanda #{{ comanda.id_comanda }} - Los Cardones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/comprobante.css' %}">
+</head>
+<body>
+    <div class="comprobante">
+        <div class="comprobante-header">
+            <h1>LOS CARDONES</h1>
+            <p>Balcarce 922, Salta - Argentina</p>
+            <p>Tel: (387) 123-4567 | CUIT: 30-12345678-9</p>
+        </div>
+        <div class="comprobante-titulo">
+            <h2>COMPROBANTE DE COMANDA</h2>
+            <p class="comprobante-numero">N° {{ comanda.id_comanda }}</p>
+        </div>
+        <div class="comprobante-datos">
+            <div class="datos-fila">
+                <div class="datos-columna">
+                    <p><strong>Fecha:</strong> {{ comanda.fecha_hora|date:"d/m/Y H:i" }}</p>
+                    <p><strong>Mesa:</strong> Mesa {{ comanda.mesa.numero_mesa }}</p>
+                    <p><strong>Mozo:</strong> {{ comanda.empleado.get_full_name }}</p>
+                </div>
+                <div class="datos-columna">
+                    <p><strong>Estado:</strong> {{ comanda.get_estado_comanda_display }}</p>
+                    <p><strong>Observaciones:</strong> {{ comanda.observaciones_comanda|default:"Sin observaciones" }}</p>
+                </div>
+            </div>
+        </div>
+        <table class="comprobante-tabla">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th class="centrado">Cant.</th>
+                    <th class="derecha">Precio Unit.</th>
+                    <th class="derecha">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                    {% if detalle.plato %}
+                    <tr>
+                        <td><span class="badge-tipo">Plato</span></td>
+                        <td>{{ detalle.plato.nombre_plato }}</td>
+                        <td class="centrado">{{ detalle.cant_plato }}</td>
+                        <td class="derecha">${{ detalle.plato.precio_plato|floatformat:0 }}</td>
+                        <td class="derecha"><strong>${{ detalle.subtotal_plato|floatformat:0 }}</strong></td>
+                    </tr>
+                    {% endif %}
+                    {% if detalle.bebida %}
+                    <tr>
+                        <td><span class="badge-tipo">Bebida</span></td>
+                        <td>{{ detalle.bebida.nombre_bebida }}</td>
+                        <td class="centrado">{{ detalle.cant_bebida }}</td>
+                        <td class="derecha">${{ detalle.bebida.precio_bebida|floatformat:0 }}</td>
+                        <td class="derecha"><strong>${{ detalle.subtotal_bebida|floatformat:0 }}</strong></td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="fila-total">
+                    <td colspan="4" class="derecha"><strong>TOTAL:</strong></td>
+                    <td class="derecha"><strong>${{ comanda.total_comanda|floatformat:0 }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="comprobante-pie">
+            <p><strong>Usuario:</strong> {{ comanda.empleado.user_auto }}</p>
+            <p><strong>Emitido:</strong> {{ comanda.fecha_hora|date:"d/m/Y H:i" }}</p>
+            <p class="gracias">¡Gracias por su visita!</p>
+            <p class="redes">www.loscardones.com | @loscardones</p>
+        </div>
+    </div>
+
+    <div class="comprobante-acciones">
+        <button onclick="window.print()" class="btn-imprimir">
+            Imprimir / Guardar PDF
+        </button>
+        <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-volver">
+            Volver al Detalle
+        </a>
+        <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver">
+            Volver al Listado
+        </a>
+    </div>
+</body>
+</html>

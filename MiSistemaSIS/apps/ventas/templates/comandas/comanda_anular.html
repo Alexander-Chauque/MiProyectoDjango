@@ -1,0 +1,70 @@
+{% extends 'comandas/base_comandas.html' %}
+{% load static %}
+
+{% block title %}Anular Comanda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+    <h1 class="titulo">Anular Comanda #{{ comanda.id_comanda }}</h1>
+
+    <div class="tarjeta-confirmacion">
+        <h2 class="tarjeta-titulo">¿Estás seguro de anular esta comanda?</h2>
+        
+        <p class="tarjeta-mensaje">
+            Estás a punto de anular la siguiente comanda:
+        </p>
+        
+        <div class="tarjeta-detalle">
+            <p class="detalle-linea">
+                <strong>Comanda:</strong> #{{ comanda.id_comanda }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Mesa:</strong> Mesa {{ comanda.mesa.numero_mesa }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Mozo:</strong> {{ comanda.empleado.get_full_name }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Fecha:</strong> {{ comanda.fecha_hora|date:"d/m/Y H:i" }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Total:</strong> ${{ comanda.total_comanda|floatformat:0 }}
+            </p>
+            <p class="detalle-linea">
+                <strong>Estado actual:</strong> {{ comanda.get_estado_comanda_display }}
+            </p>
+        </div>
+        
+        <p class="tarjeta-advertencia">
+            <strong>Esta acción revertirá la mesa a "Disponible" y no se puede deshacer.</strong>
+        </p>
+
+        <form method="POST" class="tarjeta-formulario">
+            {% csrf_token %}
+            
+            <div class="grupo-campo">
+                <label for="motivo">Motivo de Anulación</label>
+                <textarea name="motivo" 
+                          id="motivo" 
+                          class="form-control" 
+                          rows="3" 
+                          placeholder="Ingresá el motivo de la anulación..."
+                          required></textarea>
+            </div>
+            
+            <div class="tarjeta-botones">
+                <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-danger">
+                    Sí, Anular Comanda
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
