@@ -146,6 +146,9 @@ body {
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.05);
     font-family: 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .badge-cargo {
@@ -388,11 +391,11 @@ option {
 .btn-warning {
     background-color: #D97706;
     color: var(--color-blanco);
-    padding: 7px 14px;
+    padding:  8px 14px;
     text-decoration: none;
     border-radius: 6px;
     border: none;
-    font-size: 12px;
+    font-size: 13px;
     transition: all 0.3s;
     cursor: pointer;
     display: inline-flex;
@@ -517,7 +520,7 @@ option {
 }
 
 .estado_inactivo {
-    background-color: #95a5a9;
+    background-color:#DC2626;
     color: var(--color-blanco);
     font-size: 13px;
     font-weight: 600;
@@ -888,7 +891,17 @@ option {
     border-top: 1px solid #E5E7EB;
     flex-wrap: wrap;
 }
-
+.avatar-iniciales {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #f0a500;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
 /* ========================================== */
 /* RESPONSIVE */
 /* ========================================== */

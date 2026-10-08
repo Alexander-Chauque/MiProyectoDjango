@@ -27,11 +27,13 @@
                 <a href="{% url 'home' %}">Inicio</a>
                 
                 <span class="user-info">
-                    {{ user.first_name|default:user.username }}
-                    {% if user.empleado and user.empleado.cargo %}
-                        <span class="badge-cargo">{{ user.empleado.cargo.nombre_cargo }}</span>
-                    {% endif %}
-                </span>
+                        <span class="avatar-iniciales" title="{{ user.get_full_name|default:user.username }}">
+                            {{ user.first_name|first }}{{ user.last_name|first }}
+                        </span>
+                        {% if user.empleado and user.empleado.cargo %}
+                            <span class="badge-cargo">{{ user.empleado.cargo.nombre_cargo }}</span>
+                        {% endif %}
+                    </span>
                 <a href="{% url 'logout' %}" class="logout">Cerrar Sesión</a>
             {% else %}
                 <a href="{% url 'login' %}">Iniciar Sesión</a>

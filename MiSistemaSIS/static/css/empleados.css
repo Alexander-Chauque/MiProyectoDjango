@@ -249,7 +249,22 @@
     background-color: var(--color-white);
     padding: 30px;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(74, 74, 74, 0.08);
+    box-shadow: 0 2px 10px rgba(74, 74, 74, 0.212);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-gris-oscuro);
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
 }
 
 .grupo-campo {

@@ -5,18 +5,18 @@ from .models import Empleado, Cargo, TipoPermiso, PermisoXCargo
 import re
 class EmpleadoAltaForm(forms.ModelForm):
 
-    contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label='Contraseña', required=True, min_length=8)
-    confirmar_contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label='Confirmar Contraseña', required=True, min_length=8)
+    contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Ingrese la contraseña', 'class': 'form-control'}), label='Contraseña', required=True, min_length=8)
+    confirmar_contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirme la contraseña', 'class': 'form-control'}), label='Confirmar Contraseña', required=True, min_length=8)
 
     class Meta:
         model = Empleado
         fields = ['nombre_empleado', 'apellido_empleado', 'dni', 'telefono', 'correo', 'cargo', 'contrasena', 'confirmar_contrasena']
         widgets = {
-            'nombre_empleado': forms.TextInput(attrs={'class': 'form-control'}),
-            'apellido_empleado': forms.TextInput(attrs={'class': 'form-control'}),
-            'dni': forms.TextInput(attrs={'class': 'form-control'}),
-            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
-            'correo': forms.EmailInput(attrs={'class': 'form-control'}),
+            'nombre_empleado': forms.TextInput(attrs={'placeholder': 'Ingrese el nombre', 'class': 'form-control'}),
+            'apellido_empleado': forms.TextInput(attrs={'placeholder': 'Ingrese el apellido', 'class': 'form-control'}),
+            'dni': forms.TextInput(attrs={'placeholder': 'Ingrese el DNI', 'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'placeholder': 'Ingrese el teléfono', 'class': 'form-control'}),
+            'correo': forms.EmailInput(attrs={'placeholder': 'Ingrese el correo', 'class': 'form-control'}),
             'cargo': forms.Select(attrs={'class': 'form-control'}),
         }
 

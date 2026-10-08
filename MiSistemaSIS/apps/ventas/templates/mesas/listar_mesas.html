@@ -1,19 +1,27 @@
-{% extends 'base_mesas.html' %}
+{% extends 'comandas/base_comandas.html' %}
+{% load static %}
+
+{% block title %}Listar Mesas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo">{{ titulo }}</h1>
+    <h1 class="titulo">Listar Mesas</h1>
 
     <div class="derecha_boton">
-        <a href="{% url 'ventas:crear_mesa' %}" class="btn-primario">Nueva Mesa</a>
+        <a href="{% url 'ventas:crear_mesa' %}" class="btn-primario"> Nueva Mesa</a>
     </div>
 
     <div class="table-container">
         <table class="tabla">
             <thead>
                 <tr>
-                    <th>N° Mesa</th>
-                    <th>Capacidad</th>
+                    <th>#</th>
+                    <th>Ubicación</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -22,7 +30,7 @@
                 {% for mesa in mesas %}
                 <tr>
                     <td><strong>{{ mesa.numero_mesa }}</strong></td>
-                    <td>{{ mesa.capacidad }} personas</td>
+                    <td>{{ mesa.get_ubicacion_display }}</td>
                     <td>
                         {% if mesa.estado_mesa %}
                             <span class="estado_activo">Disponible</span>
@@ -31,21 +39,15 @@
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'ventas:editar_mesa' mesa.pk %}" class="btn-warning">Editar</a>
-                        <a href="{% url 'ventas:eliminar_mesa' mesa.pk %}" class="btn-danger">Eliminar</a>
-                        {% if mesa.estado_mesa %}
-                            <a href="{% url 'ventas:estado_mesa' mesa.pk %}" 
-                            class="btn-secundario"
-                            onclick="return confirm('¿Marcar la Mesa {{ mesa.numero_mesa }} como OCUPADA?')">
-                                Ocupar
-                            </a>
-                        {% else %}
-                            <a href="{% url 'ventas:estado_mesa' mesa.pk %}" 
-                            class="btn-reactivar"
-                            onclick="return confirm('¿Marcar la Mesa {{ mesa.numero_mesa }} como DISPONIBLE?')">
-                                Liberar
-                            </a>
-                        {% endif %}
+                        <div class="acciones-comanda">
+                            <a href="{% url 'ventas:editar_mesa' mesa.pk %}" class="btn-accion btn-editar">Editar</a>
+                            
+                            {% if mesa.estado_mesa %}
+                                <a href="{% url 'ventas:estado_mesa' mesa.pk %}" class="btn-accion btn-secundario">Ocupar</a>
+                            {% else %}
+                                <a href="{% url 'ventas:estado_mesa' mesa.pk %}" class="btn-accion btn-reactivar">Liberar</a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

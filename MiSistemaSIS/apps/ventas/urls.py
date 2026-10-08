@@ -20,4 +20,5 @@ urlpatterns = [
     path('comandas/anular/<int:pk>/', views.comanda_anular, name='comanda_anular'),
     path('comandas/consultar/', views.comanda_consultar, name='comanda_consultar'),
     path('comandas/comprobante/<int:pk>/', views.comanda_comprobante, name='comanda_comprobante'),
+    path('comanda/<int:pk>/ticket/', views.comanda_ticket, name='comanda_ticket'),
 ]

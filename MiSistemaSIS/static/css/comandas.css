@@ -297,33 +297,52 @@
 }
 
 .badge-pendiente {
-    background-color: #FEF3C7;
-    color: #B45309;
+    background-color: #f5a623;
+    color: white;
     border: 1px solid #F59E0B;
 }
 
 .badge-en_preparacion {
-    background-color: #DBEAFE;
-    color: #1E40AF;
+    background-color: #3498db;
+    color: white;
     border: 1px solid #3B82F6;
 }
 
 .badge-entregado {
-    background-color: #D1FAE5;
-    color: #065F46;
+    background-color: #27AE60;
+    color: white;
     border: 1px solid #10B981;
 }
 
 .badge-pagado {
-    background-color: #E0E7FF;
-    color: #3730A3;
+    background-color: #6366F1;
+    color: white;
     border: 1px solid #6366F1;
 }
 
 .badge-cancelado {
-    background-color: #FEE2E2;
-    color: #991B1B;
+    background-color:#DC2626;
+    color: white;
+    border: 1px solid #DC2626 ;
+}
+
+/* Badges de estado en la columna Estado */
+.badge-disponible {
+    background-color: #2ecc71;
+    color: white;
+    border: 1px solid #10B981;
+}
+
+.badge-ocupada {
+    background-color:#DC2626;
+    color: white;
     border: 1px solid #DC2626;
+}
+
+.badge-mantenimiento {
+    background-color: #F59E0B;
+    color: white;
+    border: 1px solid #F59E0B;
 }
 
 /* Acciones de la tabla */
@@ -344,6 +363,29 @@
     justify-content: center;
 }
 
+.btn-ticket {
+    background-color: #F5A623;
+    color: var(--color-white);
+    padding: 7px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+}
+.btn-ticket:hover {
+    background-color: #D97706;
+    transform: translateY(-2px);
+    color: var(--color-white);
+}
 .btn-accion {
     display: inline-flex;
     align-items: center;
@@ -434,7 +476,7 @@
 
 /* BOTÓN COMPROBANTE */
 .btn-comprobante {
-    background-color: #2C5F8A;
+    background-color: #27ae60;
     color: var(--color-white);
     padding: 7px 14px;
     border-radius: 6px;
@@ -454,9 +496,9 @@
 }
 
 .btn-comprobante:hover {
-    background-color: #1e4a6e;
+    background-color: #1E8449;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(44, 95, 138, 0.3);
+
     color: var(--color-white);
 }
 /* Select de estado personalizado */
@@ -479,6 +521,7 @@
     -moz-appearance: none;
     min-width: 140px;
     height: 32px;
+    text-transform: uppercase;
 }
 .select-estado:focus {
     outline: none;
@@ -519,6 +562,29 @@
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
+
+
+/* Colores según el estado de la MESA */
+.select-estado-disponible {
+    background-color: #D1FAE5;
+    color: #065F46;
+    border-color: #10B981;
+}
+
+
+.select-estado-ocupada {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border-color: #DC2626;
+}
+
+.select-estado-mantenimiento {
+    background-color: #FEF3C7;
+    color: #B45309;
+    border-color: #F59E0B;
+}
+
+
 
 /* DETALLE DE COMANDA (Diseño Factura) */
 
@@ -621,7 +687,7 @@
 
 .tabla-factura th {
     padding: 15px 20px;
-    text-align: left;
+    text-align: center;
     font-size: 12px;
     font-family: 'Oswald', sans-serif;
     text-transform: uppercase;
@@ -1018,7 +1084,19 @@
     font-size: 15px;
     font-style: italic;
 }
+.ticket-cocina {
+    font-family: 'Courier New', monospace;
+}
 
+.ticket-cocina .comprobante-tabla th {
+    background-color: #333;
+    color: white;
+}
+
+.ticket-cocina .comprobante-titulo h2 {
+    color: #F5A623;
+    font-size: 24px;
+}
 /* ========================================== */
 /* 10. RESPONSIVE */
 /* ========================================== */

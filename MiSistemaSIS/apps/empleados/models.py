@@ -7,6 +7,7 @@ from django.contrib.auth.hashers import make_password
 #USUARIO GESTION
 #Cargo
 class Cargo(models.Model):
+    id_cargo = models.AutoField(primary_key=True)
     nombre_cargo = models.CharField(max_length=100, unique=True)
     descripcion_cargo = models.TextField(blank=True)
     nivel_acceso = models.BigIntegerField(default=1)
@@ -20,6 +21,7 @@ class Cargo(models.Model):
 
 #Empleado
 class Empleado(models.Model):
+    id_empleado = models.AutoField(primary_key=True)
     nombre_empleado = models.CharField(max_length=100)
     apellido_empleado = models.CharField ( max_length=100)
     dni = models.CharField(max_length=8, unique=True)
@@ -89,6 +91,7 @@ class Empleado(models.Model):
     
 #Tipo permiso
 class TipoPermiso(models.Model):
+    id_tipo_permiso = models.AutoField(primary_key=True)
     modulo = models.CharField(max_length=50, choices=[
         ('platos', 'Platos'),
         ('bebidas', 'Bebidas'),
@@ -115,6 +118,7 @@ class TipoPermiso(models.Model):
         return f'({self.modulo} - {self.accion})'
 
 class PermisoXCargo(models.Model):
+    id_permiso_x_cargo = models.AutoField(primary_key=True)
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     tipo_permiso = models.ForeignKey(TipoPermiso, on_delete=models.CASCADE)
     fecha_asignacion = models.DateTimeField(auto_now_add=True, blank=True)
@@ -127,6 +131,7 @@ class PermisoXCargo(models.Model):
 
 #Tipo asistencia
 class TipoAsistencia(models.Model):
+    id_tipo_asistencia = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
@@ -134,6 +139,7 @@ class TipoAsistencia(models.Model):
 
 #Asistencia
 class Asistencia(models.Model):
+    id_asistencia = models.AutoField(primary_key=True)
     empleado=models.ForeignKey(Empleado, on_delete=models.CASCADE)
     tipo_asistencia=models.ForeignKey(TipoAsistencia, on_delete=models.CASCADE)
     fecha_asistencia=models.DateField()

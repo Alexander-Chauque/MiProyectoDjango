@@ -30,17 +30,17 @@
             <td>{{ plato.categoria.nombre_categoria_plato }}</td>
             <td>
                 {% if plato.estado_plato %}
-                    <span class="estado_activo">Activo</span>
+                    <span class="estado_activo">Disponible</span>
                 {% else %}
-                    <span class="estado_inactivo">Inactivo</span>
+                    <span class="estado_inactivo">No Disponible</span>
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'inventario:detalle_plato' plato.id %}" class="btn-tercero">Detalle</a>
-                <a href="{% url 'inventario:editar_plato' plato.id %}" class="btn-warning">Modificar</a>
-                <a href="{% url 'inventario:eliminar_plato' plato.id %}" class="btn-danger">Eliminar</a>
-                <a href="{% url 'inventario:estado_plato' plato.id %}" class="{% if plato.estado_plato %}estado_inactivar{% else %}estado_activar{% endif %}"> 
-                        {% if plato.estado_plato %}Inactivar{% else %}Activar{% endif %}
+                <a href="{% url 'inventario:detalle_plato' plato.pk %}" class="btn-tercero">Detalle</a>
+                <a href="{% url 'inventario:editar_plato' plato.pk %}" class="btn-warning">Modificar</a>
+                <!-- <a href="{% url 'inventario:eliminar_plato' plato.pk %}" class="btn-danger">Eliminar</a> -->
+                <a href="{% url 'inventario:estado_plato' plato.pk %}" class="{% if plato.estado_plato %}estado_inactivar{% else %}estado_activar{% endif %}"> 
+                        {% if plato.estado_plato %}Activar{% else %}Desactivar{% endif %}
                 </a>
             </td>
         </tr>
