@@ -87,5 +87,6 @@
 <div class="detalle-botones">
         <a href="{% url 'ventas:comanda_listar' %}" class="btn-accion btn-secundario">Volver</a>
         <a href="{% url 'ventas:comanda_editar' comanda.id_comanda %}" class="btn-accion btn-warning">Editar</a>
+        <a href="{% url 'ventas:comanda_ticket' comanda.id_comanda %}" class="btn-accion btn-ticket">Imprimir Ticket</a>
     </div>
 {% endblock %}

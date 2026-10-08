@@ -4,65 +4,77 @@
 <div class="contenedor">
     <h1 class="titulo">{{ titulo }}</h1>
 
-    <div class="card">
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label class="form-label">Nombre</label>
-                    {{ form.nombre_empleado }}
-                    {{ form.nombre_empleado.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Apellido</label>
-                    {{ form.apellido_empleado }}
-                    {{ form.apellido_empleado.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">DNI</label>
-                    {{ form.dni }}
-                    {{ form.dni.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Teléfono</label>
-                    {{ form.telefono }}
-                    {{ form.telefono.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Correo</label>
-                    {{ form.correo }}
-                    {{ form.correo.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Cargo</label>
-                    {{ form.cargo }}
-                    {{ form.cargo.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Contraseña</label>
-                    {{ form.contrasena }}
-                    {{ form.contrasena.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Confirmar Contraseña</label>
-                    {{ form.confirmar_contrasena }}
-                    {{ form.confirmar_contrasena.errors }}
-                </div>
-
-                <div class="derecha_boton">
-                    <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
-                    <button type="submit" class="btn-primario">{{ boton }}</button>
-                </div>
-            </form>
+    <form method="POST" class="formulario-simple">
+        {% csrf_token %}
+        
+        <div class="grupo-campo">
+            <label for="{{ form.nombre_empleado.id_for_label }}">Nombre *</label>
+            {{ form.nombre_empleado }}
+            {% if form.nombre_empleado.errors %}
+                <p class="error-campo">{{ form.nombre_empleado.errors.0 }}</p>
+            {% endif %}
         </div>
-    </div>
+
+        <div class="grupo-campo">
+            <label for="{{ form.apellido_empleado.id_for_label }}">Apellido *</label>
+            {{ form.apellido_empleado }}
+            {% if form.apellido_empleado.errors %}
+                <p class="error-campo">{{ form.apellido_empleado.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grupo-campo">
+            <label for="{{ form.dni.id_for_label }}">DNI *</label>
+            {{ form.dni }}
+            {% if form.dni.errors %}
+                <p class="error-campo">{{ form.dni.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grupo-campo">
+            <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+            {{ form.telefono }}
+            {% if form.telefono.errors %}
+                <p class="error-campo">{{ form.telefono.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grupo-campo">
+            <label for="{{ form.correo.id_for_label }}">Correo *</label>
+            {{ form.correo }}
+            {% if form.correo.errors %}
+                <p class="error-campo">{{ form.correo.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grupo-campo">
+            <label for="{{ form.cargo.id_for_label }}">Cargo *</label>
+            {{ form.cargo }}
+            {% if form.cargo.errors %}
+                <p class="error-campo">{{ form.cargo.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grupo-campo">
+            <label for="{{ form.contrasena.id_for_label }}">Contraseña *</label>
+            {{ form.contrasena }}
+            {% if form.contrasena.errors %}
+                <p class="error-campo">{{ form.contrasena.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grupo-campo">
+            <label for="{{ form.confirmar_contrasena.id_for_label }}">Confirmar Contraseña *</label>
+            {{ form.confirmar_contrasena }}
+            {% if form.confirmar_contrasena.errors %}
+                <p class="error-campo">{{ form.confirmar_contrasena.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="formulario-acciones">
+            <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
+            <button type="submit" class="btn-primario">{{ boton }}</button>
+        </div>
+    </form>
 </div>
 {% endblock %}

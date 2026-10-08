@@ -10,10 +10,24 @@
             
             <form method="POST">
                 {% csrf_token %}
-                <div class="derecha_boton">
-                    <a href="{% url 'ventas:listar_mesa' %}" class="btn-secundario">Cancelar</a>
-                    <button type="submit" class="btn-danger">Sí, Eliminar</button>
-                </div>
+                
+                {% if mesa.comandas.exists %}
+                    {# La mesa TIENE comandas: no se puede eliminar #}
+                    <p class="text-danger">
+                        No se puede eliminar la mesa porque tiene comandas asociadas.
+                    </p>
+                    <div class="derecha_boton">
+                        <a href="{% url 'ventas:listar_mesa' %}" class="btn-secundario">Volver al Listado</a>
+                    </div>
+                {% else %}
+                    {# La mesa NO tiene comandas: se puede eliminar #}
+                    <p class="text-danger">Esta acción no se puede deshacer.</p>
+                    <div class="derecha_boton">
+                        <a href="{% url 'ventas:listar_mesa' %}" class="btn-secundario">Cancelar</a>
+                        <button type="submit" class="btn-danger">Sí, Eliminar</button>
+                    </div>
+                {% endif %}
+                
             </form>
         </div>
     </div>

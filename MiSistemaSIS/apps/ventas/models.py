@@ -5,11 +5,15 @@ from inventario.models import Plato, Bebida
 # Create your models here.
 
 class Mesa(models.Model):
+    UBICACIONES = [
+        ('salon', 'Salón'),
+        ('patio', 'Patio'),
+    ]
     id_mesa = models.AutoField(primary_key=True)
-    capacidad = models.IntegerField(verbose_name="Capacidad")
     numero_mesa = models.IntegerField(unique=True, verbose_name="Número de Mesa")
-    estado_mesa = models.BooleanField(default=True, verbose_name="Estado")
-    
+    ubicacion = models.CharField(max_length=20, choices=UBICACIONES, verbose_name="Ubicación")
+    estado_mesa = models.BooleanField(default=True, verbose_name="Estado")  # True: Disponible, False: Ocupada
+
     class Meta:
         db_table = 'mesas'
         verbose_name = 'Mesa'
@@ -18,11 +22,11 @@ class Mesa(models.Model):
 
     @property
     def estado_texto(self):
-        return "Disponible" if self.estado_mesa else "Ocupada"
+        return "Disponible" if self.estado_mesa == True else "Ocupada"
     
     def __str__(self):
-        estado = "Activa" if self.estado_mesa else "Inactiva"
-        return f"Mesa {self.numero_mesa} - {estado}"
+        estado = "Disponible" if self.estado_mesa == True else "Ocupada"
+        return f"Mesa {self.numero_mesa} - ({estado}) - Ubicación: {self.get_ubicacion_display()}"
 
 #COMANDA
 

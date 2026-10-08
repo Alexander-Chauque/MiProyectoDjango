@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Cocina #{{ comanda.id_comanda }} - Los Cardones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/comprobante.css' %}">
+</head>
+<body>
+    <div class="comprobante ticket-cocina">
+        <div class="comprobante-header">
+            <h1>LOS CARDONES</h1>
+            <p>TICKET DE COCINA</p>
+        </div>
+        
+        <div class="comprobante-titulo">
+            <h2>COMANDA #{{ comanda.id_comanda }}</h2>
+        </div>
+        
+        <div class="comprobante-datos">
+            <div class="datos-fila">
+                <div class="datos-columna">
+                    <p><strong>Fecha:</strong> {{ comanda.fecha_hora|date:"d/m/Y H:i" }}</p>
+                    <p><strong>Mesa:</strong> Mesa {{ comanda.mesa.numero_mesa }}</p>
+                    <p><strong>Mozo:</strong> {{ comanda.empleado.get_full_name }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <table class="comprobante-tabla">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th class="centrado">Cant.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                    {% if detalle.plato %}
+                    <tr>
+                        <td><span class="badge-tipo">PLATO</span></td>
+                        <td>{{ detalle.plato.nombre_plato }}</td>
+                        <td class="centrado"><strong>{{ detalle.cant_plato }}</strong></td>
+                    </tr>
+                    {% endif %}
+                    {% if detalle.bebida %}
+                    <tr>
+                        <td><span class="badge-tipo">BEBIDA</span></td>
+                        <td>{{ detalle.bebida.nombre_bebida }}</td>
+                        <td class="centrado"><strong>{{ detalle.cant_bebida }}</strong></td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if comanda.observaciones_comanda %}
+        <div class="comprobante-pie">
+            <p><strong>OBSERVACIONES:</strong></p>
+            <p>{{ comanda.observaciones_comanda }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="comprobante-pie">
+            <p class="gracias">¡A PREPARAR!</p>
+        </div>
+    </div>
+
+    <div class="comprobante-acciones no-print">
+        <button onclick="window.print()" class="btn-imprimir">
+            Imprimir Ticket
+        </button>
+        <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-volver">
+            Volver al Detalle
+        </a>
+        <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver">
+            Volver al Listado
+        </a>
+    </div>
+
+    <script>
+    function imprimirYCambiarEstado() {
+        // Abrir el diálogo de impresión
+        window.print();
+        
+        // Enviar una petición al servidor para cambiar el estado
+        fetch("{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'estado=en_preparacion'
+        })
+        .then(response => {
+            console.log('Estado actualizado');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 # Create your views here.
+from datetime import datetime, time
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,6 +14,7 @@ from django.db import transaction
 from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 from django.utils import timezone
+
 
 @login_required
 @permiso_requerido('mesas', 'leer')
@@ -59,6 +61,13 @@ def mesa_editar(request, pk):
 @permiso_requerido('mesas', 'eliminar')
 def mesa_eliminar(request, pk):
     mesa = get_object_or_404(Mesa, pk=pk)
+
+    #verificar si la mesa tiene comandas activas
+    comandas_activas = Comanda.objects.filter(mesa=mesa, estado_comanda__in=['pendiente', 'en_preparacion', 'entregado'])
+    if comandas_activas.exists():
+        messages.error(request, f'No se puede eliminar la mesa {mesa.numero_mesa} porque tiene comandas activas.')
+        return redirect('ventas:listar_mesa')
+    
     if request.method == 'POST':
         numero = mesa.numero_mesa
         mesa.delete()
@@ -70,11 +79,26 @@ def mesa_eliminar(request, pk):
 @permiso_requerido('mesas', 'modificar')
 def mesa_estado(request, pk):
     mesa = get_object_or_404(Mesa, pk=pk)
+    
+    # Si la mesa está OCUPADA (False), verificar que no tenga comandas activas
+    if mesa.estado_mesa == False:
+        comandas_activas = mesa.comandas.filter(
+            estado_comanda__in=['pendiente', 'en_preparacion', 'entregado']
+        )
+        
+        if comandas_activas.exists():
+            messages.error(
+                request, 
+                f'No se puede liberar la Mesa {mesa.numero_mesa} porque tiene comandas activas.'
+            )
+            return redirect('ventas:listar_mesa')
+    
+    # Si llegó acá, se puede cambiar el estado
     mesa.estado_mesa = not mesa.estado_mesa
     mesa.save()
     
-    estado = "activada" if mesa.estado_mesa else "desactivada"
-    messages.success(request, f'Mesa {mesa.numero_mesa} {estado}')
+    estado = "disponible" if mesa.estado_mesa else "ocupada"
+    messages.success(request, f'Mesa {mesa.numero_mesa} ahora está {estado}')
     return redirect('ventas:listar_mesa')
 
 #COMANDAS
@@ -82,7 +106,7 @@ def mesa_estado(request, pk):
 @login_required
 @permiso_requerido('comandas', 'leer')
 def comanda_listar(request):
-    comandas = Comanda.objects.all().select_related('mesa', 'empleado')
+    comandas = Comanda.objects.all().select_related('mesa', 'empleado').order_by('id_comanda')
     return render(request, 'comandas/comanda_listar.html', {
         'comandas': comandas,})
 
@@ -112,6 +136,21 @@ def comanda_crear(request):
         # ==========================================
         
         if form.is_valid() and formset.is_valid():
+        # Validar que haya al menos un detalle
+            detalles_validos = 0
+            for form_detalle in formset:
+                if form_detalle.cleaned_data and not form_detalle.cleaned_data.get('DELETE', False):
+                    if form_detalle.cleaned_data.get('plato') or form_detalle.cleaned_data.get('bebida'):
+                        detalles_validos += 1
+            
+            if detalles_validos == 0:
+                messages.error(request, 'Debe agregar al menos un plato o bebida a la comanda.')
+                return render(request, 'comandas/comanda_crear.html', {
+                    'form': form,
+                    'formset': formset,
+                    'platos': Plato.objects.filter(estado_plato=True),
+                    'bebidas': Bebida.objects.filter(disponible_bebida=True),
+                })
             try:
                 # TRANSACCIÓN: si algo falla, se revierte TODO
                 with transaction.atomic():
@@ -137,9 +176,15 @@ def comanda_crear(request):
                 messages.success(request, f'Comanda #{comanda.id_comanda} creada exitosamente')
                 return redirect('ventas:comanda_listar')
             except Exception as e:
-                # Si algo falló, la transacción se revirtió automáticamente
-                messages.error(request, f'Error al crear la comanda: {e}')
-                print(f"ERROR EN TRANSACCIÓN: {e}")
+                    # Si algo falló, la transacción se revirtió automáticamente
+                    messages.error(request, f'Error al crear la comanda: {e}')
+                    print("=" * 60)
+                    print("ERROR EN TRANSACCIÓN:")
+                    print(f"Tipo: {type(e).__name__}")
+                    print(f"Mensaje: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    print("=" * 60)
     
     else:
         form = ComandaForm()
@@ -222,13 +267,13 @@ def comanda_cambiar_estado(request, pk):
     nuevo_estado = request.GET.get('estado') or request.POST.get('estado')
     
     if nuevo_estado:
-        # Si el estado es 'cancelado', anular
-        if nuevo_estado == 'cancelado':
-            motivo = request.POST.get('motivo', 'Cancelada desde el listado')
+        # Si el estado es 'anulado', anular
+        if nuevo_estado == 'anulado':
+            motivo = request.POST.get('motivo', 'Anulada desde el listado')
             
             try:
                 with transaction.atomic():
-                    comanda.estado_comanda = 'cancelado'
+                    comanda.estado_comanda = 'anulado'
                     comanda.fecha_anulacion = timezone.now()
                     comanda.motivo_anulacion = motivo
                     comanda.usuario_anulacion = request.user.empleado
@@ -240,18 +285,40 @@ def comanda_cambiar_estado(request, pk):
             except Exception as e:
                 messages.error(request, f'Error al anular: {e}')
         else:
-            # Para otros estados, solo cambiar el estado
-            comanda.estado_comanda = nuevo_estado
-            comanda.save()
-            # Si se marca como "Pagado" o "Entregado", liberar la mesa
-            if nuevo_estado in ['pagado', 'entregado']:
-                comanda.mesa.estado_mesa = True
-                comanda.mesa.save()
-            messages.success(request, f'Comanda #{comanda.id_comanda} ahora está {comanda.get_estado_comanda_display()}')
+            try:
+                with transaction.atomic():
+                    comanda.estado_comanda = nuevo_estado
+                    comanda.save()
+                    # Cambiar el estado de la mesa según el nuevo estado de la comanda
+                    if nuevo_estado in ['pagado', 'anulado']:
+                        comanda.mesa.estado_mesa = True
+                    elif nuevo_estado in ['pendiente', 'en_preparacion', 'entregado']:
+                        comanda.mesa.estado_mesa = False
+                    comanda.mesa.save()
+                messages.success(request, f'Comanda #{comanda.id_comanda} ahora está {comanda.get_estado_comanda_display()}')
+            except Exception as e:
+                messages.error(request, f'Error al cambiar el estado: {e}')
     return redirect('ventas:comanda_listar')
 
 @login_required
 @permiso_requerido('comandas', 'eliminar')  # Solo Admin
+def comanda_eliminar(request, pk):
+    comanda = get_object_or_404(Comanda, id_comanda=pk)
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                comanda.delete()
+            messages.success(request, f'Comanda #{comanda.id_comanda} eliminada')
+            return redirect('ventas:comanda_listar')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar la comanda: {e}')
+    
+    return render(request, 'comandas/comanda_eliminar.html', {'comanda': comanda})
+
+@login_required
+@permiso_requerido('comandas', 'modificar')
+
 def comanda_anular(request, pk):
     comanda = get_object_or_404(Comanda, id_comanda=pk)
     
@@ -260,14 +327,14 @@ def comanda_anular(request, pk):
         
         try:
             with transaction.atomic():
-                comanda.estado_comanda = 'cancelado'
+                comanda.estado_comanda = 'anulado'
                 comanda.fecha_anulacion = timezone.now()
                 comanda.motivo_anulacion = motivo
                 comanda.usuario_anulacion = request.user.empleado
                 comanda.save()
                 
                 # Revertir mesa
-                comanda.mesa.estado_mesa = True
+                comanda.mesa.estado_mesa =  True
                 comanda.mesa.save()
             
             messages.success(request, f'Comanda #{comanda.id_comanda} anulada')
@@ -280,22 +347,40 @@ def comanda_anular(request, pk):
 @login_required
 @permiso_requerido('comandas', 'leer')
 def comanda_consultar(request):
-    comandas = Comanda.objects.all()
+    comandas = Comanda.objects.all().order_by('-fecha_hora')
     
-    # Filtros
     fecha_desde = request.GET.get('fecha_desde')
     fecha_hasta = request.GET.get('fecha_hasta')
     estado = request.GET.get('estado')
     mesa_id = request.GET.get('mesa')
     
+    # Obtener la zona horaria actual('America/Argentina/Salta')
+    tz_actual = timezone.get_current_timezone()
+    
     if fecha_desde:
-        comandas = comandas.filter(fecha_hora__date__gte=fecha_desde)
+        try:
+            # Creamos un objeto datetime a las 00:00:00 del día elegido
+            desde_dt = datetime.strptime(fecha_desde, '%Y-%m-%d')
+            desde_con_tz = timezone.make_aware(datetime.combine(desde_dt.date(), time.min), tz_actual)
+            # Filtramos directamente sobre el campo DateTimeField sin usar __date
+            comandas = comandas.filter(fecha_hora__gte=desde_con_tz)
+        except ValueError:
+            pass
+            
     if fecha_hasta:
-        comandas = comandas.filter(fecha_hora__date__lte=fecha_hasta)
+        try:
+            # Creamos un objeto datetime a las 23:59:59.999999 del día elegido para incluir todo el día
+            hasta_dt = datetime.strptime(fecha_hasta, '%Y-%m-%d')
+            hasta_con_tz = timezone.make_aware(datetime.combine(hasta_dt.date(), time.max), tz_actual)
+            comandas = comandas.filter(fecha_hora__lte=hasta_con_tz)
+        except ValueError:
+            pass
+            
     if estado:
         comandas = comandas.filter(estado_comanda=estado)
-    if mesa_id:
-        comandas = comandas.filter(mesa_id=mesa_id)
+        
+    if mesa_id and mesa_id.isdigit():
+        comandas = comandas.filter(mesa_id=int(mesa_id))
     
     mesas = Mesa.objects.all()
     
@@ -306,7 +391,7 @@ def comanda_consultar(request):
             'fecha_desde': fecha_desde,
             'fecha_hasta': fecha_hasta,
             'estado': estado,
-            'mesa': mesa_id,
+            'mesa': int(mesa_id) if (mesa_id and mesa_id.isdigit()) else '',
         }
     })
 
@@ -317,6 +402,22 @@ def comanda_comprobante(request, pk):
     detalles = comanda.detalles.all().select_related('plato', 'bebida')
     
     return render(request, 'comandas/comanda_comprobante.html', {
+        'comanda': comanda,
+        'detalles': detalles,
+    })
+
+@login_required
+@permiso_requerido('comandas', 'leer')
+def comanda_ticket(request, pk):
+    comanda = get_object_or_404(Comanda, id_comanda=pk)
+    detalles = comanda.detalles.all().select_related('plato', 'bebida')
+
+    if comanda.estado_comanda == 'pendiente':
+        comanda.estado_comanda = 'en_preparacion'
+        comanda.save()
+        messages.success(request, f'Comanda #{comanda.id_comanda} enviada a cocina')
+
+    return render(request, 'comandas/comanda_ticket.html', {
         'comanda': comanda,
         'detalles': detalles,
     })

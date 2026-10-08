@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 #Categoria Plato
 class CategoriaPlato(models.Model):
+    id_categoria_plato = models.AutoField(primary_key=True)
     nombre_categoria_plato = models.CharField(max_length=100, unique=True)
     descripcion_categoria_plato = models.TextField(default='', blank=True)
     estado_categoria_plato = models.BooleanField(default=True)
@@ -16,6 +17,7 @@ class CategoriaPlato(models.Model):
 
 #Ingrediente
 class Ingrediente(models.Model):
+    id_ingrediente = models.AutoField(primary_key=True)
     nombre_ingrediente = models.CharField(max_length=100)
     unidad_medida = models.CharField(max_length=50, choices=[
         ("kg", 'Kilogramo'), ('g', 'Gramos'), ('l', 'Litros'), ('ml', 'mililitros'), ('u', 'Unidades'),
@@ -36,6 +38,7 @@ class Ingrediente(models.Model):
 
 #Plato
 class Plato(models.Model):
+    id_plato = models.AutoField(primary_key=True)
     nombre_plato = models.CharField(max_length=100, unique=True)
     precio_plato = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.ForeignKey(CategoriaPlato, on_delete=models.CASCADE)
@@ -62,12 +65,14 @@ class Plato(models.Model):
 
 #DetallePlato
 class DetallePlato(models.Model):
+    id_detalle_plato = models.AutoField(primary_key=True)
     plato = models.ForeignKey(Plato, on_delete=models.CASCADE)
     ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE)
     cantidad = models.IntegerField(default=1)
 
 #Tipo de bebidas
 class TipoBebida(models.Model):
+    id_tipo_bebida = models.AutoField(primary_key=True)
     nombre_tipo_bebida = models.CharField(max_length=50)
     descripcion_tipo_bebida=models.TextField(blank=True)
     estado_tipo_bebida = models.BooleanField(default=True)
@@ -84,6 +89,7 @@ class TipoBebida(models.Model):
 
 #Bebidas
 class Bebida(models.Model):
+    id_bebida = models.AutoField(primary_key=True)
     nombre_bebida = models.CharField(max_length=50, unique= True, null=False, blank=False)
     id_tipo_bebida = models.ForeignKey(TipoBebida, on_delete=models.CASCADE,db_column='tipo_id')
     precio_bebida = models.DecimalField(max_digits=10, decimal_places=2)
@@ -102,6 +108,7 @@ class Bebida(models.Model):
 
 #Mesa
 class Mesa(models.Model):
+    id_mesa = models.AutoField(primary_key=True)
     numero_mesa = models.IntegerField(unique=True)
     capacidad = models.IntegerField()
     estado_mesa = models.CharField(max_length=20, choices=[

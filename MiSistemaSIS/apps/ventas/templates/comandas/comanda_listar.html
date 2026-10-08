@@ -56,11 +56,11 @@
                                     <option value="en_preparacion" {% if comanda.estado_comanda == 'en_preparacion' %}selected{% endif %}>En Preparación</option>
                                     <option value="entregado" {% if comanda.estado_comanda == 'entregado' %}selected{% endif %}>Entregado</option>
                                     <option value="pagado" {% if comanda.estado_comanda == 'pagado' %}selected{% endif %}>Pagado</option>
-                                    <option value="cancelado" {% if comanda.estado_comanda == 'cancelado' %}selected{% endif %}>Anulado</option>
+                                    <option value="anulado" {% if comanda.estado_comanda == 'anulado' %}selected{% endif %}>Anulado</option>
                                 </select>
                             </form>
                             <a href="{% url 'ventas:comanda_comprobante' comanda.id_comanda %}" class="btn-accion btn-comprobante">Comprobante</a>
-
+                            <a href="{% url 'ventas:comanda_ticket' comanda.id_comanda %}" class="btn-accion btn-ticket">En Marcha</a>
                         </div>
                     </td>
                 </tr>
@@ -77,8 +77,8 @@
 function manejarCambioEstado(select, comandaId) {
     const nuevoEstado = select.value;
     
-    // Si elige "Cancelado", redirigir al formulario de anulación
-    if (nuevoEstado === 'cancelado') {
+    // Si elige "Anulado", redirigir al formulario de anulación
+    if (nuevoEstado === 'anulado') {
         window.location.href = `/ventas/comandas/anular/${comandaId}/`;
     } else {
         // Para otros estados, enviar el formulario

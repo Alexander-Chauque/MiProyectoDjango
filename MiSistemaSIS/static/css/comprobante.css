@@ -265,6 +265,10 @@ body {
 /* ========================================== */
 
 @media print {
+    @page {
+        size: 80mm 300mm; /* Ancho x Alto */
+        margin: 3mm;
+    }
     body {
         background-color: #FFFFFF;
         padding: 0;
@@ -274,9 +278,11 @@ body {
     .comprobante {
         box-shadow: none;
         border-radius: 0;
-        padding: 20px;
+        padding: 5px;
         max-width: 100%;
         border-top: none;
+        margin: 0;
+        box-shadow: none;
     }
     
     .comprobante-acciones {
@@ -286,6 +292,7 @@ body {
     .comprobante-tabla tbody tr:hover {
         background-color: transparent;
     }
+    
 }
 @media (max-width: 768px) {
     .comprobante {
