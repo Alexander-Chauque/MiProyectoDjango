@@ -47,6 +47,7 @@ class ComandaForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             return mesa  # No validar si estamos editando la comanda existente
+        
         comandas_existentes = Comanda.objects.filter(mesa=mesa, estado_comanda__in=['pendiente', 'en_preparacion'])
         if comandas_existentes.exists():
             raise forms.ValidationError('Esta mesa ya tiene una comanda en curso')

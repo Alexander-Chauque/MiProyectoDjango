@@ -1,36 +1,167 @@
-{% extends 'permisos/base_permisos.html' %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Permisos de {{ cargo.nombre_cargo }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo">{{ titulo }}</h1>
-    
-    <div class="derecha_boton">
-        <a href="{% url 'empleados:listar_cargo' %}" class="btn btn-secundario">Volver a Cargos</a>
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:listar_cargo' %}" class="breadcrumb-item">Cargos</a>
+    <span class="breadcrumb-separator">></span>
+    <a href="#" class="breadcrumb-item">Permisos</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">{{ cargo.nombre_cargo }}</span>
+  </nav>
+
+  <!-- Header de la página -->
+  <div class="page-header" style="margin-bottom: 20px;">
+    <div class="page-header-info">
+      <div class="page-header-icono" style="background-color: #FFF8E7;">
+        <span class="material-symbols-outlined" style="color: #F5A623;">shield_person</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Permisos de {{ cargo.nombre_cargo }}</h1>
+        <p>Consultá las acciones habilitadas para este cargo en cada módulo del sistema.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'empleados:listar_cargo' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">arrow_back</span> Volver a cargos
+      </a>
+    </div>
+  </div>
+
+  <!-- Barra superior: Buscador y Contador -->
+  <div class="barra-superior-ver-permisos">
+    <div class="buscador-permisos">
+      <span class="material-symbols-outlined">search</span>
+      <input type="text" id="buscar-permiso" placeholder="Buscar módulo o permiso...">
     </div>
 
-    <div class="table-container">
-        <table class="tabla">
-            <thead>
-                <tr>
-                    <th>Módulo</th>
-                    <th>Acción Permiso</th>
-                    <th>Descripción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in permisos %}
-                <tr>
-                    <td><strong>{{ item.tipo_permiso.modulo|upper }}</strong></td>
-                    <td><span class="estado-activo">{{ item.tipo_permiso.accion }}</span></td>
-                    <td>{{ item.tipo_permiso.descripcion }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="mensaje">Este cargo aún no tiene permisos asignados.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="tarjeta-total-permisos">
+      <span class="material-symbols-outlined">people</span>
+      <div>
+        <small>Total de permisos</small>
+        <strong>{{ permisos|length }} permisos</strong>
+      </div>
     </div>
+  </div>
+
+  <!-- Contenedor de Tarjetas por Módulo -->
+  <div class="contenedor-tarjetas-ver-permisos" id="lista-permisos">
+
+    {% regroup permisos by modulo as modulos_list %}
+
+    {% for modulo in modulos_list %}
+    <div class="tarjeta-modulo-ver" data-modulo="{{ modulo.grouper|lower }}">
+
+      <!-- Cabecera de la tarjeta (Módulo) -->
+      <div class="header-modulo-ver">
+        <div class="titulo-modulo-ver">
+          <div class="icono-modulo-ver">
+            <span class="material-symbols-outlined">
+              {% if modulo.grouper == 'platos' %}restaurant
+              {% elif modulo.grouper == 'ingredientes' %}inventory_2
+              {% elif modulo.grouper == 'categorias' or modulo.grouper == 'categorías' %}category
+              {% elif modulo.grouper == 'bebidas' %}local_drink
+              {% elif modulo.grouper == 'comandas' %}receipt_long
+              {% elif modulo.grouper == 'mesas' %}table_restaurant
+              {% elif modulo.grouper == 'empleados' %}people
+              {% elif modulo.grouper == 'cargos' %}work
+              {% else %}folder{% endif %}
+            </span>
+          </div>
+          <div>
+            <h3>{{ modulo.grouper|title }}</h3>
+            <p>Gestión de {{ modulo.grouper|lower }} del restaurante</p>
+          </div>
+        </div>
+        <span class="badge-cantidad-modulo">{{ modulo.list|length }} permisos</span>
+      </div>
+
+      <!-- Tabla interna del módulo -->
+      <table class="tabla-permisos-ver">
+        <thead>
+          <tr>
+            <th style="width: 20%;">ACCIÓN</th>
+            <th style="width: 80%;">DESCRIPCIÓN</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for permiso in modulo.list %}
+          <tr>
+            <td>
+              <div class="accion-con-icono">
+                <!-- Iconos según la acción -->
+                {% if permiso.accion == 'leer' %}
+                <span class="icono-accion badge-leer"><span class="material-symbols-outlined">visibility</span></span>
+                Leer {% elif permiso.accion == 'escribir' or permiso.accion == 'crear' %}
+                <span class="icono-accion badge-escribir"><span
+                    class="material-symbols-outlined">add_circle</span></span> Escribir
+                {% elif permiso.accion == 'modificar' or permiso.accion == 'editar' %}
+                <span class="icono-accion badge-modificar"><span class="material-symbols-outlined">edit</span></span>
+                Modificar
+                {% elif permiso.accion == 'eliminar' %}
+                <span class="icono-accion badge-eliminar"><span class="material-symbols-outlined">delete</span></span>
+                Eliminar
+                {% else %}
+                <span class="icono-accion"><span class="material-symbols-outlined">settings</span></span> {{
+                permiso.accion|title }}
+                {% endif %}
+              </div>
+            </td>
+            <td class="descripcion-permiso">
+              <!-- Si tu modelo tiene un campo 'descripcion', mostralo acá. Si no, ponemos un texto genérico -->
+              {% if permiso.descripcion %}
+              {{ permiso.descripcion }}
+              {% else %}
+              {% if permiso.accion == 'leer' %}Consultar los {{ modulo.grouper|lower }} registrados.
+              {% elif permiso.accion == 'escribir' %}Registrar nuevos {{ modulo.grouper|lower }}.
+              {% elif permiso.accion == 'modificar' %}Editar la información de los {{ modulo.grouper|lower }}.
+              {% elif permiso.accion == 'eliminar' %}Eliminar {{ modulo.grouper|lower }} del sistema.
+              {% else %}Realizar acción de {{ permiso.accion }} en {{ modulo.grouper }}.
+              {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Buscador simple por módulo
+  const buscador = document.getElementById('buscar-permiso');
+  const tarjetas = document.querySelectorAll('.tarjeta-modulo-ver');
+
+  buscador.addEventListener('input', function () {
+    const texto = this.value.toLowerCase();
+    tarjetas.forEach(tarjeta => {
+      const modulo = tarjeta.dataset.modulo;
+      if (modulo.includes(texto)) {
+        tarjeta.style.display = 'block';
+      } else {
+        tarjeta.style.display = 'none';
+      }
+    });
+  });
+</script>
 {% endblock %}

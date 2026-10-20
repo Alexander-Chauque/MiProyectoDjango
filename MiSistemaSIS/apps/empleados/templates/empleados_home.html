@@ -1,42 +1,108 @@
-{% extends 'base_empleados.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Empleados - Los Cardones{% endblock %}
+{% block title %}Gestión de Empleados{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="home-container">
-    <h1 class="titulo">Gestión de Empleados</h1>
-    <p class="subtitulo">Seleccioná qué querés gestionar</p>
+<div class="contenedor">
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}" class="breadcrumb-item">
+            <span class="material-symbols-outlined">home</span>
+            Inicio
+        </a>
+        <span class="breadcrumb-separator">></span>
+        <span class="breadcrumb-item active">Empleados</span>
+    </nav>
+    <div class="page-header">
+      <div class="page-header-info">
+        <div class="page-header-icono">
+          <span class="material-symbols-outlined">groups</span>
+        </div>
+        <div class="page-header-texto">
+          <h1>Gestión de Empleados</h1>
+          <p>Administra el personal, los cargos y los permisos del sistema.</p>
+        </div>
+      </div>
+    </div>
+        
+    <div class="empleados-grid">
+        
+        <!-- EMPLEADOS -->
+        <div class="empleados-card">
+            <div class="card-imagen">
+                <img src="{% static 'img/empleados/empleados.jpg' %}" alt="Empleados">
+                <div class="card-icono-superpuesto">
+                    <span class="material-symbols-outlined">groups</span>
+                </div>
+            </div>
+            <div class="card-contenido">
+                <h3>EMPLEADOS</h3>
+                <p>Gestiona el personal del restaurante.</p>
+                <a href="{% url 'empleados:empleado_listar' %}" class="btn-ingresar">
+                    Ingresar
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
+            </div>
+        </div>
 
-    <div class="modulos-grid">
-        
-        {# EMPLEADOS #}
-        <a href="{% url 'empleados:empleado_listar' %}" class="modulo-card">
-            <div class="modulo-icon">
-                <img src="{% static 'img/home/empleados.png' %}" alt="Empleados" class="modulo-img">
+        <!-- CARGOS -->
+        <div class="empleados-card">
+            <div class="card-imagen">
+                <img src="{% static 'img/empleados/cargos.jpg' %}" alt="Cargos">
+                <div class="card-icono-superpuesto">
+                    <span class="material-symbols-outlined">work</span>
+                </div>
             </div>
-            <h3>Empleados</h3>
-            <p>Gestiona el personal del restaurante</p>
-        </a>
-        
-        {# CARGOS #}
-        <a href="{% url 'empleados:listar_cargo' %}" class="modulo-card">
-            <div class="modulo-icon">
-                <img src="{% static 'img/home/cargos.png' %}" alt="Cargos" class="modulo-img">
+            <div class="card-contenido">
+                <h3>CARGOS</h3>
+                <p>Define y gestiona los perfiles del sistema.</p>
+                <a href="{% url 'empleados:listar_cargo' %}" class="btn-ingresar">
+                    Ingresar
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
             </div>
-            <h3>Cargos</h3>
-            <p>Define los perfiles del sistema</p>
-        </a>
-        
-        {# PERMISOS #}
-        <a href="{% url 'empleados:listar_permiso' %}" class="modulo-card">
-            <div class="modulo-icon">
-                <img src="{% static 'img/home/permisos.png' %}" alt="Permisos" class="modulo-img">
+        </div>
+
+        <!-- PERMISOS -->
+        <div class="empleados-card">
+            <div class="card-imagen">
+                <img src="{% static 'img/empleados/permisos.png' %}" alt="Permisos">
+                <div class="card-icono-superpuesto">
+                    <span class="material-symbols-outlined">shield_person</span>
+                </div>
             </div>
-            <h3>Permisos</h3>
-            <p>Administra los permisos de cada cargo</p>
-        </a>
-        
+            <div class="card-contenido">
+                <h3>PERMISOS</h3>
+                <p>Administra los permisos de cada cargo.</p>
+                <a href="{% url 'empleados:listar_permiso' %}" class="btn-ingresar">
+                    Ingresar
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="empleados-card">
+          <div class="card-imagen">
+            <img src="{% static 'img/empleados/asistencias.jpg' %}" alt="Asistencias">
+            <div class="card-icono-superpuesto">
+              <span class="material-symbols-outlined">calendar_month</span>
+            </div>
+          </div>
+          <div class="card-contenido">
+            <h3>ASISTENCIA</h3>
+            <p>Control y registro de asistencia personal.</p>
+            <a href="{% url 'empleados:asistencia_listar' %}" class="btn-ingresar">
+              Ingresar
+              <span class="material-symbols-outlined">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}

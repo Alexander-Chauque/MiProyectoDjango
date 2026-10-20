@@ -1,49 +1,368 @@
-{% extends 'base_inventario.html' %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Ingredientes {% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/inventario.css' %}">
+{% endblock %}
 
 {% block content %}
-<h1 class="titulo">Listado de Ingredientes</h1>
-<div class="derecha_boton">
-    <div>
-        <a href="{% url 'inventario:listar_platos' %}" class="btn">Volver a Platos</a>
-        <a href="{% url 'inventario:crear_ingrediente' %}" class="btn-primario">Nuevo Ingrediente</a>
+<div class="contenedor">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'inventario:inventario_home' %}" class="breadcrumb-item"> Inventario</a>
+    <span class="breadcrumb-separator">></span>
+
+    {% if viene_de_platos %}
+      <a href="{% url 'inventario:listar_platos' %}" class="breadcrumb-item">Platos</a>
+      <span class="breadcrumb-separator">></span>
+    {% endif %}
+    <span class="breadcrumb-item active">Ingredientes</span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">eco</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Ingredientes</h1>
+        <p>Adminstra los ingredientes e insumos de cocina.</p>
+      </div>
     </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">arrow_back</span> Volver a Platos
+      </a>
+      <a href="{% url 'inventario:crear_ingrediente' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Nuevo ingrediente
+      </a>
+    </div>
+  </div>
+
+  <div class="listado-layout">
+    <aside class="filtros-panel">
+      <form method="get">
+        <div class="filtros-header">
+          <span class="material-symbols-outlined">filter_alt</span>
+          <h3>Filtros</h3>
+        </div>
+
+        <!-- Buscador -->
+        <div class="filtro-grupo">
+          <label>Buscar</label>
+          <div class="input-buscar">
+            <span class="material-symbols-outlined">search</span>
+            <input name="buscar" type="text" placeholder="Nombre del ingrediente...">
+          </div>
+        </div>
+
+        <!-- unidad medidad-->
+        <div class="filtro-grupo">
+          <label>Unidad de medida</label>
+          <div class="checkboxes">
+            <label class="checkbox-item">
+              <input type="checkbox" id="uni-todas" onchange="toggleUnidades(this)">
+              <span>Todas</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="unidad" value="kg" class="checkbox-unidad" {% if 'kg' in unidades_seleccionadas %}checked{% endif %}>
+              <span>Kilogramo (kg)</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="unidad" value="g" class="checkbox-unidad" {% if 'g' in unidades_seleccionadas %}checked{%endif %}>
+              <span>Gramos (g)</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="unidad" value="l" class="checkbox-unidad" {% if 'l' in unidades_seleccionadas %}checked{%endif %}>
+              <span>Litros (L)</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="unidad" value="ml" class="checkbox-unidad" {% if 'ml' in unidades_seleccionadas %}checked{% endif %}>
+              <span>Mililitros (ml)</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="unidad" value="u" class="checkbox-unidad" {% if 'u' in unidades_seleccionadas %}checked{% endif %}>
+              <span>Unidades (u)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="filtro-grupo">
+          <label>Estado</label>
+          <div class="checkboxes">
+            <label class="checkbox-item">
+              <input type="checkbox" id="est-todos" onchange="toggleEstados(this)" {% if not estados_seleccionados%}checked{% endif %}>
+              <span>Todos</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="estado" value="disponible" class="checkbox-estado" {% if 'disponible' in estados_seleccionados %}checked{% endif %}>
+              <span>Disponible</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="estado" value="no_disponible" class="checkbox-estado" {% if 'no_disponible' in estado_seleccionado %}checked{% endif %}>
+              <span>No disponible</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Manterner por_pagina -->
+        <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+
+        <!-- Botones -->
+        <button type="submit" class="btn-aplicar">
+          <span class="material-symbols-outlined">filter_alt</span>Aplicar filtros
+        </button>
+        <button>
+          <a href="{% url 'inventario:listar_platos' %}" class="btn-limpiar">
+            <span class="material-symbols-outlined">refresh</span>Limpiar filtros
+          </a>
+      </form>
+    </aside>
+
+    <!-- TABLA -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>NOMBRE</th>
+            <th>COSTO UNITARIO</th>
+            <th>UNIDAD DE MEDIDA</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ingrediente in ingredientes %}
+            <tr>
+              <td><strong>{{ ingrediente.nombre_ingrediente }}</strong></td>
+              <td>${{ ingrediente.costo_unitario|floatformat:2 }}</td>
+              <td>
+                <span class="badge-categoria">
+                  {{ ingrediente.unidad_medida }}
+                </span>
+              </td>
+              <td>
+                {% if ingrediente.estado_ingrediente %}
+                <span class="badge badge-activo">Disponible</span>
+                {% else %}
+                <span class="badge badge-inactivo">No disponible</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="acciones-tabla">
+                  <a href="{% url 'inventario:detalle_ingrediente' ingrediente.pk %}" class="btn-icon btn-detalle"
+                    title="Ver detalle">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </a>
+                  <a href="{% url 'inventario:editar_ingrediente' ingrediente.pk %}" class="btn-icon btn-editar" title="Modificar">
+                    <span class="material-symbols-outlined">edit</span>
+                  </a>
+                  <a href="{% url 'inventario:estado_ingrediente' ingrediente.pk %}"class="btn-icon {% if ingrediente.estado_ingrediente %}btn-baja{% else %}btn-reactivar{% endif %}"
+                    data-url="{% url 'inventario:estado_ingrediente' ingrediente.pk %}" data-nombre="{{ ingrediente.nombre_ingrediente }}" data-estado="{{ ingrediente.estado_ingrediente|yesno:'true,false' }}" onclick="event.preventDefault(); abrirModalDesdeBoton(this);" title="{% if ingrediente.estado_ingrediente %}Desactivar{% else %}Activar{% endif %}">
+                    <span class="material-symbols-outlined">
+                      {% if ingrediente.estado_ingrediente %}toggle_off{% else %}toggle_on{% endif %}
+                    </span>
+                  </a>
+                  <a href="{% url 'inventario:eliminar_ingrediente' ingrediente.pk}" class="btn-icon btn-clave" title="Eliminar">
+                    <span class="material-symbols-outlined">delete</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="sin-resultados">
+                No hay platos registrados
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info"> Mostrando {{ ingredientes.start_index}} a {{ ingredientes.end_index }} de {{ ingredientes.paginator.count }} platos</span>
+        <div class="paginacion-botones">
+          <!-- Botón anterior -->
+          {% if ingredientes.has_previous %}
+          <a href="?page={{ ingredientes.previous_page_number }}{% for u in unidades_seleccionadas %}&unidad={{ u }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+            class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </a>
+          <!-- <button disabled>
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button> -->
+          {% endif %}
+
+          <!-- Número de página -->
+          {% for num in ingredientes.paginator.page_range %}
+            {% if ingredientes.number == num %}
+            <a href="?page={{ num }}{% for u in unidades_seleccionadas %}&unidad={{ u }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+              class="paginacion-btn pagina-activa">{{ num }}</a>
+            {% elif num > ingredientes.number|add:'-3' and num < ingredientes.number|add:'3' %} <a
+              href="?page={{ num }}{% for u in unidades_seleccionadas %}&unidad={{ u }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+              class="paginacion-btn">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+
+            <!-- Boton Siguiente -->
+            {% if ingredientes.has_next %}
+              <a href="?page={{ ingredientes.next_page_number }}{% for u in unidades_seleccionadas %}&unidad={{ u }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+                class="paginacion-btn">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </a>
+            <!--
+            <button disabled>
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button> -->
+            {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
 </div>
-<table class="tabla">
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Unidad de Medida</th>
-            <th>Costo Unitario</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for ingrediente in ingredientes %}
-        <tr>
-            <td>{{ ingrediente.nombre_ingrediente }}</td>
-            <td>{{ ingrediente.unidad_medida }}</td>
-            <td>{{ ingrediente.costo_unitario }}</td>
-            <td>
-                    {% if ingrediente.estado_ingrediente %}
-                        <span class="estado_activo">Disponible</span>
-                    {% else %}
-                        <span class="estado_inactivo">No Disponible</span>
-                    {% endif %}
-                </td>
-            <td>
-                <a href="{% url 'inventario:detalle_ingrediente' ingrediente.pk %}" class="btn-tercero">Detalle</a>
-                <a href="{% url 'inventario:editar_ingrediente' ingrediente.pk %}" class="btn-warning">Modificar</a>
-                <a href="{% url 'inventario:eliminar_ingrediente' ingrediente.pk %}" class="btn-danger">Eliminar</a>
-                <a href="{% url 'inventario:estado_ingrediente' ingrediente.pk %}" class="{% if ingrediente.estado_ingrediente %}estado_inactivar{% else %}estado_activar{% endif %}"> 
-                        {% if ingrediente.estado_ingrediente %}Desactivar{% else %}Activar{% endif %}
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5" class="mensaje"><b>No hay ingredientes registrados</b></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+<div class="modal-overlay" id="modal-estado" style="display: none;">
+  <div class="modal-contenido">
+    <div class="modal-header">
+      <div class="modal-icono-alerta">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h3>¿Cambiar estado de ingrediente?</h3>
+      <button class="btn-cerrar-modal" id="btn-cerrar-modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!--Texto y caja de advertencia -->
+    <div class="modal-body">
+      <p>Estás seguro de que querés cambiar el estado de <strong id="nombre-ingrediente-modal"></strong> a <strong
+          id="nuevo-estado-modal"></strong>?</p>
+
+      <div class="modal-alerta-info">
+        <span class="material-symbols-outlined">info</span>
+        <p id="texto-alerta-modal"></p>
+      </div>
+    </div>
+
+    <!--Botones cancelar y confirmar-->
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
+      <button type="button" class="btn-primario" id="btn-confirmar-modal">
+        <span class="material-symbols-outlined">toggle_on</span> Confirmar cambio
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cambiarPorPagina(valor) {
+    //obtener url actual
+    const url = new URL(window.location.href);
+    //cambiar el parametro 'por_pagina'
+    url.searchParams.set('por_pagina', valor);
+    // restear a al pagina 1(porque cambia la cantidad de registros)
+    url.searchParams.set('page', 1);
+    //redigir
+    window.location.href = url.toString();
+  }
+
+  // cuando se marca/desmarca todas las categoria
+  function toggleUnidades(checkbox) {
+    const checkboxes = document.querySelectorAll('.checkbox-unidad');
+    checkboxes.forEach(cb => 
+      cb.checked = false);
+  }
+
+  // cuando se marca/desmarca todas los estados
+  function toggleEstados(checkbox) {
+    const checkboxes = document.querySelectorAll('.checkbox-estado');
+    checkboxes.forEach(cb => 
+      cb.checked = false);
+  }
+
+  // si se marca un checbox individual, desmarchar todos
+  document.querySelectorAll('.checkbox-unidad').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) {
+        document.getElementById('uni-todas').checked = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.checkbox-estado').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) document.getElementById('est-todos').checked = false;
+    });
+  });
+
+  function abrirModalDesdeBoton(elemento) {
+    urlPendiente = elemento.getAttribute('data-url');
+    const nombre = elemento.getAttribute('data-nombre');
+    const estaActivo = elemento.getAttribute('data-estado') === 'true';
+
+    const modal = document.getElementById('modal-estado');
+    const nombreIngredienteModal = document.getElementById('nombre-ingrediente-modal');
+    const nuevoEstadoModal = document.getElementById('nuevo-estado-modal');
+    const textoAlertaModal = document.getElementById('texto-alerta-modal');
+
+    nombreIngredienteModal.textContent = `"${nombre}"`;
+
+    if (estaActivo) {
+      nuevoEstadoModal.textContent = "No disponible";
+      nuevoEstadoModal.style.color = "#F5A623";
+      textoAlertaModal.textContent = "El ingrediente dejará de estar disponible para nuevas recetas, pero se conservará su información en los platos existentes.";
+    } else {
+      nuevoEstadoModal.textContent = "Disponible";
+      nuevoEstadoModal.style.color = "#27AE60";
+      textoAlertaModal.textContent = "El ingrediente volverá a estar disponible para nuevas recetas.";
+    }
+
+    modal.style.display = 'flex';
+  }
+
+  // Configuración de los botones del modal
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modal-estado');
+    const btnCancelar = document.getElementById('btn-cancelar-modal');
+    const btnConfirmar = document.getElementById('btn-confirmar-modal');
+    const btnCerrar = document.getElementById('btn-cerrar-modal');
+
+    function cerrarModal() {
+      modal.style.display = 'none';
+      urlPendiente = '';
+    }
+
+    btnCancelar.addEventListener('click', cerrarModal);
+    btnCerrar.addEventListener('click', cerrarModal);
+
+    btnConfirmar.addEventListener('click', function () {
+      if (urlPendiente) {
+        window.location.href = urlPendiente;
+      }
+    });
+  });
+</script>
 {% endblock %}

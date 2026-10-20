@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Empleado{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:empleado_listar' %}" class="breadcrumb-item">Empleados</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Detalle</span>
+  </nav>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <a href="{% url 'empleados:empleado_listar' %}" class="btn-volver-flecha" title="Volver">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined" style="color: #F5A623;">person</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Detalle de empleado</h1>
+        <p>Información completa del empleado.</p>
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- Tarjeta Principal -->
+  <div class="tarjeta-empleado">
+    <div class="perfil-header">
+      <div class="perfil-info">
+        <div class="perfil-avatar">
+          {{ empleado.nombre_empleado|first }}{{ empleado.apellido_empleado|first }}
+        </div>
+        <div class="perfil-datos">
+          <div class="perfil-nombre-estado">
+            <h2>{{ empleado.nombre_empleado }} {{ empleado.apellido_empleado }}</h2>
+            {% if empleado.estado %}
+            <span class="badge-header badge-activo">
+              <span class="punto"></span> Activo
+            </span>
+            {% else %}
+            <span class="badge-header badge-inactivo">
+              <span class="punto"></span> Inactivo
+            </span>
+            {% endif %}
+          </div>
+          <p class="perfil-cargo">{{ empleado.cargo.nombre_cargo|default:"Sin cargo"|upper }}</p>
+        </div>
+      </div>
+      <a href="{% url 'empleados:empleado_modificacion' pk=empleado.pk %}"  class="btn-editar-header" title="Editar empleado">
+        <span class="material-symbols-outlined">edit</span> 
+      </a>
+    </div>
+
+    <div class="perfil-cuerpo">
+      <!-- Datos Personales -->
+      <div class="seccion-detalle">
+        <div class="seccion-titulo">
+          <span class="material-symbols-outlined">person</span>
+          <div>
+            <h3>Datos personales</h3>
+            <p>Información básica del empleado.</p>
+          </div>
+        </div>
+        <div class="grid-datos">
+          <div class="dato-item">
+            <label>Usuario</label>
+            <div class="dato-valor"><span class="material-symbols-outlined">account_circle</span> {{ empleado.user_auto}}</div>
+          </div>
+          <div class="dato-item">
+            <label>DNI</label>
+            <div class="dato-valor"><span class="material-symbols-outlined">badge</span> {{ empleado.dni }}</div>
+          </div>
+          <div class="dato-item">
+            <label>Correo electrónico</label>
+            <div class="dato-valor"><span class="material-symbols-outlined">mail</span> {{ empleado.correo }}</div>
+          </div>
+          <div class="dato-item">
+            <label>Teléfono</label>
+            <div class="dato-valor"><span class="material-symbols-outlined">call</span> {{ empleado.telefono|default:"-"}}</div>
+          </div>
+        </div>
+      </div>
+      <hr class="separador-seccion">
+      <!-- Datos Laborales-->
+      <div class="seccion-detalle">
+        <div class="seccion-titulo">
+          <span class="material-symbols-outlined">work</span>
+          <div>
+            <h3>Datos laborales</h3>
+            <p>Información de su rol en el sistema.</p>
+          </div>
+        </div>
+
+        <div class="grid-datos">
+          <div class="dato-item">
+            <label>Cargo</label>
+            <div class="dato-valor"><span class="material-symbols-outlined">groups</span> {{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</div>
+          </div>
+          <div class="dato-item">
+            <label>Fecha de ingreso</label>
+            <div class="dato-valor"><span class="material-symbols-outlined">calendar_month</span> {{ empleado.fecha_ingreso|date:"d/m/Y"|default:"-" }}</div>
+          </div>
+          <div class="dato-item">
+            <label>Última modificación</label>
+            <div class="dato-valor"><span class="material-symbols-outlined">schedule</span> {{ empleado.fecha_ultima_modificacion|date:"d/m/Y H:i"|default:"Sin datos" }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER DE BOTONES -->
+    <div class="perfil-footer">
+      <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">arrow_back</span> Volver
+      </a>
+      <div class="footer-acciones-derecha">
+        <a href="{% url 'empleados:restablecer_contrasena' pk=empleado.pk %}" class="btn-restaurar-clave">
+          <span class="material-symbols-outlined">key</span>
+          <div>
+            <strong>Restablecer contraseña</strong>
+            <small>Se enviará un enlace para establecer una nueva contraseña.</small>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

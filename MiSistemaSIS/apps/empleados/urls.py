@@ -29,4 +29,8 @@ urlpatterns = [
     path('asignar-permisos/', views.asignar_permisos, name='asignar_permisos'),
     path('ver-permisos/<int:pk>/', views.ver_permisos_cargo, name='ver_permisos_cargo'),
 
+    path('asistencias/', views.asistencia_listar, name='asistencia_listar'),
+    path('asistencias/crear/', views.asistencia_crear, name='asistencia_crear'),
+    path('asistencias/editar/<int:pk>/', views.asistencia_editar, name='asistencia_editar'),
+
 ]

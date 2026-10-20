@@ -1,118 +1,497 @@
-/* FORMULARIO DE PLATOS */
-
-.tarjeta {
-    background-color: var(--color-white);
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(92, 61, 46, 0.08);
-    margin-bottom: 25px;
-    overflow: hidden;
-    border-left: 5px solid var(--color-cardones);
+/*VARIABLES Y RESET */
+:root {
+  --color-primario: #F5A623;
+  --color-primario-hover: #E0951A;
+  --color-fondo: #f4f6f9;
+  --color-borde: #e2e8f0;
+  --texto-oscuro: #2d3748;
+  --texto-gris: #718096;
 }
 
-.tarjeta-encabezado {
-    background-color: var(--color-marron-oscuro);
-    color: var(--color-beige);
-    padding: 15px 25px;
-    border-bottom: 3px solid var(--color-cardones);
+.contenedor {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Oswald',sans-serif;
+  color: var(--texto-oscuro);
 }
 
-.tarjeta-encabezado h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.tarjeta-cuerpo {
+/* TARJETAS Y ESTRUCTURA*/
+.tarjeta-formulario {
+  background-color: var(--color-blanco);
+    border-radius: 12px;
     padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E5E7EB;
+  }
+
+.tarjeta-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--color-gris-claro);
 }
 
+.tarjeta-titulo .material-symbols-outlined {
+  color: var(--color-naranja);
+  font-size: 24px;
+}
+
+.tarjeta-titulo h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  color: var(--color-negro);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.icono-naranja {
+  color: var(--color-primario);
+}
+
+/* FORMULARIO */
+
+.grid-formulario{
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 20px;
+}
 .grupo-campo {
-    margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
 }
 
-.etiqueta-campo {
-    display: block;
-    font-weight: bold;
-    color: var(--color-marron-oscuro);
-    margin-bottom: 8px;
-    font-size: 14px;
+.grupo-campo label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gris-oscuro);
+  text-transform: uppercase;
 }
 
-/* Buscador */
+.req {
+  color: var(--color-rojo);
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--color-negro);
+  transition: border-color 0.3s;
+  background-color: #F9FAFB;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-naranja);
+  background-color: var(--color-blanco);
+}
+/* Prefijo del Precio */
+.input-con-prefijo {
+  display: flex;
+  align-items: center;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #F9FAFB;
+  transition: border-color 0.3s;
+}
+
+.input-con-prefijo:focus-within {
+  border-color: var(--color-naranja);
+  background-color: var(--color-blanco);
+}
+
+.input-con-prefijo span {
+  padding: 12px 15px;
+  background-color: var(--color-gris-claro);
+  color: var(--color-gris-medio);
+  font-weight: bold;
+  border-right: 1px solid #E5E7EB;
+}
+
+.input-con-prefijo input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 12px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.input-con-prefijo input:focus {
+  outline: none;
+}
+/* Contador de caracteres en la descripción */
+.contador-caracteres {
+  position: absolute;
+  bottom: 12px;
+  right: 15px;
+  font-size: 12px;
+  color: var(--color-gris-medio);
+  background: #F9FAFB;
+  padding: 0 4px;
+}
+
+/* Buscador de Ingredientes */
 .buscador-ingredientes {
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  background-color: #F9FAFB;
+}
+
+.buscador-ingredientes .material-symbols-outlined {
+  color: var(--color-gris-medio);
 }
 
 .buscador-ingredientes input {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #E2E8F0;
-    border-radius: 6px;
-    font-size: 14px;
-    box-sizing: border-box;
+  border: none;
+  background: transparent;
+  width: 100%;
+  outline: none;
+  font-size: 14px;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-.buscador-ingredientes input:focus {
-    outline: none;
-    border-color: var(--color-cardones);
-    box-shadow: 0 0 0 3px rgba(212, 154, 74, 0.15);
+/* Grilla de Ingredientes */
+.grilla-ingredientes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 10px;
 }
 
-/* Grid de ingredientes */
-.grid-ingredientes {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 10px;
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 10px;
-    border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    background-color: var(--color-beige);
+/* Scrollbar para la grilla */
+.grilla-ingredientes::-webkit-scrollbar {
+  width: 6px;
 }
 
+.grilla-ingredientes::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 4px;
+}
+
+.grilla-ingredientes::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 4px;
+}
+
+.grilla-ingredientes::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Tarjeta individual de cada ingrediente */
 .ingrediente-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background-color: var(--color-white);
-    border-radius: 6px;
-    font-size: 14px;
-    color: var(--color-marron-oscuro);
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--color-blanco);
+  transition: all 0.2s;
 }
 
 .ingrediente-item:hover {
-    background-color: var(--color-crema);
-    border-color: var(--color-cardones);
+  border-color: var(--color-naranja);
+  background-color: #FFF8E7;
 }
 
 .ingrediente-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--color-cardones);
-    cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-naranja);
+  cursor: pointer;
+  margin-right: 12px;
 }
 
-/* Botones */
-.botones-derecha {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 25px;
-    flex-wrap: wrap;
+.ingrediente-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
-/* Responsive */
+.icono-ingrediente {
+  font-size: 22px;
+  color: var(--color-naranja);
+  flex-shrink: 0;
+}
+
+.textos-ingrediente {
+  display: flex;
+  flex-direction: column;
+}
+
+.nombre-ingrediente {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  color: var(--color-negro);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unidad-ingrediente {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  color: var(--color-gris-medio);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Efecto seleccionado */
+.ingrediente-item:has(input:checked) {
+  border-color: var(--color-naranja);
+  background-color: #FFF8E7;
+}
+
+/* Contador de ingredientes seleccionados */
+.contador-seleccionados {
+  margin-left: auto;
+  background: #FFF8E7;
+  color: var(--color-naranja-oscuro);
+  padding: 6px 15px;
+  border-radius: 20px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid #F5A623;
+}
+
+/* Botones de acción finales (Cancelar / Guardar) */
+.acciones-formulario {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+  padding-bottom: 30px;
+}
+
+/* DETALLE DEL PLATO */
+/* Tarjeta contenedora principal */
+.tarjeta-detalle-plato {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E5E7EB;
+}
+
+/* Grilla de Imagen y Texto */
+.detalle-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 30px;
+}
+
+/* Imagen */
+.detalle-imagen-contenedor {
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.detalle-imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Info Derecha */
+.detalle-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.detalle-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 5px;
+}
+
+.detalle-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  color: var(--color-gris-medio);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-editar-plato {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.detalle-titulo {
+  font-family: 'Oswald', sans-serif;
+  font-size: 32px;
+  color: var(--color-negro);
+  margin: 0 0 20px 0;
+  font-weight: 600;
+}
+
+/* Sub-tarjetas (Precio, Categoría, Descripción) */
+.detalle-subtarjetas {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 15px;
+}
+
+.subtarjeta {
+  background-color: #F9FAFB;
+  padding: 15px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Tarjeta de precio con fondo naranja suave */
+.precio-tarjeta {
+  background-color: #FFF8E7;
+}
+
+.subtarjeta-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icono-naranja { color: var(--color-naranja); font-size: 18px; }
+.icono-gris { color: var(--color-gris-medio); font-size: 18px; }
+
+.subtarjeta-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  color: var(--color-gris-medio);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.subtarjeta-valor {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-negro);
+}
+
+.precio-valor {
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  color: var(--color-naranja-oscuro);
+}
+
+.descripcion-texto {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-gris-oscuro);
+  line-height: 1.4;
+}
+
+/* Tabla de Ingredientes */
+.tabla-ingredientes {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.tabla-ingredientes thead th {
+  text-align: left;
+  padding: 12px 15px;
+  background-color: #F3F4F6;
+  color: var(--color-gris-medio);
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabla-ingredientes thead th:first-child { border-radius: 8px 0 0 8px; }
+.tabla-ingredientes thead th:last-child { border-radius: 0 8px 8px 0; }
+
+.tabla-ingredientes tbody tr {
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.tabla-ingredientes tbody tr:last-child {
+  border-bottom: none;
+}
+
+.tabla-ingredientes tbody td {
+  padding: 15px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  color: var(--color-negro);
+  vertical-align: middle;
+}
+
+.text-gris { color: var(--color-gris-medio) !important; }
+
+.ingrediente-celda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+/* Botón Volver inferior */
+.acciones-detalle{
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 25px;
+  padding-bottom: 30px;
+}
+
+/* Responsividad */
+@media (max-width: 900px) {
+  .detalle-grid {
+    grid-template-columns: 1fr;
+  }
+  .detalle-subtarjetas {
+    grid-template-columns: 1fr;
+  }
+  .detalle-imagen-contenedor {
+    min-height: 200px;
+  }
+
+  /* Responsividad para el formulario */
 @media (max-width: 768px) {
-    .grid-ingredientes {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
-    
-    .botones-derecha {
-        justify-content: center;
-    }
+  .grid-formulario-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-formulario {
+    flex-direction: column;
+  }
+
+  .acciones-formulario .btn-primario,
+  .acciones-formulario .btn-secundario {
+    width: 100%;
+  }
+}
 }

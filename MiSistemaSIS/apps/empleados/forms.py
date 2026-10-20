@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from .models import Empleado, Cargo, TipoPermiso, PermisoXCargo
+from .models import Empleado, Cargo, TipoPermiso, PermisoXCargo, Asistencia
 import re
 class EmpleadoAltaForm(forms.ModelForm):
 
@@ -71,26 +71,56 @@ class EmpleadoAltaForm(forms.ModelForm):
 
 class EmpleadoModificacionForm(forms.ModelForm):
     class Meta:
-        model = Empleado
-        fields = ['correo']
-        widgets = {
-            'correo':forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@ejemplo.com'}),
-            }
+      model = Empleado
+      fields = ['nombre_empleado', 'apellido_empleado', 'dni', 'telefono', 'correo', 'cargo']
+      widgets = {
+        'nombre_empleado': forms.TextInput(attrs={'placeholder': 'Ingrese el nombre', 'class': 'form-control'}),
+        'apellido_empleado': forms.TextInput(attrs={'placeholder': 'Ingrese el apellido', 'class': 'form-control'}),
+        'dni': forms.TextInput(attrs={'placeholder': 'Ingrese el DNI', 'class': 'form-control'}),
+        'telefono': forms.TextInput(attrs={'placeholder': 'Ingrese el teléfono', 'class': 'form-control'}),
+        'correo': forms.EmailInput(attrs={'placeholder': 'correo@ejemplo.com', 'class': 'form-control'}),
+        'cargo': forms.Select(attrs={'class': 'form-control'}),
+      }
+    def clean_dni(self):
+      dni = self.cleaned_data.get('dni')
+      if not dni.isdigit():
+          raise forms.ValidationError("El DNI debe contener solo números.")
+      if len(dni) < 7 or len(dni) > 8:
+          raise forms.ValidationError("El DNI debe tener entre 7 y 8 dígitos.")
+      
+      if Empleado.objects.filter(dni=dni).exclude(pk=self.instance.pk).exists():
+          raise forms.ValidationError("El DNI ya está registrado en otro empleado.")
+      return dni
+
+    def clean_nombre_empleado(self):
+      nombre = self.cleaned_data.get('nombre_empleado')
+      if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', nombre):
+          raise forms.ValidationError("El nombre solo puede contener letras y espacios.")
+      return nombre
+
+    def clean_apellido_empleado(self):
+      apellido = self.cleaned_data.get('apellido_empleado')
+      if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', apellido):
+          raise forms.ValidationError("El apellido solo puede contener letras y espacios.")
+      return apellido
 
     def clean_correo(self):
-        correo =self.cleaned_data.get('correo')
-        if Empleado.objects.filter(correo=correo).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("Este correo ya está registrado.")
-        return correo
+      correo = self.cleaned_data.get('correo')
+      # Excluimos al empleado actual
+      if Empleado.objects.filter(correo=correo).exclude(pk=self.instance.pk).exists():
+          raise forms.ValidationError("Este correo ya está registrado en otro empleado.")
+      return correo
 
     def save(self, commit=True):
-        empleado =super().save(commit=False)
-        if commit:
-            empleado.save()
-            if empleado.user:
-                empleado.user.email = empleado.correo
-                empleado.user.save()
-        return empleado
+      empleado =super().save(commit=False)
+      if commit:
+        empleado.save()
+        if empleado.user:
+          empleado.user.email = empleado.correo
+          empleado.user.first_name = empleado.nombre_empleado
+          empleado.user.last_name = empleado.apellido_empleado
+          empleado.user.save()
+      return empleado
 
 class RestablecerContrasenaForm(forms.Form):
     nueva_contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label='Nueva Contraseña', required=True, min_length=8)
@@ -105,8 +135,6 @@ class RestablecerContrasenaForm(forms.Form):
             raise forms.ValidationError('La contraseña y la confirmación no coinciden')
 
         return cleaned_data
-
-
 #CARGOS
 class CargoForm(forms.ModelForm):
     class Meta:
@@ -173,3 +201,83 @@ class AsignarPermisosCargoForm(forms.Form):
         required=False
     )
 
+
+class PermisoForm(forms.ModelForm):
+  MODULOS = [
+          ('', 'Seleccioná un módulo'),
+          ('platos', 'Platos'),
+          ('bebidas', 'Bebidas'),
+          ('comandas', 'Comandas'),
+          ('mesas', 'Mesas'),
+          ('empleados', 'Empleados'),
+          ('cargos', 'Cargos'),
+          ('reportes', 'Reportes'),
+      ]
+      
+  ACCIONES = [
+          ('', 'Seleccioná una acción'),
+          ('leer', 'Leer (Ver)'),
+          ('escribir', 'Escribir (Crear)'),
+          ('modificar', 'Modificar (Editar)'),
+          ('eliminar', 'Eliminar'),
+      ]
+  class Meta:
+      model = TipoPermiso
+      fields = ['modulo', 'accion']
+      widgets = {
+          'modulo': forms.Select(attrs={
+              'class': 'form-control', 
+              'required': 'required'
+          }),
+          'accion': forms.Select(attrs={
+              'class': 'form-control', 
+              'required': 'required'
+          }),
+          'descripcion': forms.Textarea(attrs={
+              'class': 'form-control', 
+              'rows': 4, 
+              'placeholder': 'Describí qué permite realizar este permiso...'
+          }),
+      }
+
+  def clean(self):
+    cleaned_data = super().clean()
+    modulo = cleaned_data.get("modulo")
+    accion = cleaned_data.get("accion")
+    if modulo and accion:
+      existe = TipoPermiso.objects.filter(modulo=modulo, accion=accion)
+      if self.instance and self.instance.pk:
+          existe = existe.exclude(pk=self.instance.pk)
+
+      if existe.exists():
+          raise forms.ValidationError("Este permiso (Módulo + Acción) ya existe en el sistema.")
+    return cleaned_data
+
+class AsistenciaForm(forms.ModelForm):
+    class Meta:
+        model = Asistencia
+        # Usá los nombres exactos de tu modelo:
+        fields = ['id_empleado', 'fecha_asistencia', 'id_tipo_asistencia', 'hora_entrada', 'hora_salida']
+        
+        widgets = {
+            'id_empleado': forms.Select(attrs={'class': 'form-control'}),
+            'fecha_asistencia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'id_tipo_asistencia': forms.Select(attrs={'class': 'form-control'}),
+            'hora_entrada': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'hora_salida': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        empleado = cleaned_data.get('id_empleado')
+        fecha = cleaned_data.get('fecha_asistencia')
+
+        if empleado and fecha:
+            existe = Asistencia.objects.filter(id_empleado=empleado, fecha_asistencia=fecha)
+            
+            if self.instance and self.instance.pk:
+                existe = existe.exclude(pk=self.instance.pk)
+
+            if existe.exists():
+                raise forms.ValidationError("Este empleado ya tiene una asistencia registrada para este día.")
+        return cleaned_data

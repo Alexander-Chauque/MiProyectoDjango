@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.core.paginator import Paginator
 from .models import Plato, CategoriaPlato, Ingrediente, DetallePlato, TipoBebida, Bebida
 from .forms import TipoBebidaForm, BebidaForm
 from django.contrib.auth import authenticate, login
@@ -6,6 +7,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
 import re
+from django.db.models import Q
 from empleados.decorators import permiso_requerido
 @login_required
 def inventario_home(request):
@@ -17,8 +19,48 @@ def inventario_home(request):
 def listar_platos(request):
     platos = Plato.objects.all().order_by('nombre_plato')
     categorias = CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
-    return render(request, 'platos/listar.html', {'platos': platos, 'categorias': categorias})
+    por_pagina = request.GET.get('por_pagina', 10)
+    
+    # Filtro
+    buscar= request.GET.get('buscar', '').strip()
+    categoria_id = request.GET.getlist('categoria', '')
+    estado = request.GET.getlist('estado', '')
 
+    # BUsqueda nombre
+    if buscar:
+        platos = platos.filter(nombre_plato__icontains=buscar)
+
+    # Filtro por categorias
+    categoria_id_int =[]
+    for c in categoria_id:
+      if c.isdigit():
+          categoria_id_int.append(int(c))
+
+    #Filtro por estado
+    if estado:
+      q_estado = Q()
+      if 'disponible' in estado:
+        q_estado |= Q(estado_plato=True)
+      if 'no_disponible' in estado:
+        q_estado |= Q(estado_plato=False)
+      if q_estado:
+        platos = platos.filter(q_estado)
+    
+    if categoria_id_int:
+            platos=platos.filter(categoria_id__in=categoria_id_int)
+    # Paginacion
+    try:
+      por_pagina= int(por_pagina)
+      if por_pagina not in [10, 25, 50, 100]:
+        por_pagina = 10
+    except (ValueError, TypeError):
+      por_pagina = 10
+    
+    paginator = Paginator(platos, por_pagina)
+    page_number = request.GET.get('page')
+    platos = paginator.get_page(page_number)
+    return render(request, 'platos/listar.html',
+      {'platos': platos, 'categorias': categorias, 'por_pagina': por_pagina, 'buscar': buscar, 'categorias_seleccionadas': [str(c)for c in categoria_id_int], 'estados_seleccionados': estado,})
 
 @login_required
 @permiso_requerido('platos', 'escribir')
@@ -30,6 +72,7 @@ def crear_plato(request):
         precio = request.POST.get('precio')
         categoria_id = request.POST.get('categoria')
         ingredientes_ids = request.POST.getlist('ingredientes')
+        descripcion = request.POST.get('descripcion', '')
         # Validar precio
         try:
             if float(precio) <= 0:
@@ -70,6 +113,7 @@ def crear_plato(request):
         plato = Plato.objects.create(
             nombre_plato=nombre,
             precio_plato=precio,
+            descripcion_plato=descripcion,            
             categoria=categoria
         )
         # Agregar ingredientes
@@ -203,7 +247,46 @@ def estado_plato(request, pk):
 @permiso_requerido('ingredientes', 'leer')
 def listar_ingredientes(request):
     ingredientes = Ingrediente.objects.all().order_by('nombre_ingrediente')
-    return render(request, 'ingredientes/listar_ingrediente.html', {'ingredientes': ingredientes})
+    por_pagina = request.GET.get('por_pagina', 10)
+        
+    # Filtro
+    buscar= request.GET.get('buscar', '').strip()
+    unidades = request.GET.getlist('unidad', '')
+    estados = request.GET.getlist('estado', '')
+    referer = request.META.get('HTTP_REFERER', '')
+
+    # BUsqueda nombre
+    if buscar:
+        ingredientes = ingredientes.filter(nombre_ingrediente__icontains=buscar)
+
+    # Filtro por categorias
+    if unidades:
+      ingredientes = ingredientes.filter(unidad_medida__in=unidades)
+
+    #Filtro por estado
+    if estados:
+      q_estado = Q()
+      if 'disponible' in estados:
+        q_estado |= Q(estado_ingrediente=True)
+      if 'no_disponible' in estados:
+        q_estado |= Q(estado_ingrediente=False)
+      if q_estado:
+        ingredientes = ingredientes.filter(q_estado)
+    
+    # Paginacion
+    try:
+        por_pagina= int(por_pagina)
+        if por_pagina not in [10, 25, 50, 100]:
+          por_pagina = 10
+    except (ValueError, TypeError):
+        por_pagina = 10
+
+    paginator = Paginator(ingredientes, por_pagina)
+    page_number = request.GET.get('page')
+    ingredientes = paginator.get_page(page_number)
+
+    return render(request, 'ingredientes/listar_ingrediente.html', 
+      {'ingredientes': ingredientes, 'por_pagina':por_pagina, 'buscar':buscar, 'unidades_seleccionadas':unidades, 'estados_seleccionados':estados, 'viene_de_platos': '/platos/' in referer,})
 
 @login_required
 @permiso_requerido('ingredientes', 'escribir')
@@ -296,7 +379,38 @@ def estado_ingrediente(request, pk):
 @permiso_requerido('categorias', 'leer')
 def listar_categorias(request):
     categorias = CategoriaPlato.objects.all().order_by('nombre_categoria_plato')
-    return render(request, 'categorias/listar_categoria.html', {'categorias': categorias})
+
+    buscar = request.GET.get('buscar','').strip()
+    estados = request.GET.getlist('estado')
+    
+    if buscar:
+      categorias=categorias.list.filter(nombre_categoria_plato__icontains=buscar)
+
+    if estados:
+      q_estado = Q()
+      if 'activo' in estados:
+          q_estado |= Q(estado_categoria_plato=True)
+      if 'inactivo' in estados:
+          q_estado |= Q(estado_categoria_plato=False)
+      if q_estado:
+          categorias = categorias.filter(q_estado)
+
+      # Por paginacion
+    por_pagina = request.GET.get('por_pagina', 10)
+    try:
+        por_pagina = int(por_pagina)
+        if por_pagina not in [10, 25, 50, 100]:
+            por_pagina = 10
+    except (ValueError, TypeError):
+        por_pagina = 10
+    
+    paginator = Paginator(categorias, por_pagina)
+    page_number = request.GET.get('page')
+    categorias = paginator.get_page(page_number)
+    
+    return render(request, 'categorias/listar_categoria.html', {
+        'categorias': categorias, 'por_pagina': por_pagina, 'buscar': buscar, 'estados_seleccionados': estados, })
+
 
 @login_required
 @permiso_requerido('categorias', 'escribir')
@@ -380,7 +494,42 @@ def estado_categoria(request, pk):
 @permiso_requerido('bebidas', 'leer')
 def listar_tipo_bebida(request):
     tipos = TipoBebida.objects.all().order_by('nombre_tipo_bebida')
-    return render(request, 'bebidas/listar_tipo_bebida.html', {'tipos':tipos})
+
+    buscar = request.GET.get('buscar', '').strip()
+    estados = request.GET.getlist('estado')
+
+    if buscar:
+        tipos = tipos.filter(nombre_tipo_bebida__icontains=buscar)
+
+    if estados:
+        q_estado = Q()
+        if 'activo' in estados:
+            q_estado |= Q(estado_tipo_bebida=True)
+        if 'inactivo' in estados:
+            q_estado |= Q(estado_tipo_bebida=False)
+        if q_estado:
+            tipos = tipos.filter(q_estado)
+
+    por_pagina = request.GET.get('por_pagina', 10)
+    try:
+        por_pagina = int(por_pagina)
+        if por_pagina not in [10, 25, 50, 100]:
+            por_pagina = 10
+    except (ValueError, TypeError):
+        por_pagina = 10
+    
+    paginator = Paginator(tipos, por_pagina)
+    page_number = request.GET.get('page')
+    tipo = paginator.get_page(page_number)
+    
+    return render(request, 'bebidas/listar_tipo_bebida.html', {
+        'tipos': tipo,
+        'por_pagina': por_pagina,
+        'buscar': buscar,
+        'estados_seleccionados': estados,
+    })
+
+
 
 @login_required
 @permiso_requerido('bebidas', 'escribir')
@@ -407,7 +556,7 @@ def editar_tipo_bebida(request, pk):
             return redirect ('inventario:listar_tipo_bebida')
     else:
         form = TipoBebidaForm(instance=tipo)
-    return render(request, 'bebidas/crear_tipo_bebida.html', {'form':form})
+    return render(request, 'bebidas/editar_tipo_bebida.html', {'form':form})
 
 @login_required
 @permiso_requerido('bebidas', 'eliminar')
@@ -437,11 +586,48 @@ def estado_tipo_bebida(request,pk):
 @login_required
 @permiso_requerido('bebidas', 'leer')
 def bebida_listar(request):
-    bebidas = Bebida.objects.all().order_by('nombre_bebida')
-    return render(request, 'bebidas/listar_bebida.html', {
-        'bebidas': bebidas,
-        'titulo': 'Listado de Bebidas'
-    })
+  bebidas = Bebida.objects.all().order_by('nombre_bebida')
+  tipos = TipoBebida.objects.all().order_by('nombre_tipo_bebida')
+    
+  # Filtros
+  buscar = request.GET.get('buscar', '').strip()
+  tipos_ids = request.GET.getlist('tipo')
+  estados = request.GET.getlist('estado')
+  
+  if buscar:
+    bebidas = bebidas.filter(nombre_bebida__icontains=buscar)
+  
+  tipos_ids_int = []
+  for t in tipos_ids:
+    if t.isdigit():
+      tipos_ids_int.append(int(t))
+  if tipos_ids_int:
+    bebidas = bebidas.filter(id_tipo_bebida__in=tipos_ids_int)
+  
+  # Estado
+  if estados:
+    q_estado = Q()
+    if 'disponible' in estados:
+        q_estado |= Q(disponible_bebida=True)
+    if 'no_disponible' in estados:
+        q_estado |= Q(disponible_bebida=False)
+    if q_estado:
+        bebidas = bebidas.filter(q_estado)
+  
+  # Paginación
+  por_pagina = request.GET.get('por_pagina', 10)
+  try:
+    por_pagina = int(por_pagina)
+    if por_pagina not in [10, 25, 50, 100]:
+      por_pagina = 10
+  except (ValueError, TypeError):
+    por_pagina = 10
+  
+  paginator = Paginator(bebidas, por_pagina)
+  page_number = request.GET.get('page')
+  bebidas = paginator.get_page(page_number)
+  
+  return render(request, 'bebidas/listar_bebida.html', { 'bebidas': bebidas, 'tipos': tipos,'por_pagina': por_pagina, 'buscar': buscar, 'tipos_seleccionados': [str(t) for t in tipos_ids_int], 'estados_seleccionados': estados,})
 
 @login_required
 @permiso_requerido('bebidas', 'escribir')

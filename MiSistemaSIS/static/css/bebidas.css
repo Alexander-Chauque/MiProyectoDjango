@@ -1,0 +1,167 @@
+.tarjeta-formulario-bebida {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E5E7EB;
+}
+
+.tarjeta-titulo-bebida {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #F3F4F6;
+}
+
+.tarjeta-titulo-bebida .material-symbols-outlined {
+  color: #F5A623;
+  font-size: 24px;
+}
+
+.tarjeta-titulo-bebida h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  color: #333333;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grid-formulario-bebida {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-control-bebida {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #333333;
+  transition: border-color 0.3s;
+  background-color: #F9FAFB;
+}
+
+.form-control-bebida:focus {
+  outline: none;
+  border-color: #F5A623;
+  background-color: #FFFFFF;
+}
+
+.input-con-prefijo-bebida {
+  display: flex;
+  align-items: center;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #F9FAFB;
+  transition: border-color 0.3s;
+}
+
+.input-con-prefijo-bebida:focus-within {
+  border-color: #F5A623;
+  background-color: #FFFFFF;
+}
+
+.input-con-prefijo-bebida span {
+  padding: 12px 15px;
+  background-color: #F3F4F6;
+  color: #6B7280;
+  font-weight: bold;
+  border-right: 1px solid #E5E7EB;
+}
+
+.input-con-prefijo-bebida input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 12px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.input-con-prefijo-bebida input:focus {
+  outline: none;
+}
+
+.contador-caracteres-bebida {
+  position: absolute;
+  bottom: 12px;
+  right: 15px;
+  font-size: 12px;
+  color: #6B7280;
+  background: #F9FAFB;
+  padding: 0 4px;
+}
+
+.acciones-formulario-bebida {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+  padding-bottom: 30px;
+}
+
+.grid-dos-columnas {
+  grid-template-columns: 1fr 1fr;
+}
+
+.grid-una-columna {
+  grid-template-columns: 1fr;
+}
+
+.margen-superior {
+  margin-top: 15px;
+}
+
+.margen-estado {
+  margin-top: 5px;
+}
+
+.badge-disponible,
+.badge-inactivo {
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+.acciones-detalle-bebida {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 25px;
+  padding-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .grid-formulario-bebida {
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-formulario-bebida {
+    flex-direction: column;
+  }
+
+  .acciones-formulario-bebida .btn-primario-bebida,
+  .acciones-formulario-bebida .btn-secundario-bebida {
+    width: 100%;
+  }
+
+  .grid-dos-columnas {
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-detalle-bebida {
+    flex-direction: column;
+  }
+
+  .acciones-detalle-bebida .btn-primario,
+  .acciones-detalle-bebida .btn-secundario {
+    width: 100%;
+    justify-content: center;
+  }
+  }

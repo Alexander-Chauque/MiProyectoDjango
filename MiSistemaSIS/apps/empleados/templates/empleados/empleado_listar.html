@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Empleados{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:empleados_home' %}" class="breadcrumb-item">Empleados</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Listado</span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">groups</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Empleados</h1>
+        <p>Administra las cuentas y el acceso del personal.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'empleados:listar_cargo' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">work</span> Cargos
+      </a>
+      <a href="{% url 'empleados:listar_permiso' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">shield_person</span> Permisos
+      </a>
+      <a href="{% url 'empleados:empleado_alta' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Nuevo empleado
+      </a>
+    </div>
+  </div>
+
+  <div class="listado-layout">
+    <form method="GET" class="filtros-panel">
+      <div class="filtros-header">
+        <span class="material-symbols-outlined">filter_alt</span>
+        <h3>Filtros</h3>
+      </div>
+
+      <!-- Buscador -->
+      <div class="filtro-grupo">
+        <label>Buscar</label>
+        <div class="input-buscar">
+          <span class="material-symbols-outlined">search</span>
+          <input name="buscar" type="text" value="{{ buscar }}" placeholder="Usuario, nombre, DNI...">
+        </div>
+      </div>
+
+      <!-- Cargo -->
+      <div class="filtro-grupo">
+        <label>Cargo</label>
+        <div class="checkboxes">
+          <label class="checkbox-item">
+            <input type="checkbox" id="cat-todos" onchange="toggleCategorias(this)">
+            <span>Todos</span>
+          </label>
+          {% for cargo in cargos %}
+          <label class="checkbox-item">
+            <input type="checkbox" name="cargo" value="{{ cargo.id_cargo }}" class="checkbox-categoria" {% if cargo.id_cargo|stringformat:"s" in cargos_seleccionados %}checked{% endif %}>
+            <span>{{ cargo.nombre_cargo }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="filtro-grupo">
+        <label>Estado</label>
+        <div class="checkboxes">
+          <label class="checkbox-item">
+            <input type="checkbox" id="est-todos" onchange="toggleEstados(this)" {% if not estados_seleccionados %}checked{% endif %}>
+            <span>Todos</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="activo" class="checkbox-estado" {% if 'activo' in estados_seleccionados %}checked{% endif %}>
+            <span>Activo</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="inactivo" class="checkbox-estado" {% if 'inactivo' in estados_seleccionados %}checked{% endif %}>
+            <span>Inactivo</span>
+          </label>
+        </div>
+      </div>
+
+      <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+
+      <button type="submit" class="btn-aplicar">
+        <span class="material-symbols-outlined">filter_alt</span> Aplicar filtros
+      </button>
+      <a href="{% url 'empleados:empleado_listar' %}" class="btn-limpiar">
+        <span class="material-symbols-outlined">refresh</span> Limpiar filtros
+      </a>
+    </form>
+
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>USUARIO</th>
+            <th>NOMBRE</th>
+            <th>APELLIDO</th>
+            <th>CARGO</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for empleado in empleados %}
+          <tr>
+            <td><strong>{{ empleado.user_auto }}</strong></td>
+            <td>{{ empleado.nombre_empleado }}</td>
+            <td>{{ empleado.apellido_empleado }}</td>
+            <td>
+              <span class="badge-categoria">
+                {{ empleado.cargo.nombre_cargo|default:"Sin Cargo" }}
+              </span>
+            </td>
+            <td>
+              {% if empleado.estado %}
+              <span class="badge badge-activo">Activo</span>
+              {% else %}
+              <span class="badge badge-inactivo">Inactivo</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="acciones-tabla">
+                <a href="{% url 'empleados:empleado_detalle' empleado.pk %}" class="btn-icon btn-detalle"
+                  title="Ver detalle">
+                  <span class="material-symbols-outlined">visibility</span>
+                </a>
+                <a href="{% url 'empleados:empleado_modificacion' empleado.pk %}" class="btn-icon btn-editar"
+                  title="Modificar">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <a href="{% url 'empleados:empleado_baja' empleado.pk %}" class="btn-icon btn-baja" title="Dar de baja">
+                  <span class="material-symbols-outlined">person_remove</span>
+                </a>
+                <a href="{% url 'empleados:restablecer_contrasena' empleado.pk %}" class="btn-icon btn-clave"
+                  title="Restablecer contraseña">
+                  <span class="material-symbols-outlined">key</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="sin-resultados">No hay empleados registrados</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info">
+          Mostrando {{ empleados.start_index }} a {{ empleados.end_index }} de {{ empleados.paginator.count }} empleados
+        </span>
+        <div class="paginacion-botones">
+          {% if empleados.has_previous %}
+          <a href="?page={{ empleados.previous_page_number }}{% for c in cargos_seleccionados %}&cargo={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+            class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </a>
+          {% endif %}
+
+          {% for num in empleados.paginator.page_range %}
+          {% if empleados.number == num %}
+          <a href="?page={{ num }}{% for c in cargos_seleccionados %}&cargo={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+            class="paginacion-btn pagina-activa">{{ num }}</a>
+          {% elif num > empleados.number|add:'-3' and num < empleados.number|add:'3' %} <a
+            href="?page={{ num }}{% for c in cargos_seleccionados %}&cargo={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+            class="paginacion-btn">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if empleados.has_next %}
+            <a href="?page={{ empleados.next_page_number }}{% for c in cargos_seleccionados %}&cargo={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+              class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  function cambiarPorPagina(valor) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('por_pagina', valor);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+  }
+
+  function toggleCategorias(checkbox) {
+    document.querySelectorAll('.checkbox-categoria').forEach(cb => cb.checked = false);
+  }
+
+  function toggleEstados(checkbox) {
+    document.querySelectorAll('.checkbox-estado').forEach(cb => cb.checked = false);
+  }
+
+  document.querySelectorAll('.checkbox-categoria').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) {
+        document.getElementById('cat-todos').checked = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.checkbox-estado').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) {
+        document.getElementById('est-todos').checked = false;
+      }
+    });
+  });
+</script>
+{% endblock %}

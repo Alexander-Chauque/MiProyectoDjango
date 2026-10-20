@@ -1,0 +1,266 @@
+/* --- FORMULARIO DE ARRIBA --- */
+.tarjeta-formulario-mesa {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E5E7EB;
+}
+
+.grid-formulario-mesa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.input-icono-mesa {
+  display: flex;
+  align-items: center;
+  border: 1px solid #E5E7EB;
+  /* Borde más sutil */
+  border-radius: 8px;
+  background-color: #F9FAFB;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.input-icono-mesa:focus-within {
+  border-color: #F5A623;
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
+}
+
+.input-icono-mesa .material-symbols-outlined {
+  padding: 12px 14px;
+  background-color: #F3F4F6;
+  color: #6B7280;
+  border-right: 1px solid #E5E7EB;
+  font-size: 20px;
+}
+
+.form-control-mesa {
+  border: none;
+  background: transparent;
+  padding: 12px 15px;
+  width: 100%;
+  font-size: 14px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #333;
+}
+
+.form-control-mesa:focus {
+  outline: none;
+}
+
+.texto-ayuda {
+  display: block;
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 6px;
+}
+
+/* --- BOTONES DEL FORMULARIO --- */
+.acciones-formulario-mesa {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  border-top: 1px solid #F3F4F6;
+  padding-top: 20px;
+}
+
+.btn-primario-mesa,
+.btn-secundario-mesa {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.btn-primario-mesa {
+  background-color: #F5A623;
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-primario-mesa:hover {
+  background-color: #E0951A;
+}
+
+.btn-secundario-mesa {
+  background-color: #FFFFFF;
+  color: #333;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-secundario-mesa:hover {
+  border-color: #F5A623;
+  color: #F5A623;
+}
+
+/* --- TARJETA DE ABAJO (ESTADO MESAS) --- */
+.tarjeta-estado-mesas {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E5E7EB;
+  margin-bottom: 40px;
+}
+
+.header-estado-mesas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.titulo-estado {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.titulo-estado .material-symbols-outlined {
+  font-size: 28px;
+}
+
+.titulo-estado h2 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  color: #333;
+  margin: 0;
+}
+
+.titulo-estado p {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 4px 0 0 0;
+}
+
+.leyenda-estados {
+  display: flex;
+  gap: 10px;
+}
+
+/* Etiquetas de estado (Badges) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.badge-libre {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-ocupada {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-fuera {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+/* Grilla de mesas visual */
+.grilla-estado-mesas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.mesa-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.mesa-card .material-symbols-outlined {
+  font-size: 32px;
+}
+
+.mesa-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mesa-info strong {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  color: #333;
+}
+
+/* Colores de fondo */
+.mesa-libre {
+  background-color: #F0FDF4;
+  border-color: #D1FAE5;
+}
+
+.mesa-libre .material-symbols-outlined {
+  color: #10B981;
+}
+
+.mesa-ocupada {
+  background-color: #FFFBEB;
+  border-color: #FEF3C7;
+}
+
+.mesa-ocupada .material-symbols-outlined {
+  color: #F59E0B;
+}
+
+.mesa-fuera {
+  background-color: #FEF2F2;
+  border-color: #FEE2E2;
+}
+
+.mesa-fuera .material-symbols-outlined {
+  color: #EF4444;
+}
+
+/* --- RESPONSIVO --- */
+@media (max-width: 768px) {
+  .grid-formulario-mesa {
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-formulario-mesa {
+    flex-direction: column;
+  }
+
+  .btn-primario-mesa,
+  .btn-secundario-mesa {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-estado-mesas {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .leyenda-estados {
+    flex-wrap: wrap;
+  }
+}
