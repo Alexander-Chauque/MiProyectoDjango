@@ -1,246 +1,355 @@
-{% extends 'comandas/base_comandas.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Nueva Comanda{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="contenedor-comanda">
-    <h1 class="titulo">Nueva Comanda</h1>
 
-    <form method="POST" id="form-comanda">
-        {% csrf_token %}
-        
-        <div class="tarjeta">
-            <div class="tarjeta-encabezado">
-                <h3>Datos de la Comanda</h3>
-            </div>
-            <div class="tarjeta-cuerpo">
-                <div class="fila">
-                    <div class="columna-mitad">
-                        <div class="grupo-campo">
-                            <label class="etiqueta-campo">Mesa</label>
-                            {{ form.mesa }}
-                            {{ form.mesa.errors }}
-                        </div>
-                    </div>
-                    <div class="columna-mitad">
-                        <div class="grupo-campo">
-                            <label class="etiqueta-campo">Mozo</label>
-                            <div class="mostrar-mozo">
-                                <span class="nombre-mozo">
-                                    {{ request.user.empleado.get_full_name|default:request.user.username }}
-                                </span>
-                                {% if request.user.empleado.cargo %}
-                                    <span class="insignia-cargo">
-                                        {{ request.user.empleado.cargo.nombre_cargo }}
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'ventas:comanda_listar' %}" class="breadcrumb-item">Comandas</a>
+    <span class="breadcrumb-separator">></span>
+    </a>
+    <span class="breadcrumb-item active">Crear</span>
+  </nav>
+  <div class="page-header">
+    <div class="page-header-info">
+
+      <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver-flecha" title="Volver a Comandas">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </div>
+
+      <div class="page-header-texto">
+        <h1 >Nueva comanda</h1>
+      </div>
+
+    </div>
+  </div>
+
+  <form method="POST" id="form-comanda">
+    {% csrf_token %}
+    <div class="layout-comanda">
+      <div class="columna-izquierda">
+        <!-- Datos del pedido -->
+        <div class="tarjeta-comanda">
+          <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined icono-naranja">receipt_long</span>
+            <h3>Datos del pedido</h3>
+          </div>
+          <div class="cuerpo-tarjeta">
+            <div class="fila-doble">
+              <div class="grupo-campo">
+                <label>Mesa <span class="req">*</span></label>
+                <div class="select-con-icono">
+                  <span class="material-symbols-outlined">table_restaurant</span>
+                  {{ form.mesa }}
                 </div>
-                <div class="grupo-campo">
-                    <label class="etiqueta-campo">Observaciones</label>
-                    {{ form.observaciones_comanda }}
+                <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
+                {{ form.mesa.errors }}
+              </div>
+              <div class="grupo-campo">
+                <label>Mozo</label>
+                <div class="mozo-info">
+                  <div class="avatar-mozo">
+                    <span class="material-symbols-outlined">person</span>
+                  </div>
+                  <div>
+                    <span class="nombre-mozo">{{ request.user.empleado.get_full_name|default:request.user.username}}</span>
+                    <span class="rol-mozo-badge">{{ request.user.empleado.cargo.nombre_cargo|default:"Mozo" }}</span>
+                  </div>
                 </div>
+              </div>
             </div>
+            <div class="grupo-campo">
+              <label>Observaciones (opcional)</label>
+              <textarea name="observaciones_comanda" class="form-control-textarea" rows="3" placeholder="Ej:  sin cebolla, bien cocida ...">{{ form.observaciones_comanda.value|default:''}}</textarea>
+            </div>
+          </div>
         </div>
 
-        <div class="tarjeta">
-            <div class="tarjeta-encabezado">
-                <h3>Platos y Bebidas</h3>
-            </div>
-            <div class="tarjeta-cuerpo">
-                {{ formset.management_form }}
-                
-                <table class="tabla-detalles">
-                    <thead>
-                        <tr>
-                            <th>Plato</th>
-                            <th>Cant. Plato</th>
-                            <th>Bebida</th>
-                            <th>Cant. Bebida</th>
-                            <th>Eliminar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for form_detalle in formset %}
-                        <tr class="fila-detalle">
-                            {{ form_detalle.id }}
-                            <td>{{ form_detalle.plato }}</td>
-                            <td>{{ form_detalle.cant_plato }}</td>
-                            <td>{{ form_detalle.bebida }}</td>
-                            <td>{{ form_detalle.cant_bebida }}</td>
-                            <td class="centrado">{{ form_detalle.DELETE }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                
-                <div style="margin-top: 15px;">
-                    <button type="button" id="btn-agregar-fila" class="btn btn-secundario">Agregar fila</button>
-                </div>
-            </div>
-        </div>
+        <!-- Agregar productos -->
+        <div class="tarjeta-comanda">
+          <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined icono-naranja">shopping_basket</span>
+            <h3>Agregar productos</h3>
+            <span class="subtitulo">Seleccioná platos y bebidas para la comanda.</span>
+          </div>
+          <div class="buscador-productos">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" id="buscador-productos" placeholder="Buscar plato o bebida...">
+          </div>
+          <div class="tabs-productos">
+            <button type="button" class="tab-btn activo" data-filtro="todos">Todos</button>
+            <button type="button" class="tab-btn" data-filtro="plato"><span
+                class="material-symbols-outlined">restaurant</span> Platos</button>
+            <button type="button" class="tab-btn" data-filtro="bebida"><span
+                class="material-symbols-outlined">local_drink</span> Bebidas</button>
+          </div>
+          <div class="grilla-productos" id="lista-productos">
 
-        <div class="botones-derecha">
+            <!-- PLATOS -->
+            {% for plato in platos %}
+            <div class="producto-card" data-id="{{ plato.id_plato }}" data-tipo="plato"
+              data-nombre="{{ plato.nombre_plato }}" data-precio="{{ plato.precio_plato }}">
+              <div class="prod-info">
+                <strong>{{ plato.nombre_plato }}</strong>
+                <span>Platos | {{ plato.categoria.nombre_categoria_plato }}</span>
+                <span class="precio">$ {{ plato.precio_plato }}</span>
+              </div>
+              <button type="button" class="btn-agregar-prod"><span class="material-symbols-outlined">add</span></button>
+            </div>
+            {% endfor %}
+
+            <!--BEBIDAS -->
+            {% for bebida in bebidas %}
+            <div class="producto-card" data-id="{{ bebida.id_bebida }}" data-tipo="bebida"
+              data-nombre="{{ bebida.nombre_bebida }}" data-precio="{{ bebida.precio_bebida }}">
+              <div class="prod-info">
+                <strong>{{ bebida.nombre_bebida }}</strong>
+                <span>Bebidas | {{ bebida.id_tipo_bebida.nombre_tipo_bebida }}</span>
+                <span class="precio">$ {{ bebida.precio_bebida }}</span>
+              </div>
+              <button type="button" class="btn-agregar-prod"><span class="material-symbols-outlined">add</span></button>
+            </div>
+            {% endfor %}
+
+          </div>
+        </div>
+      </div>
+      <div class="columna-derecha">
+        <div class="tarjeta-carrito">
+          <div class="titulo-carrito">
+            <span class="material-symbols-outlined icono-naranja">shopping_cart</span>
+            <h3>Resumen del pedido</h3>
+          </div>
+          <div class="items-carrito" id="carrito-items">
+            <div class="carrito-vacio" id="carrito-vacio">
+              <span class="material-symbols-outlined">remove_shopping_cart</span>
+              <p>No hay productos agregados</p>
+            </div>
+          </div>
+          <div class="total-carrito">
+            <span>Total</span>
+            <strong id="total-comanda">$ 0.00</strong>
+          </div>
+          <div class="alerta-info">
+            <span class="material-symbols-outlined">info</span>
+            <p>Los precios se calculan automáticamente.</p>          
+          </div>
+          <div class="botones-carrito">
             <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">Cancelar</a>
-            <button type="submit" class="btn-primario">Crear Comanda</button>
+            <button type="submit" class="btn-primario">Crear comanda</button>
+          </div>
         </div>
-    </form>
+      </div>
+    </div>
+    <div style="display: none;">
+      {{ formset.management_form }}
+      <table>
+        <tbody id="formset-tbody">
+          {% for form_detalle in formset %}
+          <tr class="fila-detalle-oculta">
+            {{ form_detalle.id }}
+            <td>{{ form_detalle.plato }}</td>
+            <td>{{ form_detalle.cant_plato }}</td>
+            <td>{{ form_detalle.bebida }}</td>
+            <td>{{ form_detalle.cant_bebida }}</td>
+            <td>{{ form_detalle.DELETE }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </form>
 </div>
-{% endblock %}
-
-{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // ==========================================
-    // PRECIOS DE PLATOS Y BEBIDAS
-    // ==========================================
-    const preciosPlatos = {
-        {% for plato in platos %}
-            "{{ plato.id_plato }}": {{ plato.precio_plato }},
-        {% endfor %}
-    };
-    
-    const preciosBebidas = {
-        {% for bebida in bebidas %}
-            "{{ bebida.id_bebida }}": {{ bebida.precio_bebida }},
-        {% endfor %}
-    };
+  document.addEventListener('DOMContentLoaded', function () {
 
-    // ==========================================
-    // CALCULAR TOTAL DE LA COMANDA
-    // ==========================================
-    function calcularTotal() {
-        let total = 0;
-        
-        document.querySelectorAll('.fila-detalle').forEach(function(fila) {
-            // Saltar filas marcadas para eliminar
-            const casillaEliminar = fila.querySelector('input[name$="-DELETE"]');
-            if (casillaEliminar && casillaEliminar.checked) return;
-            
-            // Plato
-            const seleccionPlato = fila.querySelector('select[name$="-plato"]');
-            const cantidadPlato = fila.querySelector('input[name$="-cant_plato"]');
-            if (seleccionPlato && seleccionPlato.value && cantidadPlato) {
-                const precio = preciosPlatos[seleccionPlato.value] || 0;
-                const cantidad = parseInt(cantidadPlato.value) || 0;
-                total += precio * cantidad;
-            }
-            
-            // Bebida
-            const seleccionBebida = fila.querySelector('select[name$="-bebida"]');
-            const cantidadBebida = fila.querySelector('input[name$="-cant_bebida"]');
-            if (seleccionBebida && seleccionBebida.value && cantidadBebida) {
-                const precio = preciosBebidas[seleccionBebida.value] || 0;
-                const cantidad = parseInt(cantidadBebida.value) || 0;
-                total += precio * cantidad;
-            }
-        });
-        
-        const spanTotal = document.getElementById('total-comanda');
-        if (spanTotal) {
-            spanTotal.textContent = '$' + total.toFixed(2);
-        }
+    // VARIABLES GLOBALES
+    const carrito = {}; // Guarda: { 'plato_12': {tipo, id, nombre, precio, cantidad}, ... }
+    const carritoContainer = document.getElementById('carrito-items');
+    const totalComanda = document.getElementById('total-comanda');
+    const formsetTbody = document.getElementById('formset-tbody');
+    const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+
+    // FUNCIÓN PARA RENDERIZAR EL CARRITO
+    function renderizarCarrito() {
+      carritoContainer.innerHTML = ''; 
+      let total = 0;
+      let items = Object.values(carrito);
+
+      if (items.length === 0) {
+        carritoContainer.innerHTML = `
+                <div class="carrito-vacio" id="carrito-vacio">
+                    <span class="material-symbols-outlined">remove_shopping_cart</span>
+                    <p>No hay productos agregados</p>
+                </div>`;
+        totalComanda.textContent = '$ 0.00';
+        return;
+      }
+
+      items.forEach(item => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+
+        const div = document.createElement('div');
+        div.className = 'item-carrito';
+        div.innerHTML = `
+                <div class="item-datos">
+                    <strong>${item.nombre}</strong>
+                    <span>$${item.precio.toFixed(2)}</span>
+                </div>
+                <div class="item-controles">
+                    <button type="button" class="btn-cant btn-restar" data-key="${item.key}">-</button>
+                    <input type="number" value="${item.cantidad}" readonly>
+                    <button type="button" class="btn-cant btn-sumar" data-key="${item.key}">+</button>
+                    <span class="subtotal">$${subtotal.toFixed(2)}</span>
+                    <button type="button" class="btn-eliminar" data-key="${item.key}">
+                        <span class="material-symbols-outlined">delete</span>
+                    </button>
+                </div>
+            `;
+        carritoContainer.appendChild(div);
+      });
+
+      totalComanda.textContent = `$ ${total.toFixed(2)}`;
+      actualizarFormset(); // Sincronizar con Django
     }
 
-    // AGREGAR EVENTOS A UNA FILA
-    function agregarEventosFila(fila) {
-        // Cambio en plato
-        const seleccionPlato = fila.querySelector('select[name$="-plato"]');
-        if (seleccionPlato) {
-            seleccionPlato.addEventListener('change', calcularTotal);
-        }
-        
-        // Cambio en bebida
-        const seleccionBebida = fila.querySelector('select[name$="-bebida"]');
-        if (seleccionBebida) {
-            seleccionBebida.addEventListener('change', calcularTotal);
-        }
-        
-        // Cambio en cantidades
-        const cantidadPlato = fila.querySelector('input[name$="-cant_plato"]');
-        if (cantidadPlato) {
-            cantidadPlato.addEventListener('input', calcularTotal);
-            cantidadPlato.addEventListener('change', calcularTotal);
-        }
-        
-        const cantidadBebida = fila.querySelector('input[name$="-cant_bebida"]');
-        if (cantidadBebida) {
-            cantidadBebida.addEventListener('input', calcularTotal);
-            cantidadBebida.addEventListener('change', calcularTotal);
-        }
-        
-        // Checkbox de eliminar
-        const casillaEliminar = fila.querySelector('input[name$="-DELETE"]');
-        if (casillaEliminar) {
-            casillaEliminar.addEventListener('change', calcularTotal);
-        }
+    // FUNCIÓN PARA ACTUALIZAR EL FORMSET OCULTO
+    function actualizarFormset() {
+      // Limpiar filas generadas por JS (dejamos la primera que viene de Django por defecto)
+      const filasGeneradas = formsetTbody.querySelectorAll('.fila-generada-js');
+      filasGeneradas.forEach(f => f.remove());
+
+      // Si no hay items, dejamos los campos en blanco para que no falle
+      if (Object.keys(carrito).length === 0) {
+        if (totalFormsInput) totalFormsInput.value = 1;
+        return;
+      }
+
+      let index = 0;
+      Object.values(carrito).forEach(item => {
+        // Creamos una fila nueva para el formset
+        const tr = document.createElement('tr');
+        tr.className = 'fila-detalle-oculta fila-generada-js';
+
+        // Armamos los inputs ocultos con el formato que espera Django (ej: id_form-0-plato)
+        tr.innerHTML = `
+                <input type="hidden" name="detalles-${index}-id" id="id_detalles-${index}-id">
+                ${item.tipo === 'plato'
+            ? `<input type="hidden" name="detalles-${index}-plato" value="${item.id}" id="id_detalles-${index}-plato">
+            <input type="hidden" name="detalles-${index}-cant_plato" value="${item.cantidad}" id="id_detalles-${index}-cant_plato">
+            <input type="hidden" name="detalles-${index}-bebida" value="" id="id_detalles-${index}-bebida">
+            <input type="hidden" name="detalles-${index}-cant_bebida" value="0" id="id_detalles-${index}-cant_bebida">`
+            : `<input type="hidden" name="detalles-${index}-plato" value="" id="id_detalles-${index}-plato">
+            <input type="hidden" name="detalles-${index}-cant_plato" value="0" id="id_detalles-${index}-cant_plato">
+            <input type="hidden" name="detalles-${index}-bebida" value="${item.id}" id="id_detalles-${index}-bebida">
+            <input type="hidden" name="detalles-${index}-cant_bebida" value="${item.cantidad}" id="id_detalles-${index}-cant_bebida">`
+}
+                <input type="hidden" name="detalles-${index}-DELETE" id="id_detalles-${index}-DELETE">
+            `;
+        formsetTbody.appendChild(tr);
+        index++;
+      });
+
+      if (totalFormsInput) totalFormsInput.value = index;
     }
 
-    // AGREGAR FILA DINÁMICAMENTE
-    const btnAgregar = document.getElementById('btn-agregar-fila');
-    const tablaDetalles = document.querySelector('.tabla-detalles tbody');
-    const totalForms = document.querySelector('input[name$="-TOTAL_FORMS"]');
-    
-    if (btnAgregar && tablaDetalles && totalForms) {
-        btnAgregar.addEventListener('click', function() {
-            const formCount = parseInt(totalForms.value);
-            
-            // Clonar la primera fila
-            const primeraFila = tablaDetalles.querySelector('.fila-detalle');
-            if (!primeraFila) return;
-            
-            const nuevaFila = primeraFila.cloneNode(true);
-            
-            // Actualizar los índices de los campos
-            nuevaFila.querySelectorAll('input, select').forEach(function(input) {
-                const name = input.getAttribute('name');
-                if (name) {
-                    // Reemplazar el índice viejo por el nuevo
-                    const nuevoName = name.replace(/-\d+-/, `-${formCount}-`);
-                    input.setAttribute('name', nuevoName);
-                    input.setAttribute('id', `id_${nuevoName}`);
-                    
-                    // Limpiar valores
-                    if (input.tagName === 'SELECT') {
-                        input.value = '';
-                    } else if (input.type === 'number') {
-                        input.value = '1';
-                    } else if (input.type === 'checkbox') {
-                        input.checked = false;
-                    } else {
-                        input.value = '';
-                    }
-                }
-            });
-            
-            // Agregar la fila
-            tablaDetalles.appendChild(nuevaFila);
-            
-            // Actualizar TOTAL_FORMS
-            totalForms.value = formCount + 1;
-            
-            // Agregar eventos a la nueva fila
-            agregarEventosFila(nuevaFila);
-            
-            // Recalcular total
-            calcularTotal();
-        });
+    // AGREGAR PRODUCTO AL CARRITO
+    document.querySelectorAll('.btn-agregar-prod').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const card = this.closest('.producto-card');
+        const id = card.dataset.id;
+        const tipo = card.dataset.tipo; // 'plato' o 'bebida'
+        const nombre = card.dataset.nombre;
+        const precio = parseFloat(card.dataset.precio);
+
+        const key = `${tipo}_${id}`;
+
+        if (carrito[key]) {
+          carrito[key].cantidad++;
+        } else {
+          carrito[key] = { key, tipo, id, nombre, precio, cantidad: 1 };
+        }
+        renderizarCarrito();
+      });
+    });
+
+    // BOTONES DENTRO DEL CARRITO
+    carritoContainer.addEventListener('click', function (e) {
+      // Sumar
+      if (e.target.closest('.btn-sumar')) {
+        const key = e.target.closest('.btn-sumar').dataset.key;
+        carrito[key].cantidad++;
+        renderizarCarrito();
+      }
+      // Restar
+      if (e.target.closest('.btn-restar')) {
+        const key = e.target.closest('.btn-restar').dataset.key;
+        if (carrito[key].cantidad > 1) {
+          carrito[key].cantidad--;
+          renderizarCarrito();
+        }
+      }
+      // Eliminar
+      if (e.target.closest('.btn-eliminar')) {
+        const key = e.target.closest('.btn-eliminar').dataset.key;
+        delete carrito[key];
+        renderizarCarrito();
+      }
+    });
+
+    // BUSCADOR Y FILTROS
+    const buscador = document.getElementById('buscador-productos');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const productosCards = document.querySelectorAll('.producto-card');
+    let filtroActual = 'todos';
+
+    function filtrarProductos() {
+      const texto = buscador.value.toLowerCase();
+      productosCards.forEach(card => {
+        const nombre = card.dataset.nombre.toLowerCase();
+        const tipo = card.dataset.tipo;
+
+        const coincideTexto = nombre.includes(texto);
+        const coincideTipo = (filtroActual === 'todos' || tipo === filtroActual);
+
+        if (coincideTexto && coincideTipo) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
     }
 
-    //
-    // INICIALIZAR EVENTOS EN LAS FILAS EXISTENTES=
-    document.querySelectorAll('.fila-detalle').forEach(agregarEventosFila);
-    
-    // Calcular al cargar
-    calcularTotal();
-});
+    if (buscador) {
+      buscador.addEventListener('input', filtrarProductos);
+    }
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('activo'));
+        btn.classList.add('activo');
+        filtroActual = btn.dataset.filtro;
+        filtrarProductos();
+      });
+    });
+
+  });
 </script>
 {% endblock %}

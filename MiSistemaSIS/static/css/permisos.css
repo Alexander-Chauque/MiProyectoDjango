@@ -1,0 +1,124 @@
+.tarjeta-formulario-permiso {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Header interno */
+.header-formulario {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 30px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.icono-formulario {
+  width: 60px;
+  height: 60px;
+  background-color: #FFF8E7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icono-formulario .material-symbols-outlined {
+  color: #F5A623;
+  font-size: 32px;
+}
+
+.texto-formulario h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 26px;
+  color: #00040b;
+  margin: 0 0 5px 0;
+}
+
+
+/* Cuerpo del formulario */
+.cuerpo-formulario {
+  padding: 30px;
+}
+
+.grupo-campo {
+  margin-bottom: 20px;
+}
+
+.grupo-campo label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0c0d0f;
+  margin-bottom: 8px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.req {
+  color: #DC2626;
+}
+
+/* Input con icono */
+.input-icono {
+  display: flex;
+  align-items: center;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background-color: #F9FAFB;
+  transition: border-color 0.3s;
+  overflow: hidden;
+}
+
+.input-icono:focus-within {
+  border-color: #F5A623;
+  background-color: #FFFFFF;
+}
+
+/* Cuadro gris del icono */
+.input-icono .material-symbols-outlined:first-child {
+  padding: 12px 15px;
+  background-color: #EDF2F7;
+  color: #718096;
+  border-right: 1px solid #CBD5E0;
+  font-size: 20px;
+}
+
+/* Inputs y Selects de Django */
+.input-icono select,
+.input-icono input,
+.input-icono textarea {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 14px;
+  font-family: 'Oswald', sans-serif;
+  color: #2D3748;
+  outline: none;
+}
+
+/* Ajuste para el textarea (Icono arriba) */
+.input-icono.align-top {
+  align-items: flex-start;
+}
+
+.input-icono.align-top .material-symbols-outlined {
+  height: 100%;
+  padding-top: 12px;
+}
+
+/* Botones */
+.acciones-formulario {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #E2E8F0;
+}

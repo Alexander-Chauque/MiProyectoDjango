@@ -1,57 +1,224 @@
-{% extends 'base_inventario.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Listado de Tipos de Bebidas{% endblock %}
+{% block title %}Listado de Tipo de Bebidas {% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/inventario.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo">Listado de Tipos de Bebidas</h1>
 
-    <div class="derecha_boton">
-        <a href="{% url 'inventario:crear_tipo_bebida' %}" class="btn-primario">Nuevo Tipo</a>
-        <a href="{% url 'inventario:listar_bebida' %}" class="btn">Ver Bebidas</a>
-    </div>
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'inventario:inventario_home' %}" class="breadcrumb-item"> Inventario</a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'inventario:listar_bebida' %}" class="breadcrumb-item">Bebidas</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Tipo de Bebidas</span>
+  </nav>
 
-    <div class="table-container">
-        <table class="tabla">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for tipo in tipos %}
-                <tr>
-                    <td><strong>{{ tipo.nombre_tipo_bebida }}</strong></td>
-                    <td>{{ tipo.descripcion_tipo_bebida|default:"-" }}</td>
-                    <td>
-                        {% if tipo.estado_tipo_bebida %}
-                            <span class="estado-activo">Activo</span>
-                        {% else %}
-                            <span class="estado-inactivo">Inactivo</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="btn-group">
-                            <a href="{% url 'inventario:editar_tipo_bebida' tipo.id %}" class="btn btn-warning ">Editar</a>
-                            <a href="{% url 'inventario:eliminar_tipo_bebida' tipo.id %}" class="btn btn-danger ">Eliminar</a>
-                            {% if tipo.estado_tipo_bebida %}
-                                <a href="{% url 'inventario:estado_tipo_bebida' tipo.id %}" class="estado_inactivar">Inactivar</a>
-                            {% else %}
-                                <a href="{% url 'inventario:estado_tipo_bebida' tipo.id %}" class="estado_activar">Activar</a>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="mensaje">No hay tipos de bebidas registrados.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">category</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Tipo de Bebidas</h1>
+        <p>Adminstra las categorias de bebidas del restaurante.</p>
+      </div>
     </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'inventario:listar_bebida' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">arrow_back</span> Volver a Bebidas
+      <a href="{% url 'inventario:crear_tipo_bebida' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Nuevo tipo
+      </a>
+    </div>
+  </div>
+
+  <div class="listado-layout">
+    <aside class="filtros-panel">
+      <form method="get">
+        <div class="filtros-header">
+          <span class="material-symbols-outlined">filter_alt</span>
+          <h3>Filtros</h3>
+        </div>
+
+        <!-- Buscador -->
+        <div class="filtro-grupo">
+          <label>Buscar</label>
+          <div class="input-buscar">
+            <span class="material-symbols-outlined">search</span>
+            <input name="buscar" type="text" value="{{buscar}}" placeholder="Nombre del tipo...">
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="filtro-grupo">
+          <label>Estado</label>
+          <div class="checkboxes">
+            <label class="checkbox-item">
+              <input type="checkbox" id="est-todos" onchange="toggleEstados(this)" {% if not estados_seleccionados%}checked{% endif %}>
+              <span>Todos</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="estado" value="activo" class="checkbox-estado" {% if 'activo' in estados_seleccionados %}checked{% endif %}>
+              <span>Activo</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="estado" value="inactivo" class="checkbox-estado" {% if 'inactivo' in estados_seleccionados %}checked{% endif %}>
+              <span>Inactivo</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Manterner por_pagina -->
+        <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+
+        <!-- Botones -->
+        <button type="submit" class="btn-aplicar">
+          <span class="material-symbols-outlined">filter_alt</span>Aplicar filtros
+        </button>
+        <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn-limpiar">
+          <span class="material-symbols-outlined">refresh</span>Limpiar filtros
+        </a>
+      </form>
+    </aside>
+
+    <!-- TABLA -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>NOMBRE</th>
+            <th>DESCRIPCIÓN</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tipo in tipos %}
+          <tr>
+            <td><strong>{{ tipo.nombre_tipo_bebida }}</strong></td>
+            <td>{{ tipo.escripcion_tipo_bebida|default:'Sin descripción' }}</td>
+            <td>
+              {% if tipo.estado_tipo_bebida %}
+              <span class="badge badge-activo">Disponible</span>
+              {% else %}
+              <span class="badge badge-inactivo">No disponible</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="acciones-tabla">
+                <a href="{% url 'inventario:editar_tipo_bebida' tipo.pk %}" class="btn-icon btn-editar" title="Modificar">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <a href="{% url 'inventario:estado_tipo_bebida' tipo.pk %}" class="btn-icon {% if tipo.estado_tipo_bebida %}btn-baja{% else %}btn-reactivar{% endif %}" title="{% if tipo.estado_tipo_bebida %}Desactivar{% else %}Activar{% endif %}">
+                  <span class="material-symbols-outlined">{% if tipo.estado_tipo_bebida %}toggle_off{% else %} toggle_on{% endif %}</span>
+                </a>
+                <a href="{% url 'inventario:eliminar_tipo_bebida' tipo.pk}" class="btn-icon btn-clave" title="Eliminar">
+                  <span class="material-symbols-outlined">delete</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="sin-rsulatdos">
+              No hay platos registrados
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info"> Mostrando {{ tipos.start_index}} a {{ tipos.end_index }} de
+          {{ tipos.paginator.count }} tipos</span>
+        <div class="paginacion-botones">
+          <!-- Botón anterior -->
+          {% if bebidas.has_previous %}
+          <a href="?page={{ tipos.previous_page_number }}{% for t in tipos_seleccionados %}&tipo={{ t }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+            class="paginacion-btn">
+            <span class="material-symbols-outlined"> chevron_left</span>
+          </a>
+          <!-- <button disabled>
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button> -->
+          {% endif %}
+
+          <!-- Número de página -->
+          {% for num in tipos.paginator.page_range %}
+            {% if tipos.number == num %}
+            <a href="?page={{ num }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+              class="paginacion-btn pagina-activa">{{ num }}</a>
+            {% elif num > tipos.number|add:'-3' and num < tipos.number|add:'3' %} <a
+              href="?page={{ num }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+            {%endif %}
+          {% endfor %}
+
+            <!-- Boton Siguiente -->
+            {% if tipos.has_next %}
+            <a href="?page={{ tipos.next_page_number }} {% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}"
+              class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            <!-- <button disabled>
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button> -->
+            {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
 </div>
+<script>
+  function cambiarPorPagina(valor) {
+    //obtener url actual
+    const url = new URL(window.location.href);
+    //cambiar el parametro 'por_pagina'
+    url.searchParams.set('por_pagina', valor);
+    // restear a al pagina 1(porque cambia la cantidad de registros)
+    url.searchParams.set('page', 1);
+    //redigir
+    window.location.href = url.toString();
+  }
+
+  // cuando se marca/desmarca todas los estados
+  function toggleEstados(checkbox) {
+    const checkboxes = document.querySelectorAll('.checkbox-estado');
+    checkboxes.forEach(cb => {
+      cb.checked = false;
+    });
+  }
+
+  document.querySelectorAll('.checkbox-estado').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) {
+        document.getElementById('est-todos').checked = false;
+      }
+    });
+  });
+</script>
 {% endblock %}

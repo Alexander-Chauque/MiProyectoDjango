@@ -1,54 +1,350 @@
-{% extends 'base_inventario.html' %}
-{% block title %}Gestión de Platos{% endblock %}
-{% block nav_brand %}Gestión de Platos{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Platos {% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/inventario.css' %}">
+{% endblock %}
+
 {% block content %}
-<h1 class="titulo">Listado de Platos</h1>
+<div class="contenedor">
+  
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'inventario:inventario_home' %}" class="breadcrumb-item"> Inventario</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Platos</span>
+  </nav>
 
-<div class="derecha_boton">
-    <a href="{% url 'inventario:listar_categorias' %}" class="btn btn-secundario">Categorías</a>
-    {% if user.empleado.cargo.nivel_acceso >= 3 %}
-        <a href="{% url 'inventario:listar_ingredientes' %}" class="btn">Ingredientes</a>
-    {% endif %}   
-    <a href="{% url 'inventario:crear_plato' %}" class="btn-primario">Nuevo Plato</a>
-</div>
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">restaurant</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Platos</h1>
+        <p>Adminstra los platos del menú del restaurante.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'inventario:listar_categorias' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">category</span> Categorías
+      </a>
+      <a href="{% url 'inventario:listar_ingredientes' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">eco</span> Ingredientes
+      </a>
+      <a href="{% url 'inventario:crear_plato' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Nuevo plato
+      </a>
+    </div>
+  </div>
 
-<table class="tabla">
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Precio</th>
-            <th>Categoría</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for plato in platos %}
-        <tr>
-            <td>{{ plato.nombre_plato }}</td>
-            <td>$ {{ plato.precio_plato }}</td>
-            <td>{{ plato.categoria.nombre_categoria_plato }}</td>
+  <div class="listado-layout">
+    <aside class="filtros-panel">
+      <form method="get">
+        <div class="filtros-header">
+          <span class="material-symbols-outlined">filter_alt</span>
+          <h3>Filtros</h3>
+        </div>
+        
+        <!-- Buscador -->
+        <div class="filtro-grupo">
+          <label>Buscar</label>
+          <div class="input-buscar">
+            <span class="material-symbols-outlined">search</span>
+            <input name="buscar" type="text" value="{{buscar}}" placeholder="Nombre del plato...">
+          </div>
+        </div>
+        
+        <!-- Categoría -->
+        <div class="filtro-grupo">
+          <label>Categoría</label>
+          <div class="checkboxes">
+            <label class="checkbox-item">
+              <input type="checkbox" id="cat-todas" onchange="toggleCategorias(this)">
+              <span>Todas</span>
+            </label>
+            {% for categoria in categorias %}
+            <label class="checkbox-item">
+              <input type="checkbox"  name='categoria' value="{{ categoria.id_categoria_plato }}" class="checkbox-categoria" {% if categoria.id_categoria_plato|stringformat:"s" in categorias_seleccionadas %}checked{% endif %}>
+              <span>{{ categoria.nombre_categoria_plato }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Estado -->
+        <div class="filtro-grupo">
+          <label>Estado</label>
+          <div class="checkboxes">
+            <label class="checkbox-item">
+              <input type="checkbox" id="est-todos" onchange="toggleEstados(this)" {% if not estados_seleccionados%}checked{% endif %}>
+              <span>Todos</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="estado" value="disponible" class="checkbox-estado"{% if 'disponible' in estados_seleccionados %}checked{% endif %}>
+              <span>Disponible</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="estado" value="no_disponible" class="checkbox-estado" {% if 'no_disponible' in estados_seleccionados %}checked{% endif %}>
+              <span>No disponible</span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Manterner por_pagina -->
+        <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+        
+        <!-- Botones -->
+        <button type="submit" class="btn-aplicar">
+          <span class="material-symbols-outlined">filter_alt</span>Aplicar filtros
+        </button>
+        <a href="{% url 'inventario:listar_platos' %}" class="btn-limpiar">
+          <span class="material-symbols-outlined">refresh</span>Limpiar filtros
+        </a>
+      </form>
+    </aside>
+
+    <!-- TABLA -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>NOMBRE</th>
+            <th>PRECIO</th>
+            <th>CATEGORÍA</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for plato in platos %}
+          <tr>
+            <td><strong>{{ plato.nombre_plato }}</strong></td>
+            <td>${{ plato.precio_plato|floatformat:0 }}</td>
             <td>
-                {% if plato.estado_plato %}
-                    <span class="estado_activo">Disponible</span>
-                {% else %}
-                    <span class="estado_inactivo">No Disponible</span>
+              <span class="badge-categoria">
+                {{ plato.categoria.nombre_categoria_plato }}
+              </span>
+            </td>
+            <td>
+              {% if plato.estado_plato %}
+                <span class="badge badge-activo">Disponible</span>
+              {% else %}
+                <span class="badge badge-inactivo">No disponible</span>
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'inventario:detalle_plato' plato.pk %}" class="btn-tercero">Detalle</a>
-                <a href="{% url 'inventario:editar_plato' plato.pk %}" class="btn-warning">Modificar</a>
-                <!-- <a href="{% url 'inventario:eliminar_plato' plato.pk %}" class="btn-danger">Eliminar</a> -->
-                <a href="{% url 'inventario:estado_plato' plato.pk %}" class="{% if plato.estado_plato %}estado_inactivar{% else %}estado_activar{% endif %}"> 
-                        {% if plato.estado_plato %}Activar{% else %}Desactivar{% endif %}
+              <div class="acciones-tabla">
+                <a href="{% url 'inventario:detalle_plato' plato.pk %}" class="btn-icon btn-detalle" title="Ver detalle">
+                  <span class="material-symbols-outlined">visibility</span>
                 </a>
+                <a href="{% url 'inventario:editar_plato' plato.pk %}" class="btn-icon btn-editar" title="Modificar">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <a href="{% url 'inventario:estado_plato' plato.pk %}" class="btn-icon {% if plato.estado_plato %}btn-baja{% else %}btn-reactivar{% endif %}" data-url="{% url 'inventario:estado_plato' plato.pk %}" data-nombre="{{ plato.nombre_plato }}" data-estado="{{ plato.estado_plato|yesno:'true,false' }}" onclick="event.preventDefault(); abrirModalDesdeBoton(this);">
+                  <span class="material-symbols-outlined">{% if plato.estado_plato %}toggle_off{% else %}toggle_on{% endif %}</span>
+                </a>
+                <a href="{% url 'inventario:eliminar_plato' plato.pk}" class="btn-icon btn-clave" title="Eliminar">
+                  <span class="material-symbols-outlined">delete</span>
+                </a>
+              </div>
             </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5" class="mensaje">No hay platos registrados</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="sin-rsulatdos">
+              No hay platos registrados
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info"> Mostrando {{ platos.start_index}} a {{ platos.end_index }} de {{platos.paginator.count }} platos</span>
+        <div class="paginacion-botones">
+          <!-- Botón anterior -->
+          {% if platos.has_previous %}
+            <a href="?page={{ platos.previous_page_number }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+              <span class="material-symbols-outlined"> chevron_left</span>
+            </a>
+            <!-- <button disabled>
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button> -->
+          {% endif %}
+
+          <!-- Número de página -->
+          {% for num in platos.paginator.page_range %}
+            {% if platos.number == num %}
+              <a href="?page={{ num }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
+            {% elif num > platos.number|add:'-3' and num < platos.number|add:'3' %}
+              <a href="?page={{ num }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+            {%endif %}
+          {% endfor %}
+
+          <!-- Boton Siguiente -->
+          {% if platos.has_next %}
+            <a href="?page={{ platos.next_page_number }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            <!-- <button disabled>
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button> -->
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-estado" style="display: none;">
+  <div class="modal-contenido">
+    <!--Icono de alerta + título + botón cerrar -->
+    <div class="modal-header">
+      <div class="modal-icono-alerta">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h3>¿Cambiar estado del plato?</h3>
+      <button class="btn-cerrar-modal" id="btn-cerrar-modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!--Texto y caja de advertencia -->
+    <div class="modal-body">
+      <p>Estás seguro de que querés cambiar el estado de <strong id="nombre-plato-modal"></strong> a <strong
+          id="nuevo-estado-modal"></strong>?</p>
+
+      <div class="modal-alerta-info">
+        <span class="material-symbols-outlined">info</span>
+        <p id="texto-alerta-modal"></p>
+      </div>
+    </div>
+
+    <!--Botones cancelar y confirmar-->
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
+      <button type="button" class="btn-primario" id="btn-confirmar-modal">
+        <span class="material-symbols-outlined">toggle_on</span> Confirmar cambio
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cambiarPorPagina(valor) {
+      //obtener url actual
+      const url = new URL(window.location.href);
+      //cambiar el parametro 'por_pagina'
+      url.searchParams.set('por_pagina', valor);
+      // restear a al pagina 1(porque cambia la cantidad de registros)
+      url.searchParams.set('page', 1);
+      //redigir
+      window.location.href = url.toString();
+    }
+
+  // cuando se marca/desmarca todas las categoria
+  function toggleCategorias(checkbox){
+    const checkboxes = document.querySelectorAll('.checkbox-categoria');
+    checkboxes.forEach(cb => {
+      cb.checked = false;
+    });
+  }
+
+  // cuando se marca/desmarca todas los estados
+  function toggleEstados(checkbox){
+    const checkboxes = document.querySelectorAll('.checkbox-estado');
+    checkboxes.forEach(cb => {
+      cb.checked = false;
+    });
+  }
+
+  // si se marca un checbox individual, desmarchar todos
+  document.querySelectorAll('.checkbox-categoria').forEach(cb => {
+    cb.addEventListener('change', function(){
+      if (this.checked) {
+        document.getElementById('cat-todas').checked = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.checkbox-estado').forEach(cb =>{
+    cb.addEventListener('change', function(){
+      if (this.checked){
+        document.getElementById('est-todos').checked = false;
+      }
+    });
+  });
+
+  function abrirModalDesdeBoton(elemento) {
+    const url = elemento.getAttribute('data-url');
+    const nombre = elemento.getAttribute('data-nombre');
+    const estaActivo = elemento.getAttribute('data-estado') === 'true';
+    window.abrirModalEstado(url, nombre, estaActivo);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modal-estado');
+    const btnCancelar = document.getElementById('btn-cancelar-modal');
+    const btnConfirmar = document.getElementById('btn-confirmar-modal');
+    const btnCerrar = document.getElementById('btn-cerrar-modal');
+
+    const nombrePlatoModal = document.getElementById('nombre-plato-modal');
+    const nuevoEstadoModal = document.getElementById('nuevo-estado-modal');
+    const textoAlertaModal = document.getElementById('texto-alerta-modal');
+
+    let urlPendiente = '';
+
+    window.abrirModalEstado = function (url, nombre, estaActivo) {
+      urlPendiente = url;
+      nombrePlatoModal.textContent = `"${nombre}"`;
+
+      if (estaActivo) {
+        nuevoEstadoModal.textContent = "No disponible";
+        nuevoEstadoModal.style.color = "#F5A623";
+        textoAlertaModal.textContent = "El plato dejará de estar disponible para nuevas comandas, pero se conservará su información para el historial.";
+      } else {
+        nuevoEstadoModal.textContent = "Disponible";
+        nuevoEstadoModal.style.color = "#27AE60";
+        textoAlertaModal.textContent = "El plato volverá a estar disponible para nuevas comandas.";
+      }
+
+      modal.style.display = 'flex';
+    };
+
+    function cerrarModal() {
+      modal.style.display = 'none';
+      urlPendiente = '';
+    }
+
+    btnCancelar.addEventListener('click', cerrarModal);
+    btnCerrar.addEventListener('click', cerrarModal);
+
+    btnConfirmar.addEventListener('click', function () {
+      if (urlPendiente) {
+        window.location.href = urlPendiente;
+      }
+    });
+  });
+</script>
 {% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Alta de Empleado{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:empleado_listar' %}" class="breadcrumb-item">Empleados</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Editar</span>
+  </nav>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <a href="{% url 'empleados:empleado_listar' %}" class="btn-volver-flecha" title="Volver">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">person_add</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Editar empleado: {{ empleado.nombre_empleado }} {{ empleado.apellido_empleado }}</h1>
+        <p>Modificá los datos del integrante del personal</p>
+      </div>
+    </div>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="layout-empleado">
+      <div class="columna-empleado">
+        <!-- Datos Personales -->
+        <div class="tarjeta-empleado">
+          <div class="tarjeta-cabecera">
+            <div class="tarjeta-icono">
+              <span class="material-symbols-outlined">person</span>
+            </div>
+            <div>
+              <h2>Datos personales</h2>
+              <p>Información básica del empleado.</p>
+            </div>
+          </div>
+
+          <div class="tarjeta-cuerpo">
+            <!-- Nombre -->
+            <div class="grupo-campo">
+              <label>Nombre <span class="req">*</span></label>
+              <div class="input-icono">
+                <span class="material-symbols-outlined">person</span>
+                {{ form.nombre_empleado }}
+              </div>
+            </div>
+
+            <!-- Apellido -->
+            <div class="grupo-campo">
+              <label>Apellido <span class="req">*</span></label>
+              <div class="input-icono">
+                <span class="material-symbols-outlined">person</span>
+                {{ form.apellido_empleado }}
+              </div>
+            </div>
+
+            <!-- DNI -->
+            <div class="grupo-campo">
+              <label>DNI <span class="req">*</span></label>
+              <div class="input-icono">
+                <span class="material-symbols-outlined">badge</span>
+                {{ form.dni }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="columna-empleado">
+        <!-- Contacto -->
+        <div class="tarjeta-empleado">
+          <div class="tarjeta-cabecera">
+            <div class="tarjeta-icono">
+              <span class="material-symbols-outlined">call</span>
+            </div>
+            <div>
+              <h2>Contacto</h2>
+              <p>Datos de contacto para comunicación.</p>
+            </div>
+          </div>
+
+          <div class="tarjeta-cuerpo">
+            <!-- Teléfono -->
+            <div class="grupo-campo">
+              <label>Teléfono</label>
+              <div class="input-icono">
+                <span class="material-symbols-outlined">call</span>
+                {{ form.telefono }}
+              </div>
+            </div>
+
+            <!-- Correo -->
+            <div class="grupo-campo">
+              <label>Correo electrónico <span class="req">*</span></label>
+              <div class="input-icono">
+                <span class="material-symbols-outlined">mail</span>
+                {{ form.correo }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cargo -->
+        <div class="tarjeta-empleado">
+          <div class="tarjeta-cabecera">
+            <div class="tarjeta-icono">
+              <span class="material-symbols-outlined">work</span>
+            </div>
+            <div>
+              <h2>Cargo</h2>
+              <p>Define el rol del empleado en el sistema.</p>
+            </div>
+          </div>
+          <div class="tarjeta-cuerpo">
+            <div class="grupo-campo">
+              <label>Cargo <span class="req">*</span></label>
+              <div class="input-icono">
+                <span class="material-symbols-outlined">list</span>
+                {{ form.cargo }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-formulario-empleado">
+      <span class="texto-obligatorio"><span class="req">*</span> Campos obligatorios</span>
+      <div class="botones-accion">
+        <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">save</span> Guardar Cambios
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

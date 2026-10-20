@@ -1,56 +1,66 @@
-{% extends 'permisos/base_permisos.html' %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Permiso{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/permisos.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo">{{ titulo }}</h1>
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:listar_permiso' %}" class="breadcrumb-item">Permisos</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Crear</span>
+  </nav>
 
-    <div class="card">
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label class="form-label">Módulo</label>
-                    <select name="modulo" class="form-control" required>
-                        <option value="">Seleccione un módulo</option>
-                        <option value="platos">Platos</option>
-                        <option value="bebidas">Bebidas</option>
-                        <option value="ingredientes">Ingredientes</option>
-                        <option value="categorias">Categorías</option>
-                        <option value="empleados">Empleados</option>
-                        <option value="cargos">Cargos</option>
-                        <option value="permisos">Permisos</option>
-                        <option value="comandas">Comandas</option>
-                        <option value="mesas">Mesas</option>
-                        <option value="ventas">Ventas</option>
-                        <option value="caja">Caja</option>
-                        <option value="gastos">Gastos</option>
-                        <option value="reportes">Reportes</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Acción</label>
-                    <select name="accion" class="form-control" required>
-                        <option value="">Seleccione una acción</option>
-                        <option value="leer">Leer</option>
-                        <option value="escribir">Escribir</option>
-                        <option value="modificar">Modificar</option>
-                        <option value="eliminar">Eliminar</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Descripción</label>
-                    <input type="text" name="descripcion" class="form-control" placeholder="Descripción del permiso">
-                </div>
-                
-                <div class="derecha_boton">
-                    <a href="{% url 'empleados:listar_permiso' %}" class="btn btn-secundario">Cancelar</a>
-                    <button type="submit" class="btn btn-primario">Guardar</button>
-                </div>
-            </form>
-        </div>
+  <div class="tarjeta-formulario-permiso">
+    <div class="header-formulario">
+      <div class="icono-formulario">
+        <span class="material-symbols-outlined">shield_person</span>
+      </div>
+      <div class="texto-formulario">
+        <h1>Crear Permiso</h1>
+        <p>Definí el módulo, la acción y una descripción para este permiso.</p>
+      </div>
     </div>
+    <form method="POST" class="cuerpo-formulario">
+      {% csrf_token %}
+
+      <!-- Mostrar errores de validación (ej: si el permiso ya existe) -->
+      {% if form.non_field_errors %}
+      <div class="alerta alerta-error">
+        <span class="material-symbols-outlined">error</span>
+        {{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+
+      <!-- Módulo -->
+      <div class="grupo-campo">
+        <label>Módulo <span class="req">*</span></label>
+        <div class="input-icono">
+          <span class="material-symbols-outlined">grid_view</span>
+          {{ form.modulo }}
+        </div>
+      </div>
+
+      <!-- Acción -->
+      <div class="grupo-campo">
+        <label>Acción <span class="req">*</span></label>
+        <div class="input-icono">
+          <span class="material-symbols-outlined">settings</span>
+          {{ form.accion }}
+        </div>
+      </div>
+    </form>
+  </div>
+
 </div>
 {% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Cargo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/permisos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:listar_cargo' %}" class="breadcrumb-item">Cargos</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Editar</span>
+  </nav>
+
+  <div class="tarjeta-formulario-permiso">
+
+    <div class="header-formulario">
+      <div class="icono-formulario">
+        <span class="material-symbols-outlined">edit</span>
+      </div>
+      <div class="texto-formulario">
+        <h1>Editar Cargo: {{ cargo.nombre_cargo }}</h1>
+        <p>Modificá los datos del cargo seleccionado.</p>
+      </div>
+    </div>
+
+    <form method="POST" class="cuerpo-formulario">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alerta alerta-error">
+        <span class="material-symbols-outlined">error</span>
+        {{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+
+      <!-- Nombre -->
+      <div class="grupo-campo">
+        <label>Nombre del Cargo <span class="req">*</span></label>
+        <div class="input-icono">
+          <span class="material-symbols-outlined">badge</span>
+          {{ form.nombre_cargo }}
+        </div>
+        {% if form.nombre_cargo.errors %}
+        <span style="color: #DC2626; font-size: 12px; margin-top: 5px;">{{ form.nombre_cargo.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Descripción -->
+      <div class="grupo-campo">
+        <label>Descripción</label>
+        <div class="input-icono align-top">
+          <span class="material-symbols-outlined">description</span>
+          {{ form.descripcion }}
+        </div>
+      </div>
+
+      <!-- Nivel de Acceso -->
+      <div class="grupo-campo">
+        <label>Nivel de Acceso</label>
+        <div class="input-icono">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          {{ form.nivel_acceso }}
+        </div>
+      </div>
+
+      <div class="acciones-formulario">
+        <a href="{% url 'empleados:listar_cargo' %}" class="btn-secundario">
+          <span class="material-symbols-outlined">close</span> Cancelar
+        </a>
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">save</span> Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

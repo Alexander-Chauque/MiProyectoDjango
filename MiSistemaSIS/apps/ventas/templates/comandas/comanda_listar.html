@@ -1,89 +1,325 @@
-{% extends 'comandas/base_comandas.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Listar Comandas{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo">Listar Comandas</h1>
 
-    <div class="derecha_boton">
-        <a href="{% url 'ventas:comanda_crear' %}" class="btn-primario"> Nueva Comanda</a>
-        <a href="{% url 'ventas:comanda_consultar' %}" class="btn-secundario"> Consultar Comandas</a>
-    </div>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">›</span>
+    <span class="breadcrumb-item active">Comandas</span>
+  </nav>
 
-    <div class="table-container">
-        <table class="tabla">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Mesa</th>
-                    <th>Mozo</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for comanda in comandas %}
-                <tr>
-                    <td><strong>{{ comanda.id_comanda }}</strong></td>
-                    <td>Mesa {{ comanda.mesa.numero_mesa }}</td>
-                    <td>{{ comanda.empleado.nombre_empleado }} {{ comanda.empleado.apellido_empleado }}</td>
-                    <td><strong>${{ comanda.total_comanda|floatformat:0 }}</strong></td>
-                    <td>
-                        <span class="badge badge-{{ comanda.estado_comanda }}">
-                            {{ comanda.get_estado_comanda_display }}
-                        </span>
-                    </td>
-                    <td>{{ comanda.fecha_hora|date:"d/m/Y H:i" }}</td>
-                    <td>
-                        <div class="acciones-comanda">
-                            <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-accion btn-detalle">Detalle</a>
-                            <a href="{% url 'ventas:comanda_editar' comanda.id_comanda %}" class="btn-accion btn-editar">Editar</a>
-                            <!-- <a href="{% url 'ventas:comanda_eliminar' comanda.id_comanda %}" class="btn-accion btn-eliminar">Eliminar</a> -->
-                            
-                            <form method="POST" action="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}" class="form-estado">
-                                {% csrf_token %}
-                                <select name="estado" class="select-estado select-estado-{{ comanda.estado_comanda }}" onchange="manejarCambioEstado(this, '{{ comanda.id_comanda }}')">
-                                    <option value="pendiente" {% if comanda.estado_comanda == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                    <option value="en_preparacion" {% if comanda.estado_comanda == 'en_preparacion' %}selected{% endif %}>En Preparación</option>
-                                    <option value="entregado" {% if comanda.estado_comanda == 'entregado' %}selected{% endif %}>Entregado</option>
-                                    <option value="pagado" {% if comanda.estado_comanda == 'pagado' %}selected{% endif %}>Pagado</option>
-                                    <option value="anulado" {% if comanda.estado_comanda == 'anulado' %}selected{% endif %}>Anulado</option>
-                                </select>
-                            </form>
-                            <a href="{% url 'ventas:comanda_comprobante' comanda.id_comanda %}" class="btn-accion btn-comprobante">Comprobante</a>
-                            <a href="{% url 'ventas:comanda_ticket' comanda.id_comanda %}" class="btn-accion btn-ticket">En Marcha</a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="mensaje">No hay comandas registradas</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Comandas</h1>
+        <p>Gestiona los pedidos y comandas del restaurante.</p>
+      </div>
     </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'ventas:comanda_consultar' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">search</span> Consultar
+      </a>
+      <a href="{% url 'ventas:comanda_crear' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Nueva Comanda
+      </a>
+    </div>
+  </div>
+
+  <div class="listado-layout">
+
+    <!-- Filtros -->
+    <form method="GET" class="filtros-panel">
+      <div class="filtros-header">
+        <span class="material-symbols-outlined">filter_alt</span>
+        <h3>Filtros</h3>
+      </div>
+
+      <!-- Buscador -->
+      <div class="filtro-grupo">
+        <label>Buscar</label>
+        <div class="input-buscar">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" name="buscar" value="{{ buscar }}" placeholder="ID o mozo...">
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="filtro-grupo">
+        <label>Estado</label>
+        <div class="checkboxes">
+          <label class="checkbox-item">
+            <input type="checkbox" id="est-todos" onchange="toggleEstados(this)" {% if not estados_seleccionados %}checked{% endif %}>
+            <span>Todos</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="pendiente" class="checkbox-estado" {% if 'pendiente' in estados_seleccionados %}checked{% endif %}>
+            <span>Pendiente</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="en_preparacion" class="checkbox-estado" {% if 'en_preparacion' in estados_seleccionados %}checked{% endif %}>
+            <span>En Preparación</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="entregado" class="checkbox-estado" {% if 'entregado' in estados_seleccionados %}checked{% endif %}>
+            <span>Entregado</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="pagado" class="checkbox-estado" {% if 'pagado' in estados_seleccionados %}checked{% endif %}>
+            <span>Pagado</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="anulado" class="checkbox-estado" {% if 'anulado' in estados_seleccionados %}checked{% endif %}>
+            <span>Anulado</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Mesa -->
+      <div class="filtro-grupo">
+        <label>Mesa</label>
+        <div class="checkboxes">
+          <label class="checkbox-item">
+            <input type="checkbox" id="mesa-todas" onchange="toggleMesas(this)">
+            <span>Todas</span>
+          </label>
+          {% for mesa in mesas %}
+          <label class="checkbox-item">
+            <input type="checkbox" name="mesa" value="{{ mesa.id_mesa }}" class="checkbox-mesa" {% if mesa.id_mesa|stringformat:"s" in mesas_seleccionadas %}checked{% endif %}>
+            <span>Mesa {{ mesa.numero_mesa }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Fecha -->
+      <div class="filtro-grupo">
+        <label>Rango de fecha</label>
+        <div class="filtro-fecha">
+          <div class="input-buscar-fecha">
+            <label>Desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}">
+          </div>
+          <div class="input-buscar-fecha">
+            <label>Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}">
+          </div>
+        </div>
+      </div>
+
+      <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+      <button type="submit" class="btn-aplicar">
+        <span class="material-symbols-outlined">filter_alt</span> Aplicar filtros
+      </button>
+      <a href="{% url 'ventas:comanda_listar' %}" class="btn-limpiar">
+        <span class="material-symbols-outlined">refresh</span> Limpiar filtros
+      </a>
+    </form>
+
+    <!-- Tabla -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>MESA</th>
+            <th>MOZO</th>
+            <th>TOTAL</th>
+            <th>ESTADO</th>
+            <th>FECHA</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for comanda in comandas %}
+          <tr>
+            <td><strong>{{ comanda.id_comanda }}</strong></td>
+            <td>Mesa {{ comanda.mesa.numero_mesa }}</td>
+            <td>{{ comanda.empleado.get_full_name }}</td>
+            <td>${{ comanda.total_comanda|floatformat:0 }}</td>
+            <td>
+              {% if comanda.estado_comanda == 'pagado' %}
+              <span class="badge badge-pagado">Pagado</span>
+              {% elif comanda.estado_comanda == 'en_preparacion' %}
+              <span class="badge badge-preparacion">En Preparación</span>
+              {% elif comanda.estado_comanda == 'entregado' %}
+              <span class="badge badge-entregado">Entregado</span>
+              {% elif comanda.estado_comanda == 'pendiente' %}
+              <span class="badge badge-pendiente">Pendiente</span>
+              {% else %}
+              <span class="badge badge-anulado">Anulado</span>
+              {% endif %}
+            </td>
+            <td>{{ comanda.fecha_hora|date:"d/m/Y H:i" }}</td>
+            <td>
+              <div class="acciones-tabla">
+                <div class="dropdown-estado">
+                  <button type="button" class="btn-icon btn-estado" title="Cambiar Estado" onclick="toggleDropdownEstado(event, this)">
+                    <span class="material-symbols-outlined">published_with_changes</span>
+                  </button>
+                  <div class="dropdown-menu-estado">
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pendiente" class="dropdown-item">
+                      <span class="punto-estado pendiente"></span> Pendiente
+                    </a>
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=en_preparacion"
+                      class="dropdown-item">
+                      <span class="punto-estado preparacion"></span> En Preparación
+                    </a>
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=entregado" class="dropdown-item">
+                      <span class="punto-estado entregado"></span> Entregado
+                    </a>
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pagado" class="dropdown-item">
+                      <span class="punto-estado pagado"></span> Pagado
+                    </a>
+                    <hr class="dropdown-divider">
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=anulado"
+                      class="dropdown-item texto-peligro">
+                      <span class="punto-estado anulado"></span> Anular Comanda
+                    </a>
+                  </div>
+                </div>
+                <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-icon btn-detalle"
+                  title="Ver detalle">
+                  <span class="material-symbols-outlined">visibility</span>
+                </a>
+                <a href="{% url 'ventas:comanda_editar' comanda.id_comanda %}" class="btn-icon btn-editar"
+                  title="Editar">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <a href="{% url 'ventas:comanda_comprobante' comanda.id_comanda %}" class="btn-icon btn-clave"
+                  title="Comprobante" target="_blank">
+                  <span class="material-symbols-outlined">receipt</span>
+                </a>
+                <a href="{% url 'ventas:comanda_ticket' comanda.id_comanda %}" class="btn-icon btn-reactivar"
+                  title="Ticket Cocina" target="_blank">
+                  <span class="material-symbols-outlined">print</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="sin-resultados">No hay comandas registradas</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info">
+          Mostrando {{ comandas.start_index }} a {{ comandas.end_index }} de {{ comandas.paginator.count }} comandas
+        </span>
+        <div class="paginacion-botones">
+          {% if comandas.has_previous %}
+          <a href="?page={{ comandas.previous_page_number }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+            class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </a>
+          {% endif %}
+
+          {% for num in comandas.paginator.page_range %}
+          {% if comandas.number == num %}
+          <a href="?page={{ num }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+            class="paginacion-btn pagina-activa">{{ num }}</a>
+          {% elif num > comandas.number|add:'-3' and num < comandas.number|add:'3' %} <a
+            href="?page={{ num }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+            class="paginacion-btn">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if comandas.has_next %}
+            <a href="?page={{ comandas.next_page_number }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+              class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
 </div>
+
 <script>
-function manejarCambioEstado(select, comandaId) {
-    const nuevoEstado = select.value;
-    
-    // Si elige "Anulado", redirigir al formulario de anulación
-    if (nuevoEstado === 'anulado') {
-        window.location.href = `/ventas/comandas/anular/${comandaId}/`;
-    } else {
-        // Para otros estados, enviar el formulario
-        select.form.submit();
+  // Cambiar paginación
+  function cambiarPorPagina(valor) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('por_pagina', valor);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+  }
+
+  // Filtros Checkbox
+  function toggleEstados(checkbox) {
+    document.querySelectorAll('.checkbox-estado').forEach(cb => cb.checked = false);
+  }
+
+  function toggleMesas(checkbox) {
+    document.querySelectorAll('.checkbox-mesa').forEach(cb => cb.checked = false);
+  }
+
+  document.querySelectorAll('.checkbox-estado').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) document.getElementById('est-todos').checked = false;
+    });
+  });
+
+  document.querySelectorAll('.checkbox-mesa').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) document.getElementById('mesa-todas').checked = false;
+    });
+  });
+
+  // Menú desplegable de Estados
+  function toggleDropdownEstado(event, boton) {
+    event.stopPropagation();
+    const menu = boton.nextElementSibling;
+
+    // Cerrar otros menús abiertos
+    document.querySelectorAll('.dropdown-menu-estado').forEach(m => {
+      if (m !== menu) m.classList.remove('mostrar');
+    });
+
+    // Abrir/Cerrar el actual
+    menu.classList.toggle('mostrar');
+  }
+
+  // Cerrar menú al hacer clic afuera
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.dropdown-estado')) {
+      document.querySelectorAll('.dropdown-menu-estado').forEach(m => {
+        m.classList.remove('mostrar');
+      });
     }
-}
+  });
 </script>
 {% endblock %}

@@ -132,15 +132,19 @@ class PermisoXCargo(models.Model):
 #Tipo asistencia
 class TipoAsistencia(models.Model):
     id_tipo_asistencia = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=50, unique=True)
+    nombre_tipo_asis = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return self.nombre
-
+        return self.nombre_tipo_asis
 #Asistencia
 class Asistencia(models.Model):
     id_asistencia = models.AutoField(primary_key=True)
-    empleado=models.ForeignKey(Empleado, on_delete=models.CASCADE)
-    tipo_asistencia=models.ForeignKey(TipoAsistencia, on_delete=models.CASCADE)
-    fecha_asistencia=models.DateField()
+    id_empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE, db_column='id_empleado')
+    id_tipo_asistencia = models.ForeignKey(TipoAsistencia, on_delete=models.CASCADE, db_column='id_tipo_asistencia')
+    fecha_asistencia = models.DateField()
+    hora_entrada = models.TimeField(blank=True, null=True)
+    hora_salida = models.TimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.id_empleado} - {self.fecha_asistencia}"
 

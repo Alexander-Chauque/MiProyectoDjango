@@ -1,35 +1,71 @@
-{% extends 'base_inventario.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Crear Tipo de Bebida{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/platos.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo">Crear Tipo de Bebida</h1>
 
-    <div class="card">
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label class="form-label">Nombre</label>
-                    {{ form.nombre_tipo_bebida }}
-                    {{ form.nombre_tipo_bebida.errors }}
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Descripción</label>
-                    {{ form.descripcion_tipo_bebida }}
-                    {{ form.descripcion_tipo_bebida.errors }}
-                </div>
-                
-                
-                <div class="derecha_boton">
-                    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn-secundario">Cancelar</a>
-                    <button type="submit" class="btn-primario">Guardar</button>
-                </div>
-            </form>
-        </div>
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'inventario:inventario_home' %}" class="breadcrumb-item">Inventario</a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'inventario:listar_bebida' %}" class="breadcrumb-item">Bebidas</a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="breadcrumb-item">Tipo de Bebidas</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Crear Tipo de Bebida</span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header-info">
+      <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn-volver-flecha">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">local_bar</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Crear Tipo de Bebida</h1>
+      </div>
     </div>
+  </div>
+
+  <form method="POST" class="tarjeta-formulario">
+    {% csrf_token %}
+
+    <div class="tarjeta-titulo">
+      <span class="material-symbols-outlined icono-naranja">add_circle</span>
+      <h2>Datos del Tipo de Bebida</h2>
+    </div>
+
+    <div class="grupo-campo">
+      <label>Nombre <span class="req">*</span></label>
+      <input type="text" name="nombre" class="form-control" placeholder="Ej. Bebidas sin alcohol, Cervezas, Vinos..."
+        required value="{{ request.POST.nombre }}">
+    </div>
+
+    <div class="grupo-campo" style="margin-top: 20px;">
+      <label>Descripción (opcional)</label>
+      <textarea name="descripcion" class="form-control" rows="3"
+        placeholder="Breve descripción...">{{ request.POST.descripcion }}</textarea>
+    </div>
+
+    <div class="acciones-formulario">
+      <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn-secundario">Cancelar</a>
+      <button type="submit" class="btn-primario">
+        <span class="material-symbols-outlined">save</span> Guardar Tipo
+      </button>
+    </div>
+  </form>
 </div>
 {% endblock %}

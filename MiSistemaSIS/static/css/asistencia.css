@@ -1,0 +1,322 @@
+/* =========================================
+   1. TARJETAS DE RESUMEN (ESTADÍSTICAS)
+   ========================================= */
+
+.grid-resumen-asistencia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.tarjeta-resumen {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: #FFFFFF;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.icono-resumen {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icono-resumen .material-symbols-outlined {
+  font-size: 26px;
+}
+
+/* Colores de los iconos de resumen */
+.bg-verde {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.bg-rojo {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.bg-naranja {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.bg-gris {
+  background-color: #F3F4F6;
+  color: #4B5563;
+}
+
+.info-resumen span {
+  display: block;
+  font-size: 13px;
+  color: #718096;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.info-resumen strong {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2D3748;
+  line-height: 1.2;
+}
+
+.info-resumen small {
+  font-size: 11px;
+  color: #A0AEC0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* =========================================
+   2. BARRA DE FILTROS
+   ========================================= */
+
+.filtros-asistencia {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  align-items: center;
+  background-color: #FFFFFF;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.filtros-asistencia .input-buscar {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 9px 15px;
+  background-color: #F9FAFB;
+  transition: border-color 0.3s;
+}
+
+.filtros-asistencia .input-buscar:focus-within {
+  border-color: #F5A623;
+  background-color: #FFFFFF;
+}
+
+.filtros-asistencia .input-buscar .material-symbols-outlined {
+  color: #9CA3AF;
+}
+
+.filtros-asistencia input[type="text"] {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  color: #2D3748;
+}
+
+/* Inputs de fecha y select */
+.form-control-filtro {
+  padding: 10px 15px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Oswald', sans-serif;
+  color: #4A5568;
+  background-color: #F9FAFB;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.form-control-filtro:focus {
+  border-color: #F5A623;
+  background-color: #FFFFFF;
+}
+
+/* =========================================
+   3. TABLA Y CONTENEDOR
+   ========================================= */
+
+.tabla-panel {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  /* Para que los bordes redondeados corten la tabla */
+  padding-bottom: 20px;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla thead {
+  background-color: #F9FAFB;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.tabla th {
+  padding: 15px 20px;
+  text-align: left;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  color: #718096;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.tabla td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 14px;
+  color: #4A5568;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  vertical-align: middle;
+}
+
+.tabla tbody tr:hover {
+  background-color: #F9FAFB;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sin-resultados {
+  text-align: center;
+  padding: 40px !important;
+  color: #A0AEC0;
+  font-style: italic;
+}
+
+/* =========================================
+   4. BADGES DE ESTADO (PRESENTE, AUSENTE...)
+   ========================================= */
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  text-transform: capitalize;
+}
+
+.badge-presente {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-ausente {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.badge-tardanza {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+/* =========================================
+   5. PAGINACIÓN
+   ========================================= */
+
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-top: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.paginacion-info {
+  font-size: 13px;
+  color: #718096;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.paginacion-botones {
+  display: flex;
+  gap: 5px;
+}
+
+.paginacion-btn {
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid #E5E7EB;
+  background-color: #FFFFFF;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4A5568;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.paginacion-btn:hover {
+  border-color: #F5A623;
+  color: #F5A623;
+  background-color: #FFF8E7;
+}
+
+.paginacion-btn.pagina-activa {
+  background-color: #F5A623;
+  color: #FFFFFF;
+  border-color: #F5A623;
+}
+
+.paginacion-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* =========================================
+   6. RESPONSIVO
+   ========================================= */
+
+@media (max-width: 768px) {
+  .filtros-asistencia {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtros-asistencia .input-buscar,
+  .filtros-asistencia .form-control-filtro,
+  .filtros-asistencia button,
+  .filtros-asistencia a {
+    width: 100%;
+  }
+
+  .tabla-panel {
+    overflow-x: auto;
+    /* Permite scroll horizontal en celulares */
+  }
+
+  .paginacion {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Asistencia del personal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/asistencia63- .css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">calendar_month</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Asistencia del personal</h1>
+        <p>Consultá y controlá los registros de entrada y salida.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'empleados:asistencia_crear' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Registrar asistencia
+      </a>
+    </div>
+  </div>
+
+  <!-- Tarjetas de Resumen -->
+  <div class="grid-resumen-asistencia">
+    <div class="tarjeta-resumen">
+      <div class="icono-resumen bg-verde"><span class="material-symbols-outlined">person_check</span></div>
+      <div class="info-resumen">
+        <span>Presentes</span>
+        <strong>{{ presentes }}</strong>
+        <small>Hoy, {{ hoy|date:"d/m/Y" }}</small>
+      </div>
+    </div>
+    <div class="tarjeta-resumen">
+      <div class="icono-resumen bg-rojo"><span class="material-symbols-outlined">person_remove</span></div>
+      <div class="info-resumen">
+        <span>Ausentes</span>
+        <strong>{{ ausentes }}</strong>
+        <small>Hoy, {{ hoy|date:"d/m/Y" }}</small>
+      </div>
+    </div>
+    <div class="tarjeta-resumen">
+      <div class="icono-resumen bg-naranja"><span class="material-symbols-outlined">schedule</span></div>
+      <div class="info-resumen">
+        <span>Tardanzas</span>
+        <strong>{{ tardanzas }}</strong>
+        <small>Hoy, {{ hoy|date:"d/m/Y" }}</small>
+      </div>
+    </div>
+    <div class="tarjeta-resumen">
+      <div class="icono-resumen bg-gris"><span class="material-symbols-outlined">groups</span></div>
+      <div class="info-resumen">
+        <span>Total empleados</span>
+        <strong>{{ total_empleados }}</strong>
+        <small>Activos</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <form method="GET" class="filtros-asistencia">
+    <div class="input-buscar">
+      <span class="material-symbols-outlined">search</span>
+      <input type="text" name="buscar" value="{{ buscar }}" placeholder="Buscar por nombre, apellido o DNI...">
+    </div>
+
+    <input type="date" name="fecha" value="{{ fecha_filtro }}" class="form-control-filtro">
+
+    <select name="tipo" class="form-control-filtro">
+      <option value="">Todos los estados</option>
+      {% for tipo in tipos_asistencia %}
+      <option value="{{ tipo.id_tipo_asistencia }}" {% if tipo_filtro == tipo.id_tipo_asistencia|stringformat:"s" %}selected{% endif %}>
+        {{ tipo.nombre_tipo_asis }}
+      </option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn-secundario">
+      <span class="material-symbols-outlined">filter_alt</span> Filtrar
+    </button>
+    <a href="{% url 'empleados:asistencia_listar' %}" class="btn-secundario">
+      <span class="material-symbols-outlined">refresh</span> Limpiar
+    </a>
+  </form>
+
+  <!-- Tabla -->
+  <div class="tabla-panel">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>EMPLEADO</th>
+          <th>CARGO</th>
+          <th>FECHA</th>
+          <th>ENTRADA</th>
+          <th>SALIDA</th>
+          <th>ESTADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for asistencia in asistencias %}
+        <tr>
+          <td><strong>{{ asistencia.id_empleado.nombre_empleado }} {{ asistencia.id_empleado.apellido_empleado }}</strong></td>
+          <td>{{ asistencia.id_empleado.cargo.nombre_cargo }}</td>
+          <td>{{ asistencia.fecha_asistencia|date:"d/m/Y" }}</td>
+          <td>{{ asistencia.hora_entrada|time:"H:i"|default:"-" }}</td>
+          <td>{{ asistencia.hora_salida|time:"H:i"|default:"-" }}</td>
+          <td>
+            {% with tipo=asistencia.id_tipo_asistencia.nombre_tipo_asis|lower %}
+            {% if tipo == 'presente' %}
+            <span class="badge badge-presente">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
+            {% elif tipo == 'ausente' %}
+            <span class="badge badge-ausente">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
+            {% elif tipo == 'tardanza' %}
+            <span class="badge badge-tardanza">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
+            {% else %}
+            <span class="badge" style="background-color: #E2E8F0; color: #4A5568;">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <div class="acciones-tabla">
+              <a href="{% url 'empleados:asistencia_editar' asistencia.pk %}" class="btn-icon btn-editar"
+                title="Editar">
+                <span class="material-symbols-outlined">edit</span>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="sin-resultados">No se encontraron registros de asistencia.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="paginacion">
+      <span class="paginacion-info">
+        Mostrando {{ asistencias.start_index }} a {{ asistencias.end_index }} de {{ asistencias.paginator.count }}
+        registros
+      </span>
+      <div class="paginacion-botones">
+        {% if asistencias.has_previous %}
+        <a href="?page={{ asistencias.previous_page_number }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
+          class="paginacion-btn">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </a>
+        {% endif %}
+
+        {% for num in asistencias.paginator.page_range %}
+        {% if asistencias.number == num %}
+        <a href="?page={{ num }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
+          class="paginacion-btn pagina-activa">{{ num }}</a>
+        {% elif num > asistencias.number|add:'-3' and num < asistencias.number|add:'3' %} <a
+          href="?page={{ num }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
+          class="paginacion-btn">{{ num }}</a>
+          {% endif %}
+          {% endfor %}
+
+          {% if asistencias.has_next %}
+          <a href="?page={{ asistencias.next_page_number }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
+            class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
+          {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+
+    const formFiltros = document.querySelector('.filtros-asistencia');
+    const selectTipo = document.querySelector('select[name="tipo"]');
+    const inputFecha = document.querySelector('input[name="fecha"]');
+    const inputBuscar = document.querySelector('input[name="buscar"]');
+    function aplicarFiltros() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('page', 1);
+      formFiltros.submit();
+    }
+
+    if (selectTipo) {
+      selectTipo.addEventListener('change', aplicarFiltros);
+    }
+
+    if (inputFecha) {
+      inputFecha.addEventListener('change', aplicarFiltros);
+    }
+    let timeoutId;
+    if (inputBuscar) {
+      inputBuscar.addEventListener('input', function () {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          aplicarFiltros();
+        }, 600);
+      });
+    }
+  });
+</script>
+{% endblock %}

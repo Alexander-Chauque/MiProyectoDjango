@@ -1,64 +1,74 @@
-{% extends 'base_inventario.html' %}
+{% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Inventario - Los Cardones{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/inventario.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="home-container">
-    <h1 class="titulo">Gestión de Inventario</h1>
-    <p class="subtitulo">Seleccioná qué querés gestionar</p>
+<div class="inventario-container">
+  <nav class="breadcrumb">
+      <a href="{% url 'home' %}" class="breadcrumb-item">
+          <span class="material-symbols-outlined">home</span>Inicio
+      </a>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-item active">Inventario</span>
+  </nav>
 
-    <div class="modulos-grid">
+  <div class="inventario-header">
+      <div class="header-icono">
+          <span class="material-symbols-outlined">inventory_2</span>
+      </div>
+      <div class="header-texto">
+          <h1>Gestión de Inventario</h1>
+          <p>Administra los platos, las bebidas y los ingredientes del restaurante.</p>
+      </div>
+  </div>
+
+  <div class="inventario-grid">
         
-        {# PLATOS #}
-        {% if user.empleado.cargo.nivel_acceso >= 2 %}
-            <a href="{% url 'inventario:listar_platos' %}" class="modulo-card">
-                <div class="modulo-icon">
-                    <img src="{% static 'img/home/platos.png' %}" alt="Platos" class="modulo-img">
-                </div>
-                <h3>Platos</h3>
-                <p>Gestiona los platos del menú</p>
-            </a>
-        {% endif %}
-        {# BEBIDAS #}
-        {% if user.empleado.cargo.nivel_acceso >= 2 %}
-            <a href="{% url 'inventario:listar_bebida' %}" class="modulo-card">
-                <div class="modulo-icon">
-                    <img src="{% static 'img/home/bebidas.png' %}" alt="Bebidas" class="modulo-img">
-                </div>
-                <h3>Bebidas</h3>
-                <p>Gestiona las bebidas disponibles</p>
-            </a>
-        {% endif %}
-        {# CATEGORÍAS #}
-        <!-- <a href="{% url 'inventario:listar_categorias' %}" class="modulo-card">
-            <div class="modulo-icon">
-                <img src="{% static 'img/home/categorias.png' %}" alt="Categorías" class="modulo-img">
-            </div>
-            <h3>Categorías</h3>
-            <p>Organiza los platos por categoría</p> -->
-        </a>
-        
-        {# INGREDIENTES #}
-        {% if user.empleado.cargo.nivel_acceso >= 3 %}
-            <a href="{% url 'inventario:listar_ingredientes' %}" class="modulo-card">
-                <div class="modulo-icon">
-                    <img src="{% static 'img/home/ingredientes.png' %}" alt="Ingredientes" class="modulo-img">
-                </div>
-                <h3>Ingredientes</h3>
-                <p>Gestiona los ingredientes</p>
-            </a>
-        {% endif %}    
-        
-        {# TIPOS DE BEBIDA #}
-        <!-- <a href="{% url 'inventario:listar_tipo_bebida' %}" class="modulo-card">
-            <div class="modulo-icon">
-                <img src="{% static 'img/home/tipos_bebida.png' %}" alt="Tipos de Bebida" class="modulo-img">
-            </div>
-            <h3>Tipos de Bebida</h3>
-            <p>Clasifica las bebidas</p>
-        </a> -->
-        
-    </div>
+      <!-- PLATOS -->
+      <div class="inventario-card">
+          <div class="card-imagen">
+              <img src="{% static 'img/inventario/platos.jpg' %}" alt="Platos">
+              <div class="card-icono-superpuesto">
+                  <span class="material-symbols-outlined">restaurant</span>
+              </div>
+          </div>
+          <div class="card-contenido">
+              <h3>PLATOS</h3>
+              <p>Gestiona los platos del menú del restaurante.</p>
+              <a href="{% url 'inventario:listar_platos' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+      </div>
+
+      <!-- BEBIDAS -->
+      <div class="inventario-card">
+          <div class="card-imagen">
+              <img src="{% static 'img/inventario/bebidas.jpg' %}" alt="Bebidas">
+              <div class="card-icono-superpuesto">
+                  <span class="material-symbols-outlined">local_bar</span>
+              </div>
+          </div>
+          <div class="card-contenido">
+              <h3>BEBIDAS</h3>
+              <p>Gestiona las bebidas disponibles.</p>
+              <a href="{% url 'inventario:listar_bebida' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+      </div>
+
+      <!-- INGREDIENTES -->
+      <div class="inventario-card">
+          <div class="card-imagen">
+              <img src="{% static 'img/inventario/ingredientes.jpg' %}" alt="Ingredientes">
+              <div class="card-icono-superpuesto"><span class="material-symbols-outlined">eco</span></div>
+          </div>
+          <div class="card-contenido">
+              <h3>INGREDIENTES</h3>
+              <p>Gestiona los ingredientes e insumos de cocina.</p>
+              <a href="{% url 'inventario:listar_ingredientes' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+      </div>
+  </div>
 </div>
 {% endblock %}
