@@ -32,7 +32,7 @@ urlpatterns = [
 
     path ('empleados/', include('empleados.urls')),
     path ('ventas/', include('ventas.urls')),
-
+    path ('finanzas/', include('finanzas.urls')),
     path ('login/', login_view, name='login'),
     path ('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 

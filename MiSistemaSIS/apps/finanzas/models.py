@@ -1,3 +1,153 @@
 from django.db import models
-
+from empleados.models import Empleado
+from decimal import Decimal
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from django.db.models import Sum
 # Create your models here.
+# metodo_pago
+class metodo_pago(models.Model):
+    id_metodo_pago = models.AutoField(primary_key=True)
+    nombre_metodo_pago = models.CharField(max_length=50, unique= True, null=False, blank=False)
+    descripcion_metodo_pago = models.TextField(blank=True)
+    estado_metodo_pago = models.BooleanField(default=True)
+
+    class Meta:
+        db_table='finanzas_metodopago'
+
+    def save(self, *args, **kwargs):
+        if self.nombre_metodo_pago:
+            self.nombre_metodo_pago=self.nombre_metodo_pago.title()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nombre_metodo_pago}"
+
+# categoria_gasto
+class categoria_gasto(models.Model):
+    id_categoria_gasto = models.AutoField(primary_key=True)
+    nombre_categoria_gasto = models.CharField(max_length=50, unique=True, null=False, blank=False)
+    descripcion_categoria_gasto = models.TextField(blank=True)
+    estado_categoria_gasto = models.BooleanField(default=True)
+
+    class Meta:
+        db_table='finanzas_categoriagasto'
+
+    def save(self, *args, **kwargs):
+        if self.nombre_categoria_gasto:
+            self.nombre_categoria_gasto=self.nombre_categoria_gasto.title()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nombre_categoria_gasto}"
+
+#caja
+class caja(models.Model):
+    ESTADOS = [('abierto', 'Abierto'), ('cerrado', 'Cerrado')]
+    id_caja = models.AutoField(primary_key=True)
+    fecha_apertura = models.DateTimeField(auto_now_add=True)
+    empleado_apertura = models.ForeignKey(Empleado,on_delete=models.CASCADE,
+        db_column='empleado_apertura_id',
+        related_name='caja_apertura',
+        verbose_name="cajero"
+    )
+    saldo_inicial = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    fecha_cierre = models.DateTimeField(null=True, blank=True)
+    empleado_cierre = models.ForeignKey(Empleado,on_delete=models.CASCADE,
+            db_column='empleado_cierre_id',
+            related_name='caja_cierre',
+            verbose_name="cajero",
+            null=True, blank=True
+    )
+    saldo_esperado = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    saldo_contado = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    diferencia_caja = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    observaciones_caja = models.TextField(blank=True)
+    estado_caja = models.CharField(max_length=10, choices=ESTADOS, default='abierto')
+    saldo_final = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    empleado_arqueamiento = models.ForeignKey(Empleado,on_delete=models.CASCADE,
+            db_column='empleado_arqueo_id',
+            related_name='caja_arqueo',
+            verbose_name="cajero",
+            null=True, blank=True
+    )
+    fecha_arqueo = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table='finanzas_caja'
+        ordering = ['-fecha_apertura']
+        verbose_name = 'Caja'
+        verbose_name_plural = 'Cajas'
+
+    def calcular_total_egresos(self):
+        return self.gastos.aggregate(total=Sum('monto_gasto'))['total'] or Decimal('0.00')
+    
+    def calcular_saldo_esperado(self):
+       return self.saldo_inicial - self.calcular_total_egresos()
+
+    def realizar_arqueo(self, saldo_contado, empleado_arqueamiento, observaciones_arqueo=''):
+        self.saldo_contado = Decimal(str(saldo_contado))
+        if not saldo_contado.is_finite() or saldo_contado < 0:
+            raise ValueError("El saldo contado debe ser valido y no negativo.")
+        if self.estado_caja != 'abierto':
+            raise ValueError("No se puede realizar el arqueo de una caja que no está abierta.")
+        self.saldo_esperado = self.calcular_saldo_esperado()
+        self.saldo_contado = saldo_contado
+        self.diferencia_caja = saldo_contado - self.saldo_esperado
+        self.observaciones_caja = observaciones_arqueo
+        self.empleado_arqueamiento = empleado_arqueamiento
+        self.fecha_arqueo = timezone.now()
+        self.save()
+
+    def cerrar_caja(self, empleado):
+        if self.estado_caja != 'abierto':
+            raise ValueError("La caja ya está cerrada.")
+        
+        self.fecha_cierre = timezone.now()
+        self.empleado_cierre = empleado
+        self.saldo_final = self.calcular_saldo_esperado()
+        self.estado_caja = 'cerrado'
+        self.save()
+    def __str__(self):
+        return f"Caja #{self.id_caja} - {self.estado_caja}"
+
+#GASTOS
+
+class gasto(models.Model):
+    id_gasto = models.AutoField(primary_key=True)
+    caja_gasto = models.ForeignKey(caja, on_delete=models.PROTECT, related_name='gastos')
+    cat_gasto = models.ForeignKey(categoria_gasto, on_delete=models.PROTECT, related_name='gastos')
+    descripcion_gasto = models.TextField(blank=True)
+    monto_gasto = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    fecha_hora_gasto = models.DateTimeField(auto_now_add=True)
+    empleado_gasto = models.ForeignKey(Empleado,on_delete=models.PROTECT,
+        db_column='empleado_id',
+        related_name='gastos',
+        verbose_name="cajero"
+    )
+    #metodo_pago_gasto = models.ForeignKey(metodo_pago, on_delete=models.SET_NULL, null=True, blank=True, related_name='gastos')
+
+    class Meta:
+        db_table='finanzas_gasto'
+        ordering = ['-fecha_hora_gasto']
+        verbose_name = 'Gasto'
+        verbose_name_plural = 'Gastos'
+
+    def clean(self):
+        super().clean()
+
+        if self.monto_gasto is not None and self.monto_gasto <= 0:
+            raise ValidationError(
+                'El monto del gasto debe ser mayor que cero.'
+            )
+        if (
+            self.caja_gasto_id
+            and self.caja_gasto.estado_caja != 'abierto'
+        ):
+            raise ValidationError(
+                'No se pueden registrar gastos en una caja cerrada.'
+            )
+        
+    def __str__(self):
+        return f"Gasto #{self.id_gasto} - {self.cat_gasto.nombre_categoria_gasto} - {self.monto_gasto}"

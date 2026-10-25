@@ -134,14 +134,14 @@
             </a>
         {% endif %}
         
-        <!-- VENTAS -->
+        <!-- FINANZAS -->
         {% if user.empleado.cargo.nivel_acceso >= 4 %}
-            <a href="#" class="modulo-card">
+            <a href="{% url 'finanzas:finanzas_home' %}" class="modulo-card">
                 <div class="modulo-icon">
                     <span class="material-symbols-outlined">point_of_sale</span>
                 </div>
-                <h3>Ventas</h3>
-                <p>Registro de ventas y caja</p>
+                <h3>Finanzas</h3>
+                <p>Gestion de finanzas</p>
                 <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
             </a>
         {% endif %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="finanzas-container">
+  <nav class="breadcrumb">
+      <a href="{% url 'home' %}" class="breadcrumb-item">
+          <span class="material-symbols-outlined">home</span>Inicio
+      </a>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-item active">Finanzas</span>
+  </nav>
+
+  <div class="finanzas-header">
+      <div class="header-icono">
+          <span class="material-symbols-outlined">inventory_2</span>
+      </div>
+      <div class="header-texto">
+          <h1>Gestión de Finanzas</h1>
+          <p>Administra las finanzas del restaurante.</p>
+      </div>
+  </div>
+
+  <div class="finanzas-grid">
+        
+      <!-- CAJA -->
+      <div class="finanzas-card">
+          <div class="card-imagen">
+              <img src="{% static 'img/inventario/platos.jpg' %}" alt="Caja">
+              <div class="card-icono-superpuesto">
+                  <span class="material-symbols-outlined">restaurant</span>
+              </div>
+          </div>
+          <div class="card-contenido">
+              <h3>CAJA</h3>
+              <p>Gestiona las operaciones de caja del restaurante.</p>
+              <a href="{% url 'finanzas:listar_caja' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+      </div>
+
+      <!-- GASTOS -->
+      <div class="finanzas-card">
+          <div class="card-imagen">
+              <img src="{% static 'img/inventario/bebidas.jpg' %}" alt="Gastos">
+              <div class="card-icono-superpuesto">
+                  <span class="material-symbols-outlined">local_bar</span>
+              </div>
+          </div>
+          <div class="card-contenido">
+              <h3>GASTOS</h3>
+              <p>Gestiona los gastos del restaurante.</p>
+              <a href="{% url 'finanzas:listar_gastos' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+      </div>
+
+      <!-- VENTAS -->
+      <div class="finanzas-card">
+          <div class="card-imagen">
+              <img src="{% static 'img/inventario/ingredientes.jpg' %}" alt="Ventas">
+              <div class="card-icono-superpuesto"><span class="material-symbols-outlined">shopping_cart</span></div>
+          </div>
+          <div class="card-contenido">
+              <h3>VENTAS</h3>
+              <p>Gestiona las ventas del restaurante.</p>
+              <a href="{% url 'finanzas:listar_ventas' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}

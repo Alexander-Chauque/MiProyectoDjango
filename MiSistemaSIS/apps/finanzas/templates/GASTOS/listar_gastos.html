@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Gastos {% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+  
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item"> Finanzas</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Gastos</span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">restaurant</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Gastos</h1>
+        <p>Administra los gastos de la empresa.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'finanzas:listar_cat_gasto' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">category</span> Categorías de gastos
+      </a>
+      <a href="{% url 'finanzas:crear_gasto' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Nuevo gasto
+      </a>
+    </div>
+  </div>
+
+  <div class="listado-layout">
+    <aside class="filtros-panel">
+      <form method="get">
+        <div class="filtros-header">
+          <span class="material-symbols-outlined">filter_alt</span>
+          <h3>Filtros</h3>
+        </div>
+        
+        <!-- Buscador -->
+        <div class="filtro-grupo">
+          <label>Buscar</label>
+          <div class="input-buscar">
+            <span class="material-symbols-outlined">search</span>
+            <input name="buscar" type="text" value="{{buscar}}" placeholder="Caja">
+          </div>
+        </div>
+        
+        <!-- Categoría -->
+        <div class="filtro-grupo">
+          <label>Categoría</label>
+          <div class="checkboxes">
+            <label class="checkbox-item">
+              <input type="checkbox" id="cat-todas" onchange="toggleCategorias(this)">
+              <span>Todas</span>
+            </label>
+            {% for categoria in categorias %}
+            <label class="checkbox-item">
+              <input type="checkbox"  name='categoria' value="{{ categoria_gasto.id_categoria_gasto }}" class="checkbox-categoria" {% if categoria_gasto.id_categoria_gasto|stringformat:"s" in categorias_seleccionadas %}checked{% endif %}>
+              <span>{{ categoria_gasto.nombre_categoria_gasto }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        
+        </div>
+        
+        <!-- Manterner por_pagina -->
+        <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+        
+        <!-- Botones -->
+        <button type="submit" class="btn-aplicar">
+          <span class="material-symbols-outlined">filter_alt</span>Aplicar filtros
+        </button>
+        <a href="{% url 'finanzas:listar_gastos' %}" class="btn-limpiar">
+          <span class="material-symbols-outlined">refresh</span>Limpiar filtros
+        </a>
+      </form>
+    </aside>
+
+    <!-- TABLA -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>NRO CAJA</th>
+            <th>FECHA_HORA</th>
+            <th>CATEGORÍA</th>
+            <th>MONTO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for gasto in gastos %}
+          <tr>
+            <td><strong>{{ gasto.caja_gasto }}</strong></td>
+            <td>{{ gasto.fecha_hora_gasto }}</td>
+            <td>
+              <span class="badge-categoria">
+                {{ gasto.categoria.nombre_categoria_gasto }}
+              </span>
+            </td>
+            <td>
+              ${{ gasto.monto_gasto|floatformat:0 }}
+            </td>
+            <td>
+              <div class="acciones-tabla">
+                <a href="{% url 'finanzas:detalle_gasto' gasto.pk %}" class="btn-icon btn-detalle" title="Ver detalle">
+                  <span class="material-symbols-outlined">visibility</span>
+                </a>
+                <a href="{% url 'finanzas:editar_gasto' gasto.pk %}" class="btn-icon btn-editar" title="Modificar">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <a href="{% url 'finanzas:eliminar_gasto' gasto.pk %}" class="btn-icon btn-clave" title="Eliminar">
+                  <span class="material-symbols-outlined">delete</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="sin-rsulatdos">
+              No hay gastos registrados
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info"> Mostrando {{ gastos.start_index}} a {{ gastos.end_index }} de {{gastos.paginator.count }} gastos</span>
+        <div class="paginacion-botones">
+          <!-- Botón anterior -->
+          {% if gastos.has_previous %}
+            <a href="?page={{ gastos.previous_page_number }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+              <span class="material-symbols-outlined"> chevron_left</span>
+            </a>
+            <!-- <button disabled>
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button> -->
+          {% endif %}
+
+          <!-- Número de página -->
+          {% for num in gastos.paginator.page_range %}
+            {% if gastos.number == num %}
+              <a href="?page={{ num }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
+            {% elif num > gastos.number|add:'-3' and num < gastos.number|add:'3' %}
+              <a href="?page={{ num }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+            {%endif %}
+          {% endfor %}
+
+          <!-- Boton Siguiente -->
+          {% if gastos.has_next %}
+            <a href="?page={{ gastos.next_page_number }}{% for c in categorias_seleccionadas %}&categoria={{ c }}{% endfor %}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            <!-- <button disabled>
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button> -->
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-estado" style="display: none;">
+  <div class="modal-contenido">
+    <!--Icono de alerta + título + botón cerrar -->
+    <div class="modal-header">
+      <div class="modal-icono-alerta">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h3>¿Cambiar estado del gasto?</h3>
+      <button class="btn-cerrar-modal" id="btn-cerrar-modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!--Texto y caja de advertencia -->
+    <div class="modal-body">
+      <p>Estás seguro de que querés cambiar el estado de <strong id="nombre-gasto-modal"></strong> a <strong
+          id="nuevo-estado-modal"></strong>?</p>
+
+      <div class="modal-alerta-info">
+        <span class="material-symbols-outlined">info</span>
+        <p id="texto-alerta-modal"></p>
+      </div>
+    </div>
+
+    <!--Botones cancelar y confirmar-->
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
+      <button type="button" class="btn-primario" id="btn-confirmar-modal">
+        <span class="material-symbols-outlined">toggle_on</span> Confirmar cambio
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cambiarPorPagina(valor) {
+      //obtener url actual
+      const url = new URL(window.location.href);
+      //cambiar el parametro 'por_pagina'
+      url.searchParams.set('por_pagina', valor);
+      // restear a al pagina 1(porque cambia la cantidad de registros)
+      url.searchParams.set('page', 1);
+      //redigir
+      window.location.href = url.toString();
+    }
+
+  // cuando se marca/desmarca todas las categoria
+  function toggleCategorias(checkbox){
+    const checkboxes = document.querySelectorAll('.checkbox-categoria');
+    checkboxes.forEach(cb => {
+      cb.checked = false;
+    });
+  }
+
+  // cuando se marca/desmarca todas los estados
+  function toggleEstados(checkbox){
+    const checkboxes = document.querySelectorAll('.checkbox-estado');
+    checkboxes.forEach(cb => {
+      cb.checked = false;
+    });
+  }
+
+  // si se marca un checbox individual, desmarchar todos
+  document.querySelectorAll('.checkbox-categoria').forEach(cb => {
+    cb.addEventListener('change', function(){
+      if (this.checked) {
+        document.getElementById('cat-todas').checked = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('.checkbox-estado').forEach(cb =>{
+    cb.addEventListener('change', function(){
+      if (this.checked){
+        document.getElementById('est-todos').checked = false;
+      }
+    });
+  });
+
+  function abrirModalDesdeBoton(elemento) {
+    const url = elemento.getAttribute('data-url');
+    const nombre = elemento.getAttribute('data-nombre');
+    const estaActivo = elemento.getAttribute('data-estado') === 'true';
+    window.abrirModalEstado(url, nombre, estaActivo);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modal-estado');
+    const btnCancelar = document.getElementById('btn-cancelar-modal');
+    const btnConfirmar = document.getElementById('btn-confirmar-modal');
+    const btnCerrar = document.getElementById('btn-cerrar-modal');
+
+    const nombreGastoModal = document.getElementById('nombre-gasto-modal');
+    const nuevoEstadoModal = document.getElementById('nuevo-estado-modal');
+    const textoAlertaModal = document.getElementById('texto-alerta-modal');
+
+    let urlPendiente = '';
+
+    window.abrirModalEstado = function (url, nombre, estaActivo) {
+      urlPendiente = url;
+      nombreGastoModal.textContent = `"${nombre}"`;
+
+      if (estaActivo) {
+        nuevoEstadoModal.textContent = "No disponible";
+        nuevoEstadoModal.style.color = "#F5A623";
+        textoAlertaModal.textContent = "El gasto dejará de estar disponible para nuevas comandas, pero se conservará su información para el historial.";
+      } else {
+        nuevoEstadoModal.textContent = "Disponible";
+        nuevoEstadoModal.style.color = "#27AE60";
+        textoAlertaModal.textContent = "El gasto volverá a estar disponible para nuevas comandas.";
+      }
+
+      modal.style.display = 'flex';
+    };
+
+    function cerrarModal() {
+      modal.style.display = 'none';
+      urlPendiente = '';
+    }
+
+    btnCancelar.addEventListener('click', cerrarModal);
+    btnCerrar.addEventListener('click', cerrarModal);
+
+    btnConfirmar.addEventListener('click', function () {
+      if (urlPendiente) {
+        window.location.href = urlPendiente;
+      }
+    });
+  });
+</script>
+{% endblock %}
