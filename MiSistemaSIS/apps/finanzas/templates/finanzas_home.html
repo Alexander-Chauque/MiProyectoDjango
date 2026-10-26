@@ -38,7 +38,7 @@
           <div class="card-contenido">
               <h3>CAJA</h3>
               <p>Gestiona las operaciones de caja del restaurante.</p>
-              <a href="{% url 'finanzas:listar_caja' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+              <a href="{% url 'finanzas:listar_cajas' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
           </div>
       </div>
 
@@ -54,19 +54,6 @@
               <h3>GASTOS</h3>
               <p>Gestiona los gastos del restaurante.</p>
               <a href="{% url 'finanzas:listar_gastos' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
-          </div>
-      </div>
-
-      <!-- VENTAS -->
-      <div class="finanzas-card">
-          <div class="card-imagen">
-              <img src="{% static 'img/inventario/ingredientes.jpg' %}" alt="Ventas">
-              <div class="card-icono-superpuesto"><span class="material-symbols-outlined">shopping_cart</span></div>
-          </div>
-          <div class="card-contenido">
-              <h3>VENTAS</h3>
-              <p>Gestiona las ventas del restaurante.</p>
-              <a href="{% url 'finanzas:listar_ventas' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
           </div>
       </div>
   </div>

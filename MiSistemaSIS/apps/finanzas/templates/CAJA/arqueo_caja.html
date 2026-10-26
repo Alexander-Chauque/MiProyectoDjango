@@ -1,0 +1,293 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Arqueo de Caja{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0"
+      rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+
+    <!-- MIGAS DE PAN -->
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}">
+            <span class="material-symbols-outlined">home</span>
+            Inicio
+        </a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <a href="{% url 'finanzas:finanzas_home' %}">Finanzas</a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <a href="{% url 'finanzas:listar_cajas' %}">Cajas</a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <a href="{% url 'finanzas:detalle_caja' caja.pk %}">
+            Caja #{{ caja.pk }}
+        </a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Arqueo</span>
+    </nav>
+
+    <!-- ENCABEZADO -->
+    <header class="page-header">
+        <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+           class="btn-volver-flecha"
+           title="Volver al detalle">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+
+        <div class="page-header-icono">
+            <span class="material-symbols-outlined">fact_check</span>
+        </div>
+
+        <div class="page-header-texto">
+            <h1>Arqueo de caja #{{ caja.pk }}</h1>
+            <p>Registrá el dinero contado y verificá las diferencias de caja.</p>
+        </div>
+    </header>
+
+    <!-- MENSAJES -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alerta-info {{ message.tags }}">
+                <span class="material-symbols-outlined">info</span>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- VALIDACIÓN DEL ESTADO -->
+    {% if caja.estado_caja != 'abierto' %}
+        <section class="tarjeta-comanda">
+            <div class="cuerpo-tarjeta">
+                <div class="alerta-info">
+                    <span class="material-symbols-outlined">lock</span>
+                    Esta caja está cerrada y no se puede realizar un nuevo arqueo.
+                </div>
+
+                <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+                   class="btn-secundario">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Volver al detalle
+                </a>
+            </div>
+        </section>
+
+    {% else %}
+
+        <form method="POST"
+              action="{% url 'finanzas:arqueo_caja' caja.pk %}">
+            {% csrf_token %}
+
+            <div class="layout-comanda">
+
+                <!-- COLUMNA IZQUIERDA -->
+                <div class="columna-izquierda">
+
+                    <!-- RESPONSABLE -->
+                    <section class="tarjeta-comanda">
+                        <div class="titulo-tarjeta">
+                            <span class="material-symbols-outlined">person</span>
+                            <h2>Responsable del arqueo</h2>
+                        </div>
+
+                        <div class="cuerpo-tarjeta">
+
+                            <div class="mozo-info">
+                                <div class="avatar-mozo">
+                                    <span class="material-symbols-outlined">
+                                        account_circle
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <div class="nombre-mozo">
+                                        {{ empleado.nombre_empleado }}
+                                        {{ empleado.apellido_empleado }}
+                                    </div>
+
+                                    <span class="rol-mozo-badge">
+                                        {{ cargo_nombre|default:"Sin cargo asignado" }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grupo-campo">
+                                <label>Fecha de arqueo</label>
+                                <input type="text"
+                                       class="form-control"
+                                       value="{{ fecha_actual|date:'d/m/Y H:i' }}"
+                                       readonly>
+                            </div>
+
+                            <div class="alerta-info">
+                                <span class="material-symbols-outlined">info</span>
+                                El responsable se obtiene del usuario autenticado.
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- DATOS DE LA CAJA -->
+                    <section class="tarjeta-comanda">
+                        <div class="titulo-tarjeta">
+                            <span class="material-symbols-outlined">point_of_sale</span>
+                            <h2>Datos de la caja</h2>
+                        </div>
+
+                        <div class="cuerpo-tarjeta">
+
+                            <div class="grupo-campo">
+                                <label>Número de caja</label>
+                                <input type="text"
+                                       class="form-control"
+                                       value="#{{ caja.pk }}"
+                                       readonly>
+                            </div>
+
+                            <div class="grupo-campo">
+                                <label>Fecha de apertura</label>
+                                <input type="text"
+                                       class="form-control"
+                                       value="{{ caja.fecha_apertura|date:'d/m/Y H:i' }}"
+                                       readonly>
+                            </div>
+
+                            <div class="grupo-campo">
+                                <label>Responsable de apertura</label>
+                                <input type="text"
+                                       class="form-control"
+                                       value="{{ caja.empleado_apertura.nombre_empleado }} {{ caja.empleado_apertura.apellido_empleado }}"
+                                       readonly>
+                            </div>
+
+                            <div class="grupo-campo">
+                                <label>Saldo inicial</label>
+                                <input type="text"
+                                       class="form-control"
+                                       value="$ {{ caja.saldo_inicial|floatformat:2 }}"
+                                       readonly>
+                            </div>
+
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- COLUMNA DERECHA -->
+                <div class="columna-derecha">
+
+                    <!-- RESUMEN -->
+                    <section class="tarjeta-comanda">
+                        <div class="titulo-tarjeta">
+                            <span class="material-symbols-outlined">account_balance_wallet</span>
+                            <h2>Resumen de caja</h2>
+                        </div>
+
+                        <div class="cuerpo-tarjeta">
+
+                            <div class="grupo-campo">
+                                <label>Saldo inicial</label>
+                                <input type="text"
+                                       class="form-control"
+                                       value="$ {{ caja.saldo_inicial|floatformat:2 }}"
+                                       readonly>
+                            </div>
+
+                            <div class="grupo-campo">
+                                <label>Saldo esperado actual</label>
+                                <input type="text"
+                                       class="form-control"
+                                       value="$ {{ saldo_esperado|floatformat:2 }}"
+                                       readonly>
+                            </div>
+
+                            <div class="alerta-info">
+                                <span class="material-symbols-outlined">calculate</span>
+                                El saldo esperado se calcula con el saldo inicial menos los gastos registrados en esta caja.
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- FORMULARIO DE ARQUEO -->
+                    <section class="tarjeta-comanda">
+                        <div class="titulo-tarjeta">
+                            <span class="material-symbols-outlined">payments</span>
+                            <h2>Registrar conteo</h2>
+                        </div>
+
+                        <div class="cuerpo-tarjeta">
+
+                            <div class="grupo-campo">
+                                <label for="saldo_contado">
+                                    Saldo contado ($) <span>*</span>
+                                </label>
+
+                                <div class="select-con-icono">
+                                    <span class="material-symbols-outlined">
+                                        attach_money
+                                    </span>
+
+                                    <input type="number"
+                                           id="saldo_contado"
+                                           name="saldo_contado"
+                                           class="form-control"
+                                           min="0"
+                                           step="0.01"
+                                           value="{{ saldo_contado|default:'' }}"
+                                           placeholder="0.00"
+                                           required>
+                                </div>
+
+                                <small>Ingresá el total de dinero físico contado en la caja.</small>
+                            </div>
+
+                            <div class="grupo-campo">
+                                <label for="observaciones_arqueo">
+                                    Observaciones
+                                </label>
+
+                                <textarea
+                                    id="observaciones_arqueo"
+                                    name="observaciones_arqueo"
+                                    class="form-control-textarea"
+                                    rows="4"
+                                    placeholder="Detallá diferencias, faltantes o sobrantes...">{{ observaciones_arqueo|default:'' }}</textarea>
+                            </div>
+
+                            <div class="alerta-info">
+                                <span class="material-symbols-outlined">warning</span>
+                                Revisá el importe antes de confirmar. El arqueo registrará el saldo contado y la diferencia calculada.
+                            </div>
+
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="botones-carrito">
+                <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+                   class="btn-secundario">
+                    <span class="material-symbols-outlined">close</span>
+                    Cancelar
+                </a>
+
+                <button type="submit" class="btn-primario">
+                    <span class="material-symbols-outlined">fact_check</span>
+                    Confirmar arqueo
+                </button>
+            </div>
+
+        </form>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listar Caja{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">›</span>
+    <span class="breadcrumb-item active">Cajas</span>
+  </nav>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">receipt_long</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Cajas</h1>
+        <p>Gestiona las cajas registradas.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'ventas:comanda_consultar' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">search</span> Consultar
+      </a>
+      <a href="{% url 'finanzas:abrir_caja' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Abrir Caja
+      </a>
+    </div>
+  </div>
+
+  <div class="listado-layout">
+
+    <!-- Filtros -->
+    <form method="GET" class="filtros-panel">
+      <div class="filtros-header">
+        <span class="material-symbols-outlined">filter_alt</span>
+        <h3>Filtros</h3>
+      </div>
+
+      <!-- Buscador -->
+      <div class="filtro-grupo">
+        <label>Buscar</label>
+        <div class="input-buscar">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" name="buscar" value="{{ buscar }}" placeholder="Buscar por numero de caja o empleado">
+        </div>
+      </div>
+
+      <!-- Estado -->
+      <div class="filtro-grupo">
+        <label>Estado de la caja</label>
+        <div class="checkboxes">
+          <label class="checkbox-item">
+            <input type="checkbox" id="est-todos" onchange="toggleEstados(this)" {% if not estados_seleccionados %}checked{% endif %}>
+            <span>Todos</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="abierto" class="checkbox-estado" {% if 'abierto' in estados_seleccionados %}checked{% endif %}>
+            <span>Abierto</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="estado" value="cerrado" class="checkbox-estado" {% if 'cerrado' in estados_seleccionados %}checked{% endif %}>
+            <span>Cerrado</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Fecha -->
+      <div class="filtro-grupo">
+        <label>Rango de fecha</label>
+        <div class="filtro-fecha">
+          <div class="input-buscar-fecha">
+            <label>Desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}">
+          </div>
+          <div class="input-buscar-fecha">
+            <label>Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}">
+          </div>
+        </div>
+      </div>
+
+      <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+      <button type="submit" class="btn-aplicar">
+        <span class="material-symbols-outlined">filter_alt</span> Aplicar filtros
+      </button>
+      <a href="{% url 'finanzas:listar_cajas' %}" class="btn-limpiar">
+        <span class="material-symbols-outlined">refresh</span> Limpiar filtros
+      </a>
+    </form>
+
+    <!-- Tabla -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>FECHA DE APERTURA</th>
+            <th>EMPLEADO RESPONSABLE</th>
+            <th>SALDO INICIAL</th>
+            <th>SALDO ESPERADO</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for caja in cajas %}
+          <tr>
+            <td><strong>{{ caja.id_caja }}</strong></td>
+            <td>{{ caja.fecha_apertura|date:"d/m/Y H:i" }}</td>
+            <td>{{ caja.empleado_apertura.get_full_name }}</td>
+            <td>${{ caja.saldo_inicial|floatformat:0 }}</td>
+            <td>${{ caja.calcular_saldo_esperado|floatformat:0 }}</td>
+            <td>
+              {% if caja.estado_caja == 'abierto' %}
+              <span class="badge badge-abierta">Abierta</span>
+              {% else %}
+              <span class="badge badge-cerrada">Cerrada</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="acciones-tabla">
+                <a href="{% url 'finanzas:detalle_caja' caja.id_caja %}" class="btn-icon btn-detalle"
+                  title="Ver detalle">
+                  <span class="material-symbols-outlined">visibility</span>
+                </a>
+                {% if caja.estado_caja == 'abierto' %}
+                <form method="POST"
+                      action="{% url 'finanzas:cerrar_caja' caja.id_caja %}"
+                      style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn-icon btn-cerrar"
+                            title="Cerrar caja">
+                        <span class="material-symbols-outlined">lock</span>
+                    </button>
+                </form>
+                {% endif %}
+               
+                <a href="{% url 'finanzas:arqueo_caja' caja.id_caja %}"
+                    class="btn-accion"
+                   title="Arqueo de caja">
+                    <span class="material-symbols-outlined">
+                        account_balance_wallet
+                    </span>
+                </a>
+
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="sin-resultados">No hay cajas registradas</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info">
+          Mostrando {{ cajas.start_index }} a {{ cajas.end_index }} de {{ cajas.paginator.count }} cajas
+        </span>
+        <div class="paginacion-botones">
+          {% if cajas.has_previous %}
+          <a href="?page={{ cajas.previous_page_number }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+            class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </a>
+          {% endif %}
+
+          {% for num in cajas.paginator.page_range %}
+          {% if cajas.number == num %}
+          <a href="?page={{ num }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+            class="paginacion-btn pagina-activa">{{ num }}</a>
+          {% elif num > cajas.number|add:'-3' and num < cajas.number|add:'3' %} <a
+            href="?page={{ num }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+            class="paginacion-btn">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+
+            {% if cajas.has_next %}
+            <a href="?page={{ cajas.next_page_number }}{% for e in estados_seleccionados %}&estado={{ e }}{% endfor %}{% for m in mesas_seleccionadas %}&mesa={{ m }}{% endfor %}&buscar={{ buscar }}&por_pagina={{ por_pagina }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}"
+              class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Cambiar paginación
+  function cambiarPorPagina(valor) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('por_pagina', valor);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+  }
+
+  // Filtros Checkbox
+  function toggleEstados(checkbox) {
+    document.querySelectorAll('.checkbox-estado').forEach(cb => cb.checked = false);
+  }
+
+  function toggleMesas(checkbox) {
+    document.querySelectorAll('.checkbox-mesa').forEach(cb => cb.checked = false);
+  }
+
+  document.querySelectorAll('.checkbox-estado').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) document.getElementById('est-todos').checked = false;
+    });
+  });
+
+  document.querySelectorAll('.checkbox-mesa').forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) document.getElementById('mesa-todas').checked = false;
+    });
+  });
+
+  // Menú desplegable de Estados
+  function toggleDropdownEstado(event, boton) {
+    event.stopPropagation();
+    const menu = boton.nextElementSibling;
+
+    // Cerrar otros menús abiertos
+    document.querySelectorAll('.dropdown-menu-estado').forEach(m => {
+      if (m !== menu) m.classList.remove('mostrar');
+    });
+
+    // Abrir/Cerrar el actual
+    menu.classList.toggle('mostrar');
+  }
+
+  // Cerrar menú al hacer clic afuera
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.dropdown-estado')) {
+      document.querySelectorAll('.dropdown-menu-estado').forEach(m => {
+        m.classList.remove('mostrar');
+      });
+    }
+  });
+</script>
+{% endblock %}

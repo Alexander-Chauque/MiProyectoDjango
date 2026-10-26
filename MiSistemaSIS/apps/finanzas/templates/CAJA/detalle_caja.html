@@ -1,0 +1,327 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Caja{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0"
+      rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+
+    <!-- MIGAS DE PAN -->
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}">
+            <span class="material-symbols-outlined">home</span>
+            Inicio
+        </a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <a href="{% url 'finanzas:finanzas_home' %}">Finanzas</a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <a href="{% url 'finanzas:listar_cajas' %}">Cajas</a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Detalle de caja #{{ caja.pk }}</span>
+    </nav>
+
+    <!-- ENCABEZADO -->
+    <header class="page-header">
+        <a href="{% url 'finanzas:listar_cajas' %}"
+           class="btn-volver-flecha"
+           title="Volver al listado">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+
+        <div class="page-header-icono">
+            <span class="material-symbols-outlined">point_of_sale</span>
+        </div>
+
+        <div class="page-header-texto">
+            <h1>Detalle de caja #{{ caja.pk }}</h1>
+            <p>Consulta la información y los movimientos de la caja.</p>
+        </div>
+    </header>
+
+    <!-- ESTADO -->
+    <section class="tarjeta-comanda">
+        <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined">info</span>
+            <h2>Estado de la caja</h2>
+        </div>
+
+        <div class="cuerpo-tarjeta">
+            {% if caja.estado_caja == 'abierto' %}
+                <span class="rol-mozo-badge">
+                    <span class="material-symbols-outlined">lock_open</span>
+                    Caja abierta
+                </span>
+            {% else %}
+                <span class="rol-mozo-badge">
+                    <span class="material-symbols-outlined">lock</span>
+                    Caja cerrada
+                </span>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- INFORMACIÓN GENERAL -->
+    <div class="layout-comanda">
+
+        <div class="columna-izquierda">
+
+            <!-- APERTURA -->
+            <section class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">login</span>
+                    <h2>Información de apertura</h2>
+                </div>
+
+                <div class="cuerpo-tarjeta">
+
+                    <div class="grupo-campo">
+                        <label>Número de caja</label>
+                        <input type="text"
+                               class="form-control"
+                               value="#{{ caja.pk }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Fecha y hora de apertura</label>
+                        <input type="text"
+                               class="form-control"
+                               value="{{ caja.fecha_apertura|date:'d/m/Y H:i' }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Responsable de apertura</label>
+                        <input type="text"
+                               class="form-control"
+                               value="{{ caja.empleado_apertura.nombre_empleado }} {{ caja.empleado_apertura.apellido_empleado }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Saldo inicial</label>
+                        <input type="text"
+                               class="form-control"
+                               value="$ {{ caja.saldo_inicial|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- CIERRE -->
+            <section class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">logout</span>
+                    <h2>Información de cierre</h2>
+                </div>
+
+                <div class="cuerpo-tarjeta">
+
+                    <div class="grupo-campo">
+                        <label>Fecha y hora de cierre</label>
+                        <input type="text"
+                               class="form-control"
+                               value="{% if caja.fecha_cierre %}{{ caja.fecha_cierre|date:'d/m/Y H:i' }}{% else %}Pendiente{% endif %}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Responsable de cierre</label>
+                        <input type="text"
+                               class="form-control"
+                               value="{% if caja.empleado_cierre %}{{ caja.empleado_cierre.nombre_empleado }} {{ caja.empleado_cierre.apellido_empleado }}{% else %}Pendiente{% endif %}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Saldo final</label>
+                        <input type="text"
+                               class="form-control"
+                               value="$ {{ caja.saldo_final|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <div class="columna-derecha">
+
+            <!-- SALDOS -->
+            <section class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">payments</span>
+                    <h2>Resumen de saldos</h2>
+                </div>
+
+                <div class="cuerpo-tarjeta">
+
+                    <div class="grupo-campo">
+                        <label>Saldo inicial</label>
+                        <input type="text"
+                               class="form-control"
+                               value="$ {{ caja.saldo_inicial|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Saldo esperado</label>
+                        <input type="text"
+                               class="form-control"
+                               value="$ {{ caja.saldo_esperado|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Saldo contado</label>
+                        <input type="text"
+                               class="form-control"
+                               value="$ {{ caja.saldo_contado|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Diferencia de caja</label>
+                        <input type="text"
+                               class="form-control"
+                               value="$ {{ caja.diferencia_caja|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Saldo final registrado</label>
+                        <input type="text"
+                               class="form-control"
+                               value="$ {{ caja.saldo_final|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ARQUEO -->
+            <section class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">fact_check</span>
+                    <h2>Información del arqueo</h2>
+                </div>
+
+                <div class="cuerpo-tarjeta">
+
+                    <div class="grupo-campo">
+                        <label>Fecha y hora del arqueo</label>
+                        <input type="text"
+                               class="form-control"
+                               value="{% if caja.fecha_arqueo %}{{ caja.fecha_arqueo|date:'d/m/Y H:i' }}{% else %}Sin arqueo registrado{% endif %}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Responsable del arqueo</label>
+                        <input type="text"
+                               class="form-control"
+                               value="{% if caja.empleado_arqueamiento %}{{ caja.empleado_arqueamiento.nombre_empleado }} {{ caja.empleado_arqueamiento.apellido_empleado }}{% else %}Pendiente{% endif %}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Observaciones</label>
+                        <textarea class="form-control-textarea"
+                                  rows="4"
+                                  readonly>{{ caja.observaciones_caja|default:"Sin observaciones" }}</textarea>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- GASTOS ASOCIADOS -->
+    <section class="tarjeta-comanda">
+        <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <h2>Gastos asociados</h2>
+        </div>
+
+        <div class="cuerpo-tarjeta">
+
+            {% if gastos %}
+                <div class="tabla-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Fecha</th>
+                                <th>Responsable</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for gasto in gastos %}
+                                <tr>
+                                    <td>{{ gasto.descripcion_gasto }}</td>
+                                    <td>{{ gasto.cat_gasto.nombre_categoria_gasto }}</td>
+                                    <td>{{ gasto.fecha_hora_gasto|date:'d/m/Y H:i' }}</td>
+                                    <td>
+                                        {{ gasto.empleado_gasto.nombre_empleado }}
+                                        {{ gasto.empleado_gasto.apellido_empleado }}
+                                    </td>
+                                    <td>$ {{ gasto.monto_gasto|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alerta-info">
+                    <span class="material-symbols-outlined">info</span>
+                    No hay gastos asociados a esta caja.
+                </div>
+            {% endif %}
+
+        </div>
+    </section>
+
+    <!-- ACCIONES -->
+    <div class="botones-carrito">
+
+        <a href="{% url 'finanzas:listar_cajas' %}"
+           class="btn-secundario">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Volver al listado
+        </a>
+
+        {% if caja.estado_caja == 'abierto' %}
+
+            <a href="{% url 'finanzas:arqueo_caja' caja.pk %}"
+               class="btn-secundario">
+                <span class="material-symbols-outlined">fact_check</span>
+                Realizar arqueo
+            </a>
+
+            <a href="{% url 'finanzas:cerrar_caja' caja.pk %}"
+               class="btn-primario">
+                <span class="material-symbols-outlined">lock</span>
+                Cerrar caja
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

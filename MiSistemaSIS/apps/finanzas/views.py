@@ -88,7 +88,6 @@ def crear_cat_gasto(request):
 @login_required
 @permiso_requerido('caja', 'modificar')
 def editar_cat_gasto(request, pk):
-   def editar_cat_gasto(request, pk):
     categoria = get_object_or_404(categoria_gasto, pk=pk)
 
     # Impedir la modificación si ya fue utilizada
@@ -338,7 +337,7 @@ def listar_cajas(request):
     paginator = Paginator(cajas, por_pagina)
     cajas = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'finanzas/listar_cajas.html', {
+    return render(request, 'CAJA/listar_cajas.html', {
         'cajas': cajas,
         'buscar': buscar,
         'estado_seleccionado': estado,
@@ -355,7 +354,19 @@ def abrir_caja(request):
         except Exception:
             messages.error(request, 'No tienes un empleado asociado.')
             return redirect('finanzas:listar_cajas')
+        # Comprobar si ya existe una caja abierta
+        caja_abierta = caja.objects.filter(
+            estado_caja='abierto'
+        ).first()
 
+        if caja_abierta:
+            messages.error(
+                request,
+                f'No se puede abrir otra caja. '
+                f'La caja N.º {caja_abierta.id_caja} '
+                f'ya se encuentra abierta.'
+            )
+            return redirect('finanzas:listar_cajas')
         saldo_inicial_texto = request.POST.get(
             'saldo_inicial', ''
         ).strip()
@@ -375,7 +386,7 @@ def abrir_caja(request):
                 request,
                 'El saldo inicial debe ser un número válido y no negativo.'
             )
-            return render(request, 'finanzas/abrir_caja.html')
+            return render(request, 'CAJA/abrir_caja.html')
 
         caja.objects.create(
             empleado_apertura=empleado,
@@ -387,7 +398,7 @@ def abrir_caja(request):
         messages.success(request, 'La caja se abrió correctamente.')
         return redirect('finanzas:listar_cajas')
 
-    return render(request, 'finanzas/abrir_caja.html')
+    return render(request, 'CAJA/abrir_caja.html')
 
 @login_required
 @permiso_requerido('caja', 'leer')
@@ -409,7 +420,7 @@ def detalle_caja(request, pk):
     total_egresos = caja_actual.calcular_total_egresos()
     saldo_esperado = caja_actual.calcular_saldo_esperado()
 
-    return render(request, 'finanzas/detalle_caja.html', {
+    return render(request, 'CAJA/detalle_caja.html', {
         'caja': caja_actual,
         'gastos': gastos,
         'total_egresos': total_egresos,
@@ -425,13 +436,13 @@ def arqueo_caja(request, pk):
     caja_actual = get_object_or_404(caja, pk=pk)
     if caja_actual.estado_caja != 'abierto':
         messages.error(request,'No se puede realizar el arqueo de una caja cerrada.')
-        return redirect('finanzas:detalle_caja', pk=pk)
+        return redirect('finanzas:listar_cajas')
     if request.method == 'POST':
         try:
             empleado = request.user.empleado
         except Exception:
             messages.error(request, 'No tienes un empleado asociado.')
-            return redirect('finanzas:detalle_caja', pk=pk)
+            return redirect('finanzas:listar_cajas')
         saldo_texto = request.POST.get('saldo_contado', '').strip()
         observaciones = request.POST.get(
             'observaciones_caja', ''
@@ -445,7 +456,7 @@ def arqueo_caja(request, pk):
                 request,
                 'El saldo contado debe ser un número válido y no negativo.'
             )
-            return render(request, 'finanzas/arqueo_caja.html', {
+            return render(request, 'CAJA/arqueo_caja.html', {
                 'caja': caja_actual,
             })
         try:
@@ -459,7 +470,7 @@ def arqueo_caja(request, pk):
         except ValueError as error:
             messages.error(request, str(error))
         return redirect('finanzas:detalle_caja', pk=pk)
-    return render(request, 'finanzas/arqueo_caja.html', {
+    return render(request, 'CAJA/arqueo_caja.html', {
         'caja': caja_actual,
         'saldo_esperado': caja_actual.calcular_saldo_esperado(),
     })
@@ -497,7 +508,7 @@ def listar_gastos(request):
             Q(descripcion_gasto__icontains=buscar)
             | Q(cat_gasto__nombre_categoria_gasto__icontains=buscar)
         )
-    if caja_id.isdigit():
+    if caja_id.isdigit():   
         gastos = gastos.filter(caja_gasto_id=int(caja_id))
 
     por_pagina = request.GET.get('por_pagina', 10)

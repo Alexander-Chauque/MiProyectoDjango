@@ -820,3 +820,57 @@
     gap: 10px;
   }
 }
+
+/* Prefijo del Precio */
+.input-con-prefijo {
+  display: flex;
+  align-items: center;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #F9FAFB;
+  transition: border-color 0.3s;
+}
+
+.input-con-prefijo:focus-within {
+  border-color: var(--color-naranja);
+  background-color: var(--color-blanco);
+}
+
+.input-con-prefijo span {
+  padding: 12px 15px;
+  background-color: var(--color-gris-claro);
+  color: var(--color-gris-medio);
+  font-weight: bold;
+  border-right: 1px solid #E5E7EB;
+}
+
+.input-con-prefijo input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 12px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.input-con-prefijo input:focus {
+  outline: none;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--color-negro);
+  transition: border-color 0.3s;
+  background-color: #F9FAFB;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--color-naranja);
+  background-color: var(--color-blanco);
+}

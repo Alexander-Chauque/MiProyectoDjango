@@ -1,0 +1,215 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cerrar caja{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/caja.css' %}">
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+
+    <!-- Migas de pan -->
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}">
+            <span class="material-symbols-outlined">home</span>
+            Inicio
+        </a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <a href="{% url 'finanzas:finanzas_home' %}">Finanzas</a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <a href="{% url 'finanzas:listar_cajas' %}">Cajas</a>
+        <span class="material-symbols-outlined">chevron_right</span>
+        <span>Cerrar caja</span>
+    </nav>
+
+    <!-- Encabezado -->
+    <header class="page-header">
+        <div class="page-header-info">
+            <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+               class="btn-volver-flecha"
+               title="Volver al detalle">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+
+            <div class="page-header-icono">
+                <span class="material-symbols-outlined">lock</span>
+            </div>
+
+            <div class="page-header-texto">
+                <h1>Cerrar caja #{{ caja.pk }}</h1>
+                <p>Revisá los saldos antes de confirmar el cierre.</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alerta-info">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="layout-comanda">
+
+        <!-- Información de caja -->
+        <div class="columna-izquierda">
+            <section class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">point_of_sale</span>
+                    <h2>Información de la caja</h2>
+                </div>
+
+                <div class="cuerpo-tarjeta">
+                    <div class="grupo-campo">
+                        <label>Número de caja</label>
+                        <input type="text" class="form-control"
+                               value="#{{ caja.pk }}" readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Fecha de apertura</label>
+                        <input type="text" class="form-control"
+                               value="{{ caja.fecha_apertura|date:'d/m/Y H:i' }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Empleado que abrió la caja</label>
+                        <input type="text" class="form-control"
+                               value="{{ caja.empleado_apertura.nombre_empleado }} {{ caja.empleado_apertura.apellido_empleado }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Estado actual</label>
+                        <input type="text" class="form-control"
+                               value="{{ caja.get_estado_caja_display }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Empleado responsable del cierre</label>
+                        <input type="text" class="form-control"
+                               value="{{ empleado.nombre_empleado }} {{ empleado.apellido_empleado }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Cargo</label>
+                        <input type="text" class="form-control"
+                               value="{{ cargo_nombre }}"
+                               readonly>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Resumen y confirmación -->
+        <div class="columna-derecha">
+            <section class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                    <h2>Resumen de saldos</h2>
+                </div>
+
+                <div class="cuerpo-tarjeta">
+                    <div class="grupo-campo">
+                        <label>Saldo inicial</label>
+                        <input type="text" class="form-control"
+                               value="$ {{ caja.saldo_inicial|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Saldo esperado</label>
+                        <input type="text" class="form-control"
+                               value="$ {{ saldo_esperado|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Saldo contado</label>
+                        <input type="text" class="form-control"
+                               value="$ {{ caja.saldo_contado|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Diferencia de caja</label>
+                        <input type="text" class="form-control"
+                               value="$ {{ caja.diferencia_caja|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    {% if caja.fecha_arqueo %}
+                        <div class="grupo-campo">
+                            <label>Fecha del último arqueo</label>
+                            <input type="text" class="form-control"
+                                   value="{{ caja.fecha_arqueo|date:'d/m/Y H:i' }}"
+                                   readonly>
+                        </div>
+                    {% else %}
+                        <div class="alerta-info">
+                            Todavía no se registró un arqueo para esta caja.
+                            Verificá el efectivo antes de continuar.
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">warning</span>
+                    <h2>Confirmar cierre</h2>
+                </div>
+
+                <div class="cuerpo-tarjeta">
+                    <p>
+                        Al confirmar, la caja quedará cerrada.
+                        Verificá que los importes sean correctos antes
+                        de continuar.
+                    </p>
+
+                    {% if caja.estado_caja == 'abierto' %}
+                        <form method="post"
+                              action="{% url 'finanzas:cerrar_caja' caja.pk %}">
+                            {% csrf_token %}
+
+                            <div class="botones-carrito">
+                                <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+                                   class="btn-secundario">
+                                    Cancelar
+                                </a>
+
+                                <button type="submit" class="btn-primario">
+                                    <span class="material-symbols-outlined">
+                                        lock
+                                    </span>
+                                    Confirmar cierre
+                                </button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="alerta-info">
+                            Esta caja ya está cerrada y no puede cerrarse
+                            nuevamente.
+                        </div>
+
+                        <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+                           class="btn-secundario">
+                            Volver al detalle
+                        </a>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
