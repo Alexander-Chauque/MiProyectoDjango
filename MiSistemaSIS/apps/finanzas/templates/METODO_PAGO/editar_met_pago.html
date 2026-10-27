@@ -1,3 +1,4 @@
+```django
 {% extends 'base.html' %}
 {% load static %}
 
@@ -14,57 +15,111 @@
 
   <nav class="breadcrumb">
     <a href="{% url 'home' %}" class="breadcrumb-item">
-      <span class="material-symbols-outlined">home</span>Inicio
+      <span class="material-symbols-outlined">home</span>
+      Inicio
     </a>
-    <span class="breadcrumb-separator">></span>
-    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item"> Finanzas</a>
-    <span class="breadcrumb-separator">></span>
-    <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">Gastos</a>
-    <span class="breadcrumb-separator">></span>
-    <a href="{% url 'finanzas:listar_met_pago' %}" class="breadcrumb-item">Métodos de Pago</a>
-    <span class="breadcrumb-separator">></span>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+      Finanzas
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <a href="{% url 'finanzas:listar_met_pago' %}" class="breadcrumb-item">
+      Métodos de Pago
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
     <span class="breadcrumb-item active">Editar Método de Pago</span>
   </nav>
+
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'finanzas:listar_met_pago' %}" class="btn-volver-flecha">
+
+      <a href="{% url 'finanzas:listar_met_pago' %}"
+         class="btn-volver-flecha"
+         title="Volver al listado">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
+
       <div class="page-header-icono">
-        <span class="material-symbols-outlined">edit</span>
+        <span class="material-symbols-outlined">payments</span>
       </div>
+
       <div class="page-header-texto">
-        <h1>Editar Método de Pago: {{ met_pago.nombre }}</h1>
+        <h1>Editar Método de Pago: {{ metodo.nombre_metodo_pago }}</h1>
+        <p>Modifica los datos del método de pago seleccionado.</p>
       </div>
+
     </div>
   </div>
+
+  {% if messages %}
+    <div class="mensajes">
+      {% for message in messages %}
+        <div class="mensaje {{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
   <form method="POST" class="tarjeta-formulario">
     {% csrf_token %}
 
     <div class="tarjeta-titulo">
-      <span class="material-symbols-outlined icono-naranja">category</span>
+      <span class="material-symbols-outlined icono-naranja">
+        edit
+      </span>
       <h2>Datos del Método de Pago</h2>
     </div>
 
     <div class="grupo-campo">
-      <label>Nombre del Método de Pago <span class="req">*</span></label>
-      <input type="text" name="nombre" class="form-control" placeholder="Ej. Efectivo,transferencias, etc" required
-        value="{{ met_pago.nombre }}">
+      <label for="nombre">
+        Nombre del Método de Pago <span class="req">*</span>
+      </label>
+
+      <input
+        type="text"
+        id="nombre"
+        name="nombre"
+        class="form-control"
+        placeholder="Ej. Efectivo, Transferencia, Tarjeta"
+        maxlength="50"
+        value="{{ metodo.nombre_metodo_pago }}"
+        required
+        autofocus>
     </div>
 
     <div class="grupo-campo" style="margin-top: 20px;">
-      <label>Descripción (opcional)</label>
-      <textarea name="descripcion" class="form-control" rows="3"
-        placeholder="Breve descripción del método de pago...">{{ met_pago.descripcion }}</textarea>
+      <label for="descripcion">Descripción (opcional)</label>
+
+      <textarea
+        id="descripcion"
+        name="descripcion"
+        class="form-control"
+        rows="3"
+        placeholder="Breve descripción del método de pago...">{{ metodo.descripcion_metodo_pago }}</textarea>
     </div>
 
     <div class="acciones-formulario">
-      <a href="{% url 'finanzas:listar_met_pago' %}" class="btn-secundario">Cancelar</a>
+
+      <a href="{% url 'finanzas:listar_met_pago' %}"
+         class="btn-secundario">
+        Cancelar
+      </a>
+
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Cambios
+        <span class="material-symbols-outlined">save</span>
+        Guardar Cambios
       </button>
+
     </div>
+
   </form>
 </div>
 {% endblock %}
+```

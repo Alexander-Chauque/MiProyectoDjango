@@ -1,0 +1,135 @@
+```django
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Categoría de Gasto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Navegación -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>
+      Inicio
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+      Finanzas
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">
+      Gastos
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">
+      Categorías de gastos
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <span class="breadcrumb-item active">Crear categoría</span>
+  </nav>
+
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div class="page-header-info">
+
+      <a href="{% url 'finanzas:listar_cat_gasto' %}"
+         class="btn-volver-flecha"
+         title="Volver al listado">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">category</span>
+      </div>
+
+      <div class="page-header-texto">
+        <h1>Crear Categoría de Gasto</h1>
+        <p>Registra una nueva categoría para organizar los gastos.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  {% if messages %}
+    <div class="mensajes">
+      {% for message in messages %}
+        <div class="mensaje {{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Formulario -->
+  <form method="POST" class="tarjeta-formulario">
+    {% csrf_token %}
+
+    <div class="tarjeta-titulo">
+      <span class="material-symbols-outlined icono-naranja">
+        add_circle
+      </span>
+      <h2>Datos de la Categoría</h2>
+    </div>
+
+    <div class="grupo-campo">
+      <label for="nombre">
+        Nombre de la categoría <span class="req">*</span>
+      </label>
+
+      <input
+        type="text"
+        id="nombre"
+        name="nombre"
+        class="form-control"
+        placeholder="Ej. Servicios, Limpieza, Mantenimiento"
+        maxlength="50"
+        required
+        autofocus
+        value="{{ request.POST.nombre|default:'' }}">
+    </div>
+
+    <div class="grupo-campo" style="margin-top: 20px;">
+      <label for="descripcion">Descripción (opcional)</label>
+
+      <textarea
+        id="descripcion"
+        name="descripcion"
+        class="form-control"
+        rows="3"
+        placeholder="Breve descripción de la categoría...">{{ request.POST.descripcion|default:'' }}</textarea>
+    </div>
+
+    <div class="acciones-formulario">
+
+      <a href="{% url 'finanzas:listar_cat_gasto' %}"
+         class="btn-secundario">
+        Cancelar
+      </a>
+
+      <button type="submit" class="btn-primario">
+        <span class="material-symbols-outlined">save</span>
+        Guardar Categoría
+      </button>
+
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+```

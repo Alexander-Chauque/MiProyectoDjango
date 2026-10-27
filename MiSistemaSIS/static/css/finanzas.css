@@ -210,3 +210,166 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Contenedor de páginas de finanzas */
+.contenedor {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+/* Encabezado del formulario */
+.page-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.page-header-icono {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #FFF8E7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #F5A623;
+}
+
+.page-header-icono .material-symbols-outlined {
+    font-size: 32px;
+}
+
+.page-header-texto h1 {
+    font-family: 'Oswald', sans-serif;
+    color: #333;
+    margin: 0 0 5px;
+}
+
+.page-header-texto p {
+    color: #6B7280;
+    margin: 0;
+}
+
+/* Tarjetas */
+.tarjeta-formulario {
+    background: #FFFFFF;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.tarjeta-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tarjeta-titulo h2 {
+    font-family: 'Oswald', sans-serif;
+    color: #333;
+    margin: 0;
+}
+
+.icono-naranja {
+    color: #F5A623;
+}
+
+/* Campos */
+.grid-formulario {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.grupo-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.grupo-campo label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #F5A623;
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+.req {
+    color: #DC2626;
+}
+
+/* Acciones */
+.acciones-formulario {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.btn-primario,
+.btn-secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+}
+
+.btn-primario {
+    background: #F5A623;
+    color: #FFFFFF;
+}
+
+.btn-primario:hover {
+    background: #E0951A;
+}
+
+.btn-secundario {
+    background: #F3F4F6;
+    color: #374151;
+}
+
+.btn-primario:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .grid-formulario {
+        grid-template-columns: 1fr;
+    }
+
+    .acciones-formulario {
+        flex-direction: column;
+    }
+}

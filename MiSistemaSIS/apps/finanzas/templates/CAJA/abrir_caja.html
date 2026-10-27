@@ -14,20 +14,29 @@
 
 {% block content %}
 <div class="contenedor-comanda">
-    <nav class="breadcrumb" >
+
+    <!-- NAVEGACIÓN -->
+    <nav class="breadcrumb">
         <a href="{% url 'home' %}" class="breadcrumb-item">
             <span class="material-symbols-outlined">home</span>
             Inicio
         </a>
         <span class="material-symbols-outlined">chevron_right</span>
         <span class="breadcrumb-separator">></span>
-        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">Finanzas</a>
+
+        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+            Finanzas
+        </a>
         <span class="material-symbols-outlined">chevron_right</span>
         <span class="breadcrumb-separator">></span>
-        <a href="{% url 'finanzas:listar_cajas' %}" class="breadcrumb-item">Cajas</a>
+
+        <a href="{% url 'finanzas:listar_cajas' %}" class="breadcrumb-item">
+            Cajas
+        </a>
         <span class="material-symbols-outlined">chevron_right</span>
         <span>Abrir caja</span>
     </nav>
+
     <!-- ENCABEZADO -->
     <header class="page-header">
         <a href="{% url 'finanzas:listar_cajas' %}"
@@ -35,14 +44,17 @@
            title="Volver al listado">
             <span class="material-symbols-outlined">arrow_back</span>
         </a>
+
         <div class="page-header-icono">
             <span class="material-symbols-outlined">point_of_sale</span>
         </div>
+
         <div class="page-header-texto">
             <h1>Abrir caja</h1>
             <p>Registra una nueva apertura de caja y su saldo inicial.</p>
         </div>
     </header>
+
     <!-- MENSAJES -->
     {% if messages %}
         {% for message in messages %}
@@ -52,58 +64,70 @@
             </div>
         {% endfor %}
     {% endif %}
-    {% if form.errors %}
-        <div class="alerta-info error">
-            <span class="material-symbols-outlined">error</span>
-            Revisá los datos ingresados e intentá nuevamente.
-            {{ form.errors }}
-        </div>
-    {% endif %}
+
     <!-- FORMULARIO -->
     <form method="POST" action="{% url 'finanzas:abrir_caja' %}">
         {% csrf_token %}
+
         <div class="layout-comanda">
+
             <!-- COLUMNA IZQUIERDA -->
             <div class="columna-izquierda">
-                <!-- RESPONSABLE -->
                 <section class="tarjeta-comanda">
+
                     <div class="titulo-tarjeta">
                         <span class="material-symbols-outlined">person</span>
                         <h2>Responsable de apertura</h2>
                     </div>
+
                     <div class="cuerpo-tarjeta">
                         <div class="grupo-campo">
-                        <label>Cajero</label>
-                        <div class="mozo-info">
-                        <div class="avatar-mozo">
-                            <span class="material-symbols-outlined">person</span>
-                        </div>
-                        <div>
-                            <span class="nombre-mozo">{{ request.user.empleado.get_full_name|default:request.user.username}}</span>
-                            <span class="rol-mozo-badge">{{ request.user.empleado.cargo.nombre_cargo|default:"Mozo" }}</span>
-                        </div>
+                            <label>Cajero</label>
+
+                            <div class="mozo-info">
+                                <div class="avatar-mozo">
+                                    <span class="material-symbols-outlined">person</span>
+                                </div>
+
+                                <div>
+                                    <span class="nombre-mozo">
+                                        {{ request.user.empleado.get_full_name|default:request.user.username }}
+                                    </span>
+
+                                    <span class="rol-mozo-badge">
+                                        {{ request.user.empleado.cargo.nombre_cargo|default:"Cajero" }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                 </section>
             </div>
+
             <!-- COLUMNA DERECHA -->
             <div class="columna-derecha">
-                <!-- DATOS DE APERTURA -->
                 <section class="tarjeta-comanda">
+
                     <div class="titulo-tarjeta">
                         <span class="material-symbols-outlined">payments</span>
                         <h2>Datos de apertura</h2>
                     </div>
+
                     <div class="cuerpo-tarjeta">
+
+                        <!-- SALDO INICIAL -->
                         <div class="filtro-grupo">
                             <label for="saldo_inicial">
                                 Saldo inicial ($)
                                 <span>*</span>
                             </label>
+
                             <div class="input-con-prefijo">
                                 <span class="material-symbols-outlined">
                                     attach_money
                                 </span>
+
                                 <input
                                     type="number"
                                     id="saldo_inicial"
@@ -115,38 +139,57 @@
                                     placeholder="0.00"
                                     required>
                             </div>
-                            <small>Ingresá el dinero disponible al iniciar la caja.</small>
+
+                            <small>
+                                Ingresá el dinero disponible al iniciar la caja.
+                            </small>
                         </div>
+
+                        <!-- OBSERVACIONES DE APERTURA -->
                         <div class="grupo-campo">
-                            <label for="observaciones_caja">
-                                Observaciones
+                            <label for="observaciones_apertura">
+                                Observaciones de apertura
                             </label>
+
                             <textarea
-                                id="observaciones_caja"
-                                name="observaciones_caja"
+                                id="observaciones_apertura"
+                                name="observaciones_apertura"
                                 class="form-control-textarea"
                                 rows="4"
-                                placeholder="Observaciones sobre la apertura...">{{ observaciones_caja|default:'' }}</textarea>
+                                maxlength="1000"
+                                placeholder="Ingresá observaciones sobre el estado inicial de la caja...">{{ observaciones_apertura|default:'' }}</textarea>
+
+                            <small>
+                                Máximo 1000 caracteres.
+                            </small>
                         </div>
+
+                        <!-- INFORMACIÓN -->
                         <div class="alerta-info">
                             <span class="material-symbols-outlined">schedule</span>
                             La fecha y hora de apertura se registrarán automáticamente.
                         </div>
+
                     </div>
                 </section>
             </div>
+
         </div>
+
         <!-- BOTONES -->
         <div class="botones-carrito">
+
             <a href="{% url 'finanzas:listar_cajas' %}"
                class="btn-secundario">
                 <span class="material-symbols-outlined">close</span>
                 Cancelar
             </a>
+
             <button type="submit" class="btn-primario">
                 <span class="material-symbols-outlined">lock_open</span>
                 Confirmar apertura
             </button>
+
         </div>
     </form>
 </div>

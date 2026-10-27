@@ -1,0 +1,161 @@
+```django
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Categoría{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Mensajes de Django -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mensaje {{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Navegación -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>
+      Inicio
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+      Finanzas
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">
+      Gastos
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">
+      Categorías
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <span class="breadcrumb-item active">Detalle</span>
+  </nav>
+
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div class="page-header-info">
+
+      <a href="{% url 'finanzas:listar_cat_gasto' %}"
+         class="btn-volver-flecha">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">category</span>
+      </div>
+
+      <div class="page-header-texto">
+        <h1>Detalle de la Categoría</h1>
+        <p>Información general de la categoría de gastos.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Información de la categoría -->
+  <div class="tarjeta-formulario">
+
+    <div class="tarjeta-titulo">
+      <span class="material-symbols-outlined icono-naranja">info</span>
+      <h2>Datos de la Categoría</h2>
+    </div>
+
+    <div class="grupo-campo">
+      <label>Nombre de la categoría</label>
+      <p>{{ categoria.nombre_categoria_gasto }}</p>
+    </div>
+
+    <div class="grupo-campo">
+      <label>Descripción</label>
+      <p>
+        {% if categoria.descripcion_categoria_gasto %}
+          {{ categoria.descripcion_categoria_gasto }}
+        {% else %}
+          Sin descripción
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="grupo-campo">
+      <label>Estado</label>
+      <p>
+        {% if categoria.estado_categoria_gasto %}
+          <span class="estado-activo">Activa</span>
+        {% else %}
+          <span class="estado-inactivo">Inactiva</span>
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="acciones-formulario">
+      <a href="{% url 'finanzas:listar_cat_gasto' %}"
+         class="btn-secundario">
+        Volver
+      </a>
+
+      <a href="{% url 'finanzas:editar_cat_gasto' categoria.pk %}"
+         class="btn-primario">
+        <span class="material-symbols-outlined">edit</span>
+        Editar Categoría
+      </a>
+    </div>
+
+  </div>
+
+  {% if gastos %}
+    <div class="tarjeta-formulario" style="margin-top: 20px;">
+
+      <div class="tarjeta-titulo">
+        <span class="material-symbols-outlined icono-naranja">receipt_long</span>
+        <h2>Gastos asociados</h2>
+      </div>
+
+      <div class="tabla-contenedor">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Descripción</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for gasto in gastos %}
+              <tr>
+                <td>{{ gasto.fecha_hora_gasto|date:"d/m/Y H:i" }}</td>
+                <td>{{ gasto.descripcion_gasto|default:"Sin descripción" }}</td>
+                <td>{{ gasto.monto_gasto }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+```

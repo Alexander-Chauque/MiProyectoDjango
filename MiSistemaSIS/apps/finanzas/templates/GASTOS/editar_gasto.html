@@ -1,0 +1,236 @@
+```html
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Gasto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+    <!-- Navegación -->
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}" class="breadcrumb-item">
+            <span class="material-symbols-outlined">home</span>
+            Inicio
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+            Finanzas
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">
+            Gastos
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <span class="breadcrumb-item active">Editar gasto</span>
+    </nav>
+
+    <!-- Encabezado -->
+    <div class="page-header">
+        <div class="page-header-info">
+
+            <a href="{% url 'finanzas:listar_gastos' %}"
+               class="btn-volver-flecha"
+               title="Volver a gastos">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+
+            <div class="page-header-icono">
+                <span class="material-symbols-outlined">edit_note</span>
+            </div>
+
+            <div class="page-header-texto">
+                <h1>Editar gasto #{{ gasto_actual.pk }}</h1>
+                <p>Modifica los datos del gasto registrado.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        <div class="mensajes">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Formulario -->
+    <form method="POST"
+          class="formulario-crear-plato"
+          id="form-gasto">
+
+        {% csrf_token %}
+
+        <div class="tarjeta-formulario">
+
+            <div class="tarjeta-titulo">
+                <span class="material-symbols-outlined icono-naranja">
+                    payments
+                </span>
+                <h2>Datos del gasto</h2>
+            </div>
+
+            <div class="grid-formulario">
+
+                <!-- Categoría -->
+                <div class="grupo-campo">
+                    <label for="cat_gasto">
+                        Categoría <span class="req">*</span>
+                    </label>
+
+                    <select name="cat_gasto"
+                            id="cat_gasto"
+                            class="form-control"
+                            required>
+
+                        <option value="">Seleccionar categoría</option>
+
+                        {% for categoria in categorias %}
+                            <option value="{{ categoria.pk }}"
+                                {% if request.method == 'POST' %}
+                                    {% if request.POST.cat_gasto == categoria.pk|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                {% elif gasto.cat_gasto_id == categoria.pk %}
+                                    selected
+                                {% endif %}>
+                                {{ categoria.nombre_categoria_gasto }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </div>
+
+                <!-- Caja asociada -->
+                <div class="grupo-campo">
+                    <label for="caja_gasto">Caja *</label>
+
+                    <select
+                        name="caja_gasto"
+                        id="caja_gasto"
+                        class="form-control"
+                        required
+                    >
+                        {% for caja_item in cajas %}
+                            <option
+                                value="{{ caja_item.pk }}"
+                                {% if gasto.caja_gasto_id == caja_item.pk %}selected{% endif %}
+                            >
+                                Caja #{{ caja_item.pk }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Monto -->
+                <div class="grupo-campo">
+                    <label for="monto_gasto">
+                        Monto <span class="req">*</span>
+                    </label>
+
+                    <div class="input-con-prefijo">
+                        <span>$</span>
+
+                        <input
+                            type="number"
+                            name="monto_gasto"
+                            id="monto_gasto"
+                            class="form-control"
+                            step="0.01"
+                            min="0.01"
+                            value="{% if request.method == 'POST' %}{{ request.POST.monto_gasto }}{% else %}{{ gasto.monto_gasto }}{% endif %}"
+                            required
+                        >
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Descripción -->
+            <div class="grupo-campo">
+                <label for="descripcion_gasto">
+                    Descripción <span class="req">*</span>
+                </label>
+
+                <textarea
+                    name="descripcion_gasto"
+                    id="descripcion_gasto"
+                    class="form-control"
+                    rows="4"
+                    maxlength="1000"
+                    required
+                >{% if request.method == 'POST' %}{{ request.POST.descripcion_gasto }}{% else %}{{ gasto.descripcion_gasto }}{% endif %}</textarea>
+
+                <small id="contador-desc" class="contador-caracteres">
+                    0/1000
+                </small>
+            </div>
+
+        </div>
+
+        <!-- Información adicional -->
+        <div class="tarjeta-formulario">
+            <div class="tarjeta-titulo">
+                <span class="material-symbols-outlined icono-naranja">
+                    info
+                </span>
+                <h2>Información</h2>
+            </div>
+
+            <p>
+                La caja asociada no puede cambiarse desde este formulario.
+                La fecha y hora originales del gasto se conservan.
+            </p>
+        </div>
+
+        <!-- Acciones -->
+        <div class="acciones-formulario">
+
+            <a href="{% url 'finanzas:listar_gastos' %}"
+               class="btn-secundario">
+                Cancelar
+            </a>
+
+            <button type="submit" class="btn-primario">
+                <span class="material-symbols-outlined">save</span>
+                Guardar cambios
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const descripcion = document.getElementById('descripcion_gasto');
+    const contador = document.getElementById('contador-desc');
+
+    if (descripcion && contador) {
+        function actualizarContador() {
+            contador.textContent = `${descripcion.value.length}/1000`;
+        }
+
+        actualizarContador();
+        descripcion.addEventListener('input', actualizarContador);
+    }
+});
+</script>
+{% endblock %}
+```

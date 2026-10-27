@@ -1,4 +1,4 @@
-
+```html
 {% extends 'base.html' %}
 {% load static %}
 
@@ -13,7 +13,6 @@
 {% block content %}
 <div class="contenedor-comanda">
 
-    <!-- Migas de pan -->
     <nav class="breadcrumb">
         <a href="{% url 'home' %}">
             <span class="material-symbols-outlined">home</span>
@@ -27,7 +26,6 @@
         <span>Cerrar caja</span>
     </nav>
 
-    <!-- Encabezado -->
     <header class="page-header">
         <div class="page-header-info">
             <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
@@ -47,10 +45,9 @@
         </div>
     </header>
 
-    <!-- Mensajes -->
     {% if messages %}
         {% for message in messages %}
-            <div class="alerta-info">
+            <div class="mensaje {{ message.tags }}">
                 {{ message }}
             </div>
         {% endfor %}
@@ -58,7 +55,6 @@
 
     <div class="layout-comanda">
 
-        <!-- Información de caja -->
         <div class="columna-izquierda">
             <section class="tarjeta-comanda">
                 <div class="titulo-tarjeta">
@@ -104,15 +100,15 @@
                     <div class="grupo-campo">
                         <label>Cargo</label>
                         <input type="text" class="form-control"
-                               value="{{ cargo_nombre }}"
+                               value="{{ cargo_nombre|default:'Sin cargo asignado' }}"
                                readonly>
                     </div>
                 </div>
             </section>
         </div>
 
-        <!-- Resumen y confirmación -->
         <div class="columna-derecha">
+
             <section class="tarjeta-comanda">
                 <div class="titulo-tarjeta">
                     <span class="material-symbols-outlined">account_balance_wallet</span>
@@ -124,6 +120,13 @@
                         <label>Saldo inicial</label>
                         <input type="text" class="form-control"
                                value="$ {{ caja.saldo_inicial|floatformat:2 }}"
+                               readonly>
+                    </div>
+
+                    <div class="grupo-campo">
+                        <label>Total de egresos</label>
+                        <input type="text" class="form-control"
+                               value="$ {{ total_egresos|floatformat:2 }}"
                                readonly>
                     </div>
 
@@ -158,7 +161,7 @@
                     {% else %}
                         <div class="alerta-info">
                             Todavía no se registró un arqueo para esta caja.
-                            Verificá el efectivo antes de continuar.
+                            Debés realizarlo antes de cerrar la caja.
                         </div>
                     {% endif %}
                 </div>
@@ -178,24 +181,50 @@
                     </p>
 
                     {% if caja.estado_caja == 'abierto' %}
-                        <form method="post"
-                              action="{% url 'finanzas:cerrar_caja' caja.pk %}">
-                            {% csrf_token %}
 
-                            <div class="botones-carrito">
-                                <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
-                                   class="btn-secundario">
-                                    Cancelar
-                                </a>
+                        {% if caja.fecha_arqueo %}
+                            <form method="post"
+                                  action="{% url 'finanzas:cerrar_caja' caja.pk %}">
+                                {% csrf_token %}
 
-                                <button type="submit" class="btn-primario">
-                                    <span class="material-symbols-outlined">
-                                        lock
-                                    </span>
-                                    Confirmar cierre
-                                </button>
+                                <div class="grupo-campo">
+                                    <label for="observaciones_cierre">
+                                        Observaciones del cierre
+                                    </label>
+                                    <textarea
+                                        id="observaciones_cierre"
+                                        name="observaciones_cierre"
+                                        class="form-control-textarea"
+                                        rows="4"
+                                        maxlength="1000"
+                                        placeholder="Ingresá observaciones adicionales sobre el cierre...">{{ observaciones_cierre|default:'' }}</textarea>
+                                </div>
+
+                                <div class="botones-carrito">
+                                    <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+                                       class="btn-secundario">
+                                        Cancelar
+                                    </a>
+
+                                    <button type="submit" class="btn-primario">
+                                        <span class="material-symbols-outlined">lock</span>
+                                        Confirmar cierre
+                                    </button>
+                                </div>
+                            </form>
+                        {% else %}
+                            <div class="alerta-info">
+                                Para cerrar esta caja, primero debés realizar
+                                el arqueo.
                             </div>
-                        </form>
+
+                            <a href="{% url 'finanzas:arqueo_caja' caja.pk %}"
+                               class="btn-primario">
+                                <span class="material-symbols-outlined">calculate</span>
+                                Realizar arqueo
+                            </a>
+                        {% endif %}
+
                     {% else %}
                         <div class="alerta-info">
                             Esta caja ya está cerrada y no puede cerrarse
@@ -209,7 +238,9 @@
                     {% endif %}
                 </div>
             </section>
+
         </div>
     </div>
 </div>
 {% endblock %}
+```

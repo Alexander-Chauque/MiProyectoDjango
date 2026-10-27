@@ -1,0 +1,130 @@
+```django
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Categoría{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Mensajes de Django -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mensaje {{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Navegación -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>
+      Inicio
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+      Finanzas
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">
+      Gastos
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">
+      Categorías
+    </a>
+
+    <span class="breadcrumb-separator">></span>
+
+    <span class="breadcrumb-item active">Eliminar Categoría</span>
+  </nav>
+
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div class="page-header-info">
+
+      <a href="{% url 'finanzas:listar_cat_gasto' %}"
+         class="btn-volver-flecha">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">delete</span>
+      </div>
+
+      <div class="page-header-texto">
+        <h1>Eliminar Categoría</h1>
+        <p>Confirmación de eliminación de una categoría de gastos.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Confirmación -->
+  <div class="tarjeta-formulario">
+
+    <div class="tarjeta-titulo">
+      <span class="material-symbols-outlined icono-naranja">warning</span>
+      <h2>Confirmar eliminación</h2>
+    </div>
+
+    <p>
+      ¿Está seguro de que desea eliminar la categoría
+      <strong>{{ categoria.nombre_categoria_gasto }}</strong>?
+    </p>
+
+    <p>
+      {% if categoria.descripcion_categoria_gasto %}
+        {{ categoria.descripcion_categoria_gasto }}
+      {% else %}
+        Sin descripción.
+      {% endif %}
+    </p>
+
+    <p>
+      <strong>Estado:</strong>
+      {% if categoria.estado_categoria_gasto %}
+        <span class="estado-activo">Activa</span>
+      {% else %}
+        <span class="estado-inactivo">Inactiva</span>
+      {% endif %}
+    </p>
+
+    <p>
+      Esta acción no se puede deshacer. No podrás eliminar la categoría
+      si existen gastos asociados a ella.
+    </p>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="acciones-formulario">
+        <a href="{% url 'finanzas:listar_cat_gasto' %}"
+           class="btn-secundario">
+          Cancelar
+        </a>
+
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">delete</span>
+          Confirmar eliminación
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+```

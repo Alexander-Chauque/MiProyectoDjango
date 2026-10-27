@@ -1,0 +1,133 @@
+```django
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Método de Pago{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Navegación -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span>
+      Inicio
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+      Finanzas
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <a href="{% url 'finanzas:listar_met_pago' %}" class="breadcrumb-item">
+      Métodos de Pago
+    </a>
+
+    <span class="breadcrumb-separator">&gt;</span>
+
+    <span class="breadcrumb-item active">Detalle</span>
+  </nav>
+
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div class="page-header-info">
+
+      <a href="{% url 'finanzas:listar_met_pago' %}"
+         class="btn-volver-flecha"
+         title="Volver al listado">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">payments</span>
+      </div>
+
+      <div class="page-header-texto">
+        <h1>Detalle del Método de Pago</h1>
+        <p>Consulta la información del método de pago registrado.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  {% if messages %}
+    <div class="mensajes">
+      {% for message in messages %}
+        <div class="mensaje {{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Información del método -->
+  <div class="tarjeta-formulario">
+
+    <div class="tarjeta-titulo">
+      <span class="material-symbols-outlined icono-naranja">
+        info
+      </span>
+      <h2>Información del Método de Pago</h2>
+    </div>
+
+    <div class="grupo-campo">
+      <label>Nombre del método de pago</label>
+      <div class="form-control">
+        {{ metodo.nombre_metodo_pago }}
+      </div>
+    </div>
+
+    <div class="grupo-campo" style="margin-top: 20px;">
+      <label>Descripción</label>
+      <div class="form-control">
+        {% if metodo.descripcion_metodo_pago %}
+          {{ metodo.descripcion_metodo_pago|linebreaksbr }}
+        {% else %}
+          Sin descripción registrada.
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grupo-campo" style="margin-top: 20px;">
+      <label>Estado</label>
+      <div>
+        {% if metodo.estado_metodo_pago %}
+          <span class="estado-activo">Activo</span>
+        {% else %}
+          <span class="estado-inactivo">Inactivo</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="acciones-formulario">
+
+      <a href="{% url 'finanzas:listar_met_pago' %}"
+         class="btn-secundario">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Volver al listado
+      </a>
+
+      <a href="{% url 'finanzas:editar_met_pago' metodo.pk %}"
+         class="btn-primario">
+        <span class="material-symbols-outlined">edit</span>
+        Editar método de pago
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+```

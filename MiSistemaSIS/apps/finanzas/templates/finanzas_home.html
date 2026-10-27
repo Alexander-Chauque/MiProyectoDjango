@@ -56,6 +56,20 @@
               <a href="{% url 'finanzas:listar_gastos' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
           </div>
       </div>
+       <!-- VENTAS -->
+      <div class="finanzas-card">
+          <div class="card-imagen">
+              <img src="{% static 'img/inventario/bebidas.jpg' %}" alt="Ventas">
+              <div class="card-icono-superpuesto">
+                  <span class="material-symbols-outlined">local_bar</span>
+              </div>
+          </div>
+          <div class="card-contenido">
+              <h3>VENTAS</h3>
+              <p>Gestiona las ventas del restaurante.</p>
+              <a href="{% url 'finanzas:venta_listar' %}" class="btn-ingresar">Ingresar<span class="material-symbols-outlined">arrow_forward</span></a>
+          </div>
+      </div>
   </div>
 </div>
 {% endblock %}

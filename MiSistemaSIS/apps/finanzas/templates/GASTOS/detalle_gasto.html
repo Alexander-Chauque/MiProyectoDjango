@@ -1,0 +1,216 @@
+```html
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Gasto{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+    <!-- Navegación -->
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}" class="breadcrumb-item">
+            <span class="material-symbols-outlined">home</span>
+            Inicio
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
+            Finanzas
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">
+            Gastos
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <span class="breadcrumb-item active">Detalle del gasto</span>
+    </nav>
+
+    <!-- Encabezado -->
+    <div class="page-header">
+        <div class="page-header-info">
+
+            <a href="{% url 'finanzas:listar_gastos' %}"
+               class="btn-volver-flecha"
+               title="Volver a gastos">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+
+            <div class="page-header-icono">
+                <span class="material-symbols-outlined">receipt_long</span>
+            </div>
+
+            <div class="page-header-texto">
+                <h1>Detalle del gasto #{{ gasto_actual.pk }}</h1>
+                <p>Consulta la información del gasto registrado.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        <div class="mensajes">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Información del gasto -->
+    <div class="tarjeta-formulario">
+
+        <div class="tarjeta-titulo">
+            <span class="material-symbols-outlined icono-naranja">
+                payments
+            </span>
+            <h2>Datos del gasto</h2>
+        </div>
+
+        <div class="grid-formulario">
+
+            <!-- Identificador -->
+            <div class="grupo-campo">
+                <label>Número de gasto</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    value="#{{ gasto.pk }}"
+                    readonly
+                >
+            </div>
+
+            <!-- Categoría -->
+            <div class="grupo-campo">
+                <label>Categoría</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    value="{{ gasto.cat_gasto.nombre_categoria_gasto }}"
+                    readonly
+                >
+            </div>
+
+            <!-- Monto -->
+            <div class="grupo-campo">
+                <label>Monto</label>
+                <div class="input-con-prefijo">
+                    <span>$</span>
+                    <input
+                        type="text"
+                        class="form-control"
+                        value="{{ gasto.monto_gasto }}"
+                        readonly
+                    >
+                </div>
+            </div>
+
+            <!-- Caja -->
+            <div class="grupo-campo">
+                <label>Caja asociada</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    value="Caja #{{ gasto.caja_gasto_id }} - {{ gasto.caja_gasto.estado_caja }}"
+                    readonly
+                >
+            </div>
+
+            <!-- Empleado -->
+            <div class="grupo-campo">
+                <label>Empleado responsable</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    value="{{ gasto.empleado_gasto }}"
+                    readonly
+                >
+            </div>
+
+            <!-- Fecha y hora -->
+            <div class="grupo-campo">
+                <label>Fecha y hora del registro</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    value="{{ gasto.fecha_hora_gasto|date:'d/m/Y H:i' }}"
+                    readonly
+                >
+            </div>
+
+        </div>
+
+        <!-- Descripción -->
+        <div class="grupo-campo">
+            <label>Descripción</label>
+            <textarea
+                class="form-control"
+                rows="4"
+                readonly
+            >{{ gasto.descripcion_gasto }}</textarea>
+        </div>
+
+    </div>
+
+    <!-- Información adicional -->
+    <div class="tarjeta-formulario">
+
+        <div class="tarjeta-titulo">
+            <span class="material-symbols-outlined icono-naranja">
+                info
+            </span>
+            <h2>Información adicional</h2>
+        </div>
+
+        <p>
+            Esta pantalla es de consulta. Los datos del gasto no pueden
+            modificarse desde aquí.
+        </p>
+
+        {% if gasto_actual.caja_gasto.estado_caja == 'abierto' %}
+            <p>
+                La caja asociada se encuentra abierta.
+            </p>
+        {% else %}
+            <p>
+                La caja asociada está cerrada. El gasto se conserva como
+                parte del historial de esa caja.
+            </p>
+        {% endif %}
+
+    </div>
+
+    <!-- Acciones -->
+    <div class="acciones-formulario">
+
+        <a href="{% url 'finanzas:listar_gastos' %}"
+           class="btn-secundario">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Volver a gastos
+        </a>
+
+        {% if gasto_actual.caja_gasto.estado_caja == 'abierto' %}
+            <a href="{% url 'finanzas:editar_gasto' gasto_actual.pk %}"
+               class="btn-primario">
+                <span class="material-symbols-outlined">edit</span>
+                Editar gasto
+            </a>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}
+```

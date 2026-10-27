@@ -224,6 +224,7 @@
 
                         <div class="cuerpo-tarjeta">
 
+                            <!-- SALDO CONTADO -->
                             <div class="grupo-campo">
                                 <label for="saldo_contado">
                                     Saldo contado ($) <span>*</span>
@@ -245,12 +246,15 @@
                                            required>
                                 </div>
 
-                                <small>Ingresá el total de dinero físico contado en la caja.</small>
+                                <small>
+                                    Ingresá el total de dinero físico contado en la caja.
+                                </small>
                             </div>
 
+                            <!-- OBSERVACIONES DE ARQUEO -->
                             <div class="grupo-campo">
                                 <label for="observaciones_arqueo">
-                                    Observaciones
+                                    Observaciones de arqueo
                                 </label>
 
                                 <textarea
@@ -258,7 +262,10 @@
                                     name="observaciones_arqueo"
                                     class="form-control-textarea"
                                     rows="4"
+                                    maxlength="1000"
                                     placeholder="Detallá diferencias, faltantes o sobrantes...">{{ observaciones_arqueo|default:'' }}</textarea>
+
+                                <small>Máximo 1000 caracteres.</small>
                             </div>
 
                             <div class="alerta-info">

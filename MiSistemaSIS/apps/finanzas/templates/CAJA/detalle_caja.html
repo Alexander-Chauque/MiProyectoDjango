@@ -22,10 +22,13 @@
             Inicio
         </a>
         <span class="material-symbols-outlined">chevron_right</span>
+
         <a href="{% url 'finanzas:finanzas_home' %}">Finanzas</a>
         <span class="material-symbols-outlined">chevron_right</span>
+
         <a href="{% url 'finanzas:listar_cajas' %}">Cajas</a>
         <span class="material-symbols-outlined">chevron_right</span>
+
         <span>Detalle de caja #{{ caja.pk }}</span>
     </nav>
 
@@ -46,6 +49,16 @@
             <p>Consulta la información y los movimientos de la caja.</p>
         </div>
     </header>
+
+    <!-- MENSAJES -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alerta-info {{ message.tags }}">
+                <span class="material-symbols-outlined">info</span>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
     <!-- ESTADO -->
     <section class="tarjeta-comanda">
@@ -74,7 +87,7 @@
 
         <div class="columna-izquierda">
 
-            <!-- APERTURA -->
+            <!-- INFORMACIÓN DE APERTURA -->
             <section class="tarjeta-comanda">
                 <div class="titulo-tarjeta">
                     <span class="material-symbols-outlined">login</span>
@@ -115,10 +128,23 @@
                                readonly>
                     </div>
 
+                    <!-- OBSERVACIONES DE APERTURA -->
+                    <div class="grupo-campo">
+                        <label for="observaciones_apertura">
+                            Observaciones de apertura
+                        </label>
+
+                        <textarea
+                            id="observaciones_apertura"
+                            class="form-control-textarea"
+                            rows="4"
+                            readonly>{% if caja.observaciones_apertura %}{{ caja.observaciones_apertura }}{% else %}Sin observaciones de apertura.{% endif %}</textarea>
+                    </div>
+
                 </div>
             </section>
 
-            <!-- CIERRE -->
+            <!-- INFORMACIÓN DE CIERRE -->
             <section class="tarjeta-comanda">
                 <div class="titulo-tarjeta">
                     <span class="material-symbols-outlined">logout</span>
@@ -151,6 +177,19 @@
                                readonly>
                     </div>
 
+                    <!-- OBSERVACIONES DE CIERRE -->
+                    <div class="grupo-campo">
+                        <label for="observaciones_cierre">
+                            Observaciones de cierre
+                        </label>
+
+                        <textarea
+                            id="observaciones_cierre"
+                            class="form-control-textarea"
+                            rows="4"
+                            readonly>{% if caja.observaciones_cierre %}{{ caja.observaciones_cierre }}{% else %}Sin observaciones de cierre.{% endif %}</textarea>
+                    </div>
+
                 </div>
             </section>
 
@@ -158,7 +197,7 @@
 
         <div class="columna-derecha">
 
-            <!-- SALDOS -->
+            <!-- RESUMEN DE SALDOS -->
             <section class="tarjeta-comanda">
                 <div class="titulo-tarjeta">
                     <span class="material-symbols-outlined">payments</span>
@@ -179,7 +218,7 @@
                         <label>Saldo esperado</label>
                         <input type="text"
                                class="form-control"
-                               value="$ {{ caja.saldo_esperado|floatformat:2 }}"
+                               value="$ {{ saldo_esperado|floatformat:2 }}"
                                readonly>
                     </div>
 
@@ -210,7 +249,7 @@
                 </div>
             </section>
 
-            <!-- ARQUEO -->
+            <!-- INFORMACIÓN DEL ARQUEO -->
             <section class="tarjeta-comanda">
                 <div class="titulo-tarjeta">
                     <span class="material-symbols-outlined">fact_check</span>
@@ -223,23 +262,29 @@
                         <label>Fecha y hora del arqueo</label>
                         <input type="text"
                                class="form-control"
-                               value="{% if caja.fecha_arqueo %}{{ caja.fecha_arqueo|date:'d/m/Y H:i' }}{% else %}Sin arqueo registrado{% endif %}"
-                               readonly>
+                               readonly>"{% if caja.fecha_arqueo %}{{ caja.fecha_arqueo|date:'d/m/Y H:i' }}{% else %}Sin arqueo registrado{% endif %}"
+                               
                     </div>
 
                     <div class="grupo-campo">
                         <label>Responsable del arqueo</label>
                         <input type="text"
                                class="form-control"
-                               value="{% if caja.empleado_arqueamiento %}{{ caja.empleado_arqueamiento.nombre_empleado }} {{ caja.empleado_arqueamiento.apellido_empleado }}{% else %}Pendiente{% endif %}"
-                               readonly>
+                               readonly>"{% if caja.empleado_arqueamiento %}{{ caja.empleado_arqueamiento.nombre_empleado }} {{ caja.empleado_arqueamiento.apellido_empleado }}{% else %}Pendiente{% endif %}"
+                               
                     </div>
 
+                    <!-- OBSERVACIONES DE ARQUEO -->
                     <div class="grupo-campo">
-                        <label>Observaciones</label>
-                        <textarea class="form-control-textarea"
-                                  rows="4"
-                                  readonly>{{ caja.observaciones_caja|default:"Sin observaciones" }}</textarea>
+                        <label for="observaciones_arqueo">
+                            Observaciones de arqueo
+                        </label>
+
+                        <textarea
+                            id="observaciones_arqueo"
+                            class="form-control-textarea"
+                            rows="4"
+                            readonly>{% if caja.observaciones_arqueo %}{{ caja.observaciones_arqueo }}{% else %}Sin observaciones de arqueo.{% endif %}</textarea>
                     </div>
 
                 </div>
@@ -313,15 +358,52 @@
                 Realizar arqueo
             </a>
 
-            <a href="{% url 'finanzas:cerrar_caja' caja.pk %}"
-               class="btn-primario">
-                <span class="material-symbols-outlined">lock</span>
-                Cerrar caja
-            </a>
-
         {% endif %}
 
     </div>
+
+    <!-- FORMULARIO DE CIERRE -->
+    {% if caja.estado_caja == 'abierto' %}
+        <section class="tarjeta-comanda">
+            <div class="titulo-tarjeta">
+                <span class="material-symbols-outlined">lock</span>
+                <h2>Cerrar caja</h2>
+            </div>
+
+            <div class="cuerpo-tarjeta">
+                <p>
+                    Antes de confirmar el cierre, puedes registrar las
+                    observaciones correspondientes a esta operación.
+                </p>
+
+                <form method="POST"
+                      action="{% url 'finanzas:cerrar_caja' caja.pk %}">
+                    {% csrf_token %}
+
+                    <div class="grupo-campo">
+                        <label for="observaciones_cierre_form">
+                            Observaciones para el cierre
+                        </label>
+
+                        <textarea
+                            id="observaciones_cierre_form"
+                            name="observaciones_cierre"
+                            class="form-control-textarea"
+                            rows="4"
+                            maxlength="1000"
+                            placeholder="Ingresá observaciones sobre el cierre de caja..."></textarea>
+
+                        <small>Máximo 1000 caracteres.</small>
+                    </div>
+
+                    <button type="submit" class="btn-primario">
+                        <span class="material-symbols-outlined">lock</span>
+                        Confirmar cierre
+                    </button>
+                </form>
+            </div>
+        </section>
+    {% endif %}
 
 </div>
 {% endblock %}
