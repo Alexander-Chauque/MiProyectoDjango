@@ -160,8 +160,21 @@
                   title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
-                <a href="{% url 'empleados:empleado_baja' empleado.pk %}" class="btn-icon btn-baja" title="Dar de baja">
-                  <span class="material-symbols-outlined">person_remove</span>
+                <a href="#" class="btn-icon {% if empleado.estado %}btn-baja{% else %}btn-reactivar{% endif %}" 
+                  {% if empleado.estado %}
+                      data-url="{% url 'empleados:empleado_baja' empleado.pk %}"
+                      data-accion="baja"
+                  {% else %}
+                      data-url="{% url 'empleados:empleado_reactivar' empleado.pk %}"
+                      data-accion="reactivar"
+                  {% endif %}
+                  data-nombre="{{ empleado.nombre_empleado }} {{ empleado.apellido_empleado }}" 
+                  data-cargo="{{ empleado.cargo.nombre_cargo|default:'Sin cargo' }}" 
+                  data-estado="{{ empleado.estado|yesno:'true,false' }}" 
+                  onclick="event.preventDefault(); abrirModalDesdeBotonEmpleado(this);">
+                    <span class="material-symbols-outlined">
+                        {% if empleado.estado %}toggle_off{% else %}toggle_on{% endif %}
+                    </span>
                 </a>
                 <a href="{% url 'empleados:restablecer_contrasena' empleado.pk %}" class="btn-icon btn-clave"
                   title="Restablecer contraseña">
@@ -213,6 +226,68 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-estado" style="display: none;">
+  <div class="modal-contenido">
+    
+    <div class="modal-header">
+      <div class="modal-icono-alerta" id="modal-icono-caja">
+        <span class="material-symbols-outlined" id="modal-icono">warning</span>
+      </div>
+      <div>
+        <h3 id="modal-titulo">¿Cambiar estado del empleado?</h3>
+        <p class="text-gris" id="modal-subtitulo">Confirmá la acción a realizar.</p>
+      </div>
+      <button class="btn-cerrar-modal" onclick="cerrarModalEstado()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="form-cambiar-estado" method="POST" action="">
+      {% csrf_token %}
+      
+      <div class="modal-body">
+        
+        <div class="tarjeta-resumen">
+          <div class="resumen-info-izq">
+            <div class="resumen-datos">
+              <strong id="nombre-empleado-modal">Teo Chauque</strong>
+              <small class="text-gris" id="cargo-empleado-modal">Administrador</small>
+            </div>
+          </div>
+          <div class="resumen-info-der">
+            <span class="resumen-label">Estado actual</span>
+            <span class="badge" id="estado-actual-modal">Activo</span>
+          </div>
+        </div>
+
+        <div class="grupo-campo" style="margin-top: 25px;">
+          <label>Motivo del cambio <span class="req">*</span></label>
+          <textarea name="motivo_cambio" id="motivo-cambio" class="form-control" rows="3" maxlength="250" placeholder="Ej.: renuncia, licencia, suspensión..." required></textarea>
+          <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+            <span class="text-gris">Registrá el motivo para dejar constancia en el historial.</span>
+            <span class="text-gris" id="contador-motivo">0/250</span>
+          </div>
+        </div>
+
+        <div class="modal-alerta-info" id="modal-alerta-info">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <strong>Importante</strong>
+            <ul id="lista-importante"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalEstado()">Cancelar</button>
+        <button type="submit" class="btn-primario" id="btn-confirmar-estado">
+          <span class="material-symbols-outlined">sync</span> <span id="btn-texto">Confirmar cambio</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   function cambiarPorPagina(valor) {
     const url = new URL(window.location.href);
@@ -244,5 +319,84 @@
       }
     });
   });
+
+  function abrirModalDesdeBotonEmpleado(elemento) {
+    const url = elemento.getAttribute('data-url');
+    const nombre = elemento.getAttribute('data-nombre');
+    const cargo = elemento.getAttribute('data-cargo');
+    const estaActivo = elemento.getAttribute('data-estado') === 'true';
+    const accion = elemento.getAttribute('data-accion');
+    
+    window.abrirModalEstadoEmpleado(url, nombre, cargo, estaActivo, accion);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modal-estado');
+    const form = document.getElementById('form-cambiar-estado');
+    
+    const titulo = document.getElementById('modal-titulo');
+    const subtitulo = document.getElementById('modal-subtitulo');
+    const icono = document.getElementById('modal-icono');
+    const cajaIcono = document.getElementById('modal-icono-caja');
+    const nombreEmpleadoModal = document.getElementById('nombre-empleado-modal');
+    const cargoEmpleadoModal = document.getElementById('cargo-empleado-modal');
+    const estadoActualModal = document.getElementById('estado-actual-modal');
+    const listaImportante = document.getElementById('lista-importante');
+    const btnTexto = document.getElementById('btn-texto');
+    const btnConfirmar = document.getElementById('btn-confirmar-estado');
+    
+    document.getElementById('motivo-cambio')?.addEventListener('input', function() {
+        document.getElementById('contador-motivo').textContent = `${this.value.length}/250`;
+    });
+
+    window.abrirModalEstadoEmpleado = function (url, nombre, cargo, estaActivo, accion) {
+      form.action = url;
+      nombreEmpleadoModal.textContent = nombre;
+      cargoEmpleadoModal.textContent = cargo;
+
+      if (estaActivo) {
+        estadoActualModal.textContent = 'Activo';
+        estadoActualModal.className = 'badge badge-disponible';
+      } else {
+        estadoActualModal.textContent = 'Inactivo';
+        estadoActualModal.className = 'badge badge-inactivo';
+      }
+
+      if (accion === 'baja') {
+        titulo.textContent = '¿Dar de baja al empleado?';
+        subtitulo.textContent = 'El empleado dejará de tener acceso al sistema.';
+        icono.textContent = 'person_remove';
+        cajaIcono.style.backgroundColor = '#FEE2E2';
+        cajaIcono.style.color = '#DC2626';
+        btnTexto.textContent = 'Sí, dar de baja';
+        btnConfirmar.className = 'btn-peligro';
+        listaImportante.innerHTML = `
+          <li>El empleado no podrá iniciar sesión.</li>
+          <li>No podrá ser asignado a nuevas comandas.</li>
+          <li>Se conservará su historial en el sistema.</li>
+          <li><strong>Esta acción no se puede deshacer.</strong></li>
+        `;
+      } else {
+        titulo.textContent = '¿Reactivar al empleado?';
+        subtitulo.textContent = 'El empleado volverá a tener acceso al sistema.';
+        icono.textContent = 'person_add';
+        cajaIcono.style.backgroundColor = '#D1FAE5';
+        cajaIcono.style.color = '#065F46';
+        btnTexto.textContent = 'Sí, reactivar';
+        btnConfirmar.className = 'btn-primario';
+        listaImportante.innerHTML = `
+          <li>El empleado podrá iniciar sesión nuevamente.</li>
+          <li>Podrá ser asignado a nuevas comandas.</li>
+          <li>Su historial se mantendrá intacto.</li>
+        `;
+      }
+
+      modal.style.display = 'flex';
+    };
+
+    window.cerrarModalEstado = function () {
+      modal.style.display = 'none';
+    };
+});
 </script>
 {% endblock %}

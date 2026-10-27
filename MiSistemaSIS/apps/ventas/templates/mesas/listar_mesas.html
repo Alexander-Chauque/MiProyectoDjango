@@ -142,7 +142,11 @@
               {% endif %}
             </td>
             <td>
+              
               <div class="acciones-tabla">
+                <a href="{% url 'ventas:mesa_ver_comandas' mesa.id_mesa %}" class="btn-icon btn-clave" title="Ver Comandas">
+                  <span class="material-symbols-outlined">receipt_long</span>
+                </a>
                 <a href="{% url 'ventas:editar_mesa' mesa.pk %}" class="btn-icon btn-editar" title="Editar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>

@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes y Estadísticas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/platos.css' %}">
+<link rel="stylesheet" href="{% static 'css/reportes.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  /* Estilos rápidos para asegurar que el gráfico se vea bien */
+  .cuerpo-grafico {
+    position: relative;
+    height: 350px;
+    width: 100%;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono" style="background-color: #FFF8E7;">
+        <span class="material-symbols-outlined" style="color: #F5A623;">bar_chart</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Reportes y Estadísticas</h1>
+        <p>Analizá el rendimiento de tu restaurante.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'reportes:exportar_csv' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="btn-secundario">
+        <span class="material-symbols-outlined">download</span> Exportar CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- FILTROS DE FECHA -->
+  <form method="GET" class="filtros-reportes">
+    <div class="grupo-filtro">
+      <label>Desde</label>
+      <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control">
+    </div>
+    <div class="grupo-filtro">
+      <label>Hasta</label>
+      <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control">
+    </div>
+    <button type="submit" class="btn-primario">
+      <span class="material-symbols-outlined">filter_alt</span> Filtrar
+    </button>
+  </form>
+
+  <!-- TARJETAS KPI -->
+  <div class="grid-resumen-reportes">
+    <div class="tarjeta-reporte">
+      <div class="icono-reporte bg-verde"><span class="material-symbols-outlined">payments</span></div>
+      <div class="info-reporte">
+        <span>Ventas Totales</span>
+        <strong>${{ ventas_totales|floatformat:0 }}</strong>
+      </div>
+    </div>
+    <div class="tarjeta-reporte">
+      <div class="icono-reporte bg-azul"><span class="material-symbols-outlined">receipt_long</span></div>
+      <div class="info-reporte">
+        <span>Comandas Cerradas</span>
+        <strong>{{ cantidad_comandas }}</strong>
+      </div>
+    </div>
+    <div class="tarjeta-reporte">
+      <div class="icono-reporte bg-naranja"><span class="material-symbols-outlined">point_of_sale</span></div>
+      <div class="info-reporte">
+        <span>Ticket Promedio</span>
+        <strong>${{ ticket_promedio|floatformat:0 }}</strong>
+      </div>
+    </div>
+    <div class="tarjeta-reporte">
+      <div class="icono-reporte bg-gris"><span class="material-symbols-outlined">groups</span></div>
+      <div class="info-reporte">
+        <span>Empleados Activos</span>
+        <strong>{{ total_empleados }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO -->
+  <div class="tarjeta-grafico">
+    <div class="titulo-grafico">
+      <span class="material-symbols-outlined icono-naranja">trending_up</span>
+      <h3>Ventas en el período seleccionado</h3>
+    </div>
+    <div class="cuerpo-grafico">
+      <canvas id="graficoVentas"></canvas>
+    </div>
+  </div>
+
+  <!-- TOP 5 -->
+  <div class="grid-top-productos">
+    
+    <!-- Top Platos -->
+    <div class="tarjeta-top">
+      <div class="titulo-top">
+        <span class="material-symbols-outlined icono-naranja">restaurant</span>
+        <h3>Top 5 Platos más vendidos</h3>
+      </div>
+      <table class="tabla-top">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Plato</th>
+            <th class="derecha">Vendidos</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nombre, cantidad in top_platos %}
+          <tr>
+            <td class="numero-top">{{ forloop.counter }}</td>
+            <td>{{ nombre }}</td>
+            <td class="derecha"><strong>{{ cantidad }}</strong></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="sin-datos">No hay ventas registradas en este período.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Top Bebidas -->
+    <div class="tarjeta-top">
+      <div class="titulo-top">
+        <span class="material-symbols-outlined icono-naranja">local_drink</span>
+        <h3>Top 5 Bebidas más vendidas</h3>
+      </div>
+      <table class="tabla-top">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Bebida</th>
+            <th class="derecha">Vendidos</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nombre, cantidad in top_bebidas %}
+          <tr>
+            <td class="numero-top">{{ forloop.counter }}</td>
+            <td>{{ nombre }}</td>
+            <td class="derecha"><strong>{{ cantidad }}</strong></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="sin-datos">No hay ventas registradas en este período.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- JSON Script para pasar datos de forma segura a JS -->
+{{ labels_semana|json_script:"labels-data" }}
+{{ ventas_semana|json_script:"ventas-data" }}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Parseamos los datos desde los scripts JSON generados por Django
+    const labels = JSON.parse(document.getElementById('labels-data').textContent);
+    const dataVentas = JSON.parse(document.getElementById('ventas-data').textContent);
+
+    const ctx = document.getElementById('graficoVentas').getContext('2d');
+    
+    // Si no hay datos, mostramos un mensaje en consola (el gráfico se dibuja vacío)
+    if (labels.length === 0) {
+        console.warn("No hay ventas en el período seleccionado.");
+    }
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Ventas ($)',
+          data: dataVentas,
+          borderColor: '#F5A623',
+          backgroundColor: 'rgba(245, 166, 35, 0.1)',
+          borderWidth: 3,
+          pointBackgroundColor: '#F5A623',
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              // Formateamos el tooltip para que muestre el símbolo $
+              label: function(context) {
+                return '$' + context.parsed.y.toLocaleString('es-AR');
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#F3F4F6' },
+            ticks: { 
+              font: { family: 'Segoe UI' },
+              // Formateamos el eje Y con $
+              callback: function(value) { return '$' + value.toLocaleString('es-AR'); }
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'Segoe UI' } }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

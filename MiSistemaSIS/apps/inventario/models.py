@@ -1,4 +1,5 @@
 from django.db import models
+from empleados.models import Empleado
 
 # Create your models here.
 #Categoria Plato
@@ -114,6 +115,3 @@ class Mesa(models.Model):
     estado_mesa = models.CharField(max_length=20, choices=[
         ('disponible', 'Disponible'), ('ocupada', 'Ocupada')
     ], default='disponible')
-
-    def __str__(self):
-        return f"Mesa {self.numero_mesa}"

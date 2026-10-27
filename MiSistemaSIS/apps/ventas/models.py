@@ -1,6 +1,7 @@
 from django.db import models
 from empleados.models import Empleado
 from inventario.models import Plato, Bebida
+from empleados.models import Empleado 
 
 # Create your models here.
 
@@ -141,5 +142,3 @@ class DetalleComanda(models.Model):
         elif self.bebida:
             return f"{self.cant_bebida}x {self.bebida.nombre_bebida}"
         return "Detalle vacío"
-    
-    

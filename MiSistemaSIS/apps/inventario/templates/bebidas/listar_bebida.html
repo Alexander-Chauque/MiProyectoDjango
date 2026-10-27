@@ -158,8 +158,13 @@
                 <a href="{% url 'inventario:editar_bebida' bebida.pk %}" class="btn-icon btn-editar" title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
-                <a href="{% url 'inventario:estado_bebida' bebida.pk %}" class="btn-icon {% if bebida.disponible_bebida %}btn-baja{% else %}btn-reactivar{% endif %}" data-url="{% url 'inventario:estado_bebida' bebida.pk %}" data-nombre="{{ bebida.nombre_bebida }}" data-estado="{{ bebida.disponible_bebida|yesno:'true,false' }}" onclick="event.preventDefault(); abrirModalDesdeBoton(this);">
-                  <span class="material-symbols-outlined">{% if bebida.estado_bebida %}toggle_off{% else %} toggle_on{% endif %}</span>
+                <a href="#" class="btn-icon {% if bebida.disponible_bebida %}btn-baja{% else %}btn-reactivar{% endif %}" 
+                  data-url="{% url 'inventario:estado_bebida' bebida.pk %}" 
+                  data-nombre="{{ bebida.nombre_bebida }}" 
+                  data-precio="{{ bebida.precio_bebida }}" 
+                  data-estado="{{ bebida.disponible_bebida|yesno:'true,false' }}" 
+                  onclick="event.preventDefault(); abrirModalDesdeBoton(this);">
+                  <span class="material-symbols-outlined">{% if bebida.disponible_bebida %}toggle_off{% else %}toggle_on{% endif %}</span>
                 </a>
                 <a href="{% url 'inventario:eliminar_bebida' bebida.pk}" class="btn-icon btn-clave" title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
@@ -211,37 +216,73 @@
     </main>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-estado" style="display: none;">
-  <div class="modal-contenido">
+  <div class="modal-contenido" style="max-width: 700px;">
+    
+    <!-- Header -->
     <div class="modal-header">
       <div class="modal-icono-alerta">
         <span class="material-symbols-outlined">warning</span>
       </div>
-      <h3>¿Cambiar estado de la bebida?</h3>
-      <button class="btn-cerrar-modal" id="btn-cerrar-modal">
+      <div>
+        <h3 id="modal-titulo" >¿Cambiar estado de la bebida?</h3>
+        <p style="font-size: 15px; color: #718096; margin: 5px 0 0 0;">Estás seguro de cambiar el estado de la bebida seleccionada.</p>
+      </div>
+      <button class="btn-cerrar-modal" onclick="cerrarModalEstado()">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
 
-    <!--Texto y caja de advertencia -->
-    <div class="modal-body">
-      <p>Estás seguro de que querés cambiar el estado de <strong id="nombre-bebida-modal"></strong> a <strong
-          id="nuevo-estado-modal"></strong>?</p>
+    <form id="form-cambiar-estado" method="POST" action="">
+      {% csrf_token %}
+      
+      <div class="modal-body">
+        
+        <!-- TARJETA DE RESUMEN DE LA BEBIDA -->
+        <div class="tarjeta-resumen-plato">
+          
+          <div class="resumen-info-izq">
+            <div class="resumen-datos">
+              <strong id="nombre-bebida-modal">Coca-Cola 500ml</strong>
+              <small class="text-gris-medio">Bebida sin alcohol</small>
+              <span class="resumen-precio" id="precio-bebida-modal">$ 2.500</span>
+            </div>
+          </div>
 
-      <div class="modal-alerta-info">
-        <span class="material-symbols-outlined">info</span>
-        <p id="texto-alerta-modal"></p>
+          <div class="resumen-info-der">
+            <span class="resumen-label texto-gris-medio">Estado actual</span>
+            <span class="badge" id="estado-actual-modal">Disponible</span>
+          </div>
+        </div>
+
+        <!-- CAMPO DEL MOTIVO -->
+        <div class="grupo-campo" style="margin-top: 25px;">
+          <label>Motivo del cambio <span class="req">*</span></label>
+          <textarea name="motivo_cambio" id="motivo-cambio" class="form-control" rows="3" maxlength="250" placeholder="Ej.: falta de stock, producto vencido, error de carga, etc." required></textarea>
+          <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+            <span class="text-gris">Registrá el motivo para dejar constancia en el historial.</span>
+            <span class="text-gris" id="contador-motivo">0/250</span>
+          </div>
+        </div>
+
+        <!-- CAJA IMPORTANTE -->
+        <div class="modal-alerta-info-naranja">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <strong>Importante</strong>
+            <ul id="lista-importante"></ul>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!--Botones cancelar y confirmar-->
-    <div class="modal-footer">
-      <button type="button" class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
-      <button type="button" class="btn-primario" id="btn-confirmar-modal">
-        <span class="material-symbols-outlined">toggle_on</span> Confirmar cambio
-      </button>
-    </div>
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalEstado()">Cancelar</button>
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">sync</span> Confirmar cambio
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -293,55 +334,56 @@
       });
     });
 
-  function abrirModalDesdeBoton(elemento) {
+ function abrirModalDesdeBoton(elemento) {
     const url = elemento.getAttribute('data-url');
     const nombre = elemento.getAttribute('data-nombre');
+    const precio = elemento.getAttribute('data-precio'); 
     const estaActivo = elemento.getAttribute('data-estado') === 'true';
-    window.abrirModalEstado(url, nombre, estaActivo);
+    window.abrirModalEstado(url, nombre, precio, estaActivo);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modal-estado');
-    const btnCancelar = document.getElementById('btn-cancelar-modal');
-    const btnConfirmar = document.getElementById('btn-confirmar-modal');
-    const btnCerrar = document.getElementById('btn-cerrar-modal');
-
+    const form = document.getElementById('form-cambiar-estado');
+    
     const nombreBebidaModal = document.getElementById('nombre-bebida-modal');
-    const nuevoEstadoModal = document.getElementById('nuevo-estado-modal');
-    const textoAlertaModal = document.getElementById('texto-alerta-modal');
+    const precioBebidaModal = document.getElementById('precio-bebida-modal');
+    const estadoActualModal = document.getElementById('estado-actual-modal');
+    const listaImportante = document.getElementById('lista-importante');
+    
+    // Contador de caracteres
+    document.getElementById('motivo-cambio')?.addEventListener('input', function() {
+        document.getElementById('contador-motivo').textContent = `${this.value.length}/250`;
+    });
 
-    let urlPendiente = '';
-
-    window.abrirModalEstado = function (url, nombre, estaActivo) {
-      urlPendiente = url;
-      nombreBebidaModal.textContent = `"${nombre}"`;
+    window.abrirModalEstado = function (url, nombre, precio, estaActivo) {
+      form.action = url;
+      nombreBebidaModal.textContent = nombre;
+      precioBebidaModal.textContent = `$${parseFloat(precio).toLocaleString('es-AR')}`;
 
       if (estaActivo) {
-        nuevoEstadoModal.textContent = "No disponible";
-        nuevoEstadoModal.style.color = "#F5A623";
-        textoAlertaModal.textContent = "La bebida dejará de estar disponible para nuevas comandas, pero se conservará su información para el historial.";
+        estadoActualModal.textContent = 'Disponible';
+        estadoActualModal.className = 'badge badge-disponible';
+        listaImportante.innerHTML = `
+          <li>La bebida dejará de estar disponible para nuevas comandas.</li>
+          <li>Se conservará su información para el historial.</li>
+          <li>Podrás volver a habilitarla luego.</li>
+        `;
       } else {
-        nuevoEstadoModal.textContent = "Disponible";
-        nuevoEstadoModal.style.color = "#27AE60";
-        textoAlertaModal.textContent = "La bebida volverá a estar disponible para nuevas comandas.";
+        estadoActualModal.textContent = 'No disponible';
+        estadoActualModal.className = 'badge badge-inactivo';
+        listaImportante.innerHTML = `
+          <li>La bebida volverá a aparecer en la carta.</li>
+          <li>Podrá ser agregado a nuevas comandas.</li>
+          <li>Se notificará a los mozos del cambio.</li>
+        `;
       }
-
       modal.style.display = 'flex';
     };
 
-    function cerrarModal() {
+    window.cerrarModalEstado = function () {
       modal.style.display = 'none';
-      urlPendiente = '';
-    }
-
-    btnCancelar.addEventListener('click', cerrarModal);
-    btnCerrar.addEventListener('click', cerrarModal);
-
-    btnConfirmar.addEventListener('click', function () {
-      if (urlPendiente) {
-        window.location.href = urlPendiente;
-      }
-    });
+    };
   });
 </script>
 {% endblock %}

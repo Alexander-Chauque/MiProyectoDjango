@@ -34,7 +34,6 @@
 <!-- Estadisticas -->
 {% if user.empleado.cargo.nivel_acceso >= 4 %}
     <div class="estadisticas-grid">
-        
         <!-- Tarjeta 1: Productos -->
         <div class="stat-card">
             <div class="stat-icono">
@@ -43,7 +42,6 @@
             <div class="stat-info">
                 <h3>{{ total_productos }}</h3>
                 <p>Productos en inventario</p>
-                <span class="stat-subtexto">Stock adecuado</span>
             </div>
         </div>
 
@@ -145,6 +143,31 @@
                 <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
             </a>
         {% endif %}
+
+        <!-- REPORTES -->
+        {% if user.empleado.cargo.nivel_acceso >= 3 %}
+          <a href="{% url 'reportes:reportes_home' %}" class="modulo-card">
+              <div class="modulo-icon">
+                  <span class="material-symbols-outlined">bar_chart</span>
+              </div>
+              <h3>Reportes</h3>
+              <p>Estadísticas y análisis de ventas</p>
+              <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
+          </a>
+        {% endif %}
+
+        <!-- AUDITORÍA -->
+        {% if user.empleado.cargo.nivel_acceso >= 3 %}
+            <a href="{% url 'auditoria:log_auditoria_listar' %}" class="modulo-card">
+                <div class="modulo-icon">
+                    <span class="material-symbols-outlined">history</span>
+                </div>
+                <h3>Auditoría</h3>
+                <p>Historial de movimientos y cambios</p>
+                <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
+            </a>
+        {% endif %}
+
         
     </div>
 </div>

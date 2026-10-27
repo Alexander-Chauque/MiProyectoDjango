@@ -1,3 +1,6 @@
+/* =========================================
+   1. RESET Y PANTALLA COMPLETA
+   ========================================= */
 * {
   margin: 0;
   padding: 0;
@@ -6,85 +9,169 @@
 
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #FFFFFF;
+  min-height: 100vh;
+  width: 100vw;
+  /* Ocupa todo el ancho de la ventana */
+  overflow-x: hidden;
+  /* Evita scroll horizontal */
+}
+
+/* =========================================
+   2. CONTENEDOR PRINCIPAL (Borde a borde)
+   ========================================= */
+.login-container {
+  display: flex;
+  width: 100vw;
+  /* Todo el ancho */
   height: 100vh;
-  /* ACÁ PONÉ LA RUTA DE TU IMAGEN DE FONDO */
-  background-image: url('../img/fondo-login.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  /* Todo el alto de la pantalla */
+  background-color: #FFFFFF;
+  overflow: hidden;
+}
+
+/* =========================================
+   3. COLUMNA IZQUIERDA (Imágenes y Onda)
+   ========================================= */
+.login-imagen {
+  flex: 1;
+  /* Ocupa la mitad de la pantalla */
+  position: relative;
+  background-color: #FFFFFF;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-right: 10%;
-  background-color: rgba(0, 0, 0, 0.5);
-  background-blend-mode: overlay;
 }
 
-.login-wrapper {
+/* Recortamos la foto del paisaje con la forma de la onda */
+.img-paisaje {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background-image: url('../img/paisaje.jpg');
+  /* <-- TU FOTO */
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+/* Recortamos la foto de las empanadas con la forma de la onda */
+.img-empanadas {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background-image: url('../img/empanadas.png');
+  background-size: 120%;
+  background-position: center 70%;
+  z-index: 1;
+}
+
+/* La onda SVG (Se dibuja por encima de las fotos) */
+.onda-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* El logo y el slogan (Por encima de todo) */
+.contenido-logo {
+  position: relative;
+  z-index: 3;
   display: flex;
-  gap: 20px;
+  flex-direction: column;
   align-items: center;
-}
-
-/* --- TARJETA PRINCIPAL (Blanca) --- */
-.login-panel {
-  background-color: #FFFFFF;
-  border-radius: 16px;
-  width: 420px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  border-top: 6px solid #F5A623;
-}
-
-.login-card {
-  padding: 40px 35px;
-}
-
-.login-header {
   text-align: center;
-  margin-bottom: 30px;
+  /* Lo centramos verticalmente */
+  margin-top: -40px;
 }
 
-.login-logo {
-  height: 80px;
+.logo-onda {
+  max-width: 300px;
+  /* Tamaño más grande para pantalla completa */
+  margin-bottom: 10px;
+}
+
+.slogan {
+  font-family: 'Oswald', sans-serif;
+  color: #F5A623;
+  font-size: 16px;
+  letter-spacing: 3px;
+  font-weight: 600;
+}
+
+/* =========================================
+   4. COLUMNA DERECHA (Formulario Centrado)
+   ========================================= */
+.login-formulario {
+  flex: 1;
+  /* Ocupa la otra mitad */
+  display: flex;
+  align-items: center;
+  /* Centra verticalmente el form */
+  justify-content: center;
+  /* Centra horizontalmente el form */
+  background-color: #FFFFFF;
+  padding: 40px;
+}
+
+.form-contenido {
+  width: 100%;
+  max-width: 450px;
+  /* Evita que el form sea demasiado ancho en pantallas gigantes */
+}
+
+h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 40px;
+  color: #2D3748;
+  margin-bottom: 10px;
+}
+
+.subtitulo {
+  color: #718096;
+  font-size: 16px;
   margin-bottom: 15px;
 }
 
-.login-header h1 {
-  font-family: 'Oswald', sans-serif;
-  font-size: 26px;
-  color:#3D3D3D;
-  letter-spacing: 1px;
-  margin-bottom: 5px;
+.linea-naranja {
+  width: 60px;
+  height: 4px;
+  background-color: #F5A623;
+  margin-bottom: 30px;
+  border-radius: 2px;
 }
 
-.login-header p {
-  font-size: 14px;
-  color: #6B7280;
-}
-
-/* --- INPUTS --- */
-.input-group {
+/* =========================================
+   5. INPUTS Y BOTONES
+   ========================================= */
+.grupo-campo {
   margin-bottom: 20px;
 }
 
-.input-group label {
+.grupo-campo label {
   display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: #3D3D3D;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4A5568;
   margin-bottom: 8px;
-  letter-spacing: 0.5px;
 }
 
 .input-con-icono {
   display: flex;
   align-items: center;
-  border: 2px solid #d3d3d3;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   background-color: #FFFFFF;
   padding: 0 15px;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s;
 }
 
 .input-con-icono:focus-within {
@@ -93,54 +180,61 @@ body {
 }
 
 .input-con-icono .material-symbols-outlined {
-  color: #6B7280;;
+  color: #A0AEC0;
   font-size: 20px;
-  margin-right: 10px;
 }
 
 .input-con-icono input {
   border: none;
   outline: none;
   width: 100%;
-  padding: 14px 0;
+  padding: 15px 10px;
   font-size: 15px;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  color: #3D3D3D;
+  color: #2D3748;
   background: transparent;
-}
-
-.input-con-icono input::placeholder {
-  color: #6B7280;
 }
 
 .toggle-password {
   cursor: pointer;
-  margin-right: 0 !important;
-  transition: color 0.2s;
 }
 
 .toggle-password:hover {
   color: #F5A623;
 }
 
-/* --- OLVIDÉ CONTRASEÑA --- */
-.olvide-password {
-  text-align: right;
+/* RECORDAR Y OLVIDÉ */
+.opciones-extra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 25px;
+  font-size: 14px;
 }
 
-.olvide-password a {
-  font-size: 13px;
+.recordar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4A5568;
+  cursor: pointer;
+}
+
+.recordar input {
+  accent-color: #F5A623;
+  cursor: pointer;
+}
+
+.olvide {
   color: #F5A623;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.olvide-password a:hover {
+.olvide:hover {
   text-decoration: underline;
 }
 
-/* --- BOTÓN INGRESAR --- */
+/* BOTÓN INICIAR SESIÓN */
 .btn-login {
   width: 100%;
   display: flex;
@@ -151,11 +245,10 @@ body {
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
-  padding: 15px;
+  padding: 16px;
   font-family: 'Oswald', sans-serif;
   font-size: 18px;
   font-weight: 600;
-  letter-spacing: 1px;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
 }
@@ -165,41 +258,75 @@ body {
   transform: translateY(-2px);
 }
 
-/* --- FOOTER FORMULARIO --- */
-.login-footer-form {
-  text-align: center;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid #6B7280;;
+/* MENSAJE DE AYUDA */
+.ayuda-admin {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 30px;
+  padding: 15px;
+  background-color: #FFF8E7;
+  border-radius: 8px;
+  border: 1px solid #FEEBC8;
 }
 
-.login-footer-form p {
-  font-size: 12px;
-  color: #6B7280;
-  margin-bottom: 3px;
+.ayuda-admin .material-symbols-outlined {
+  color: #F5A623;
+  font-size: 20px;
 }
 
-/* --- ALERTA DE ERROR --- */
+.ayuda-admin p {
+  font-size: 13px;
+  color: #92400E;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* =========================================
+   6. ALERTA DE ERROR
+   ========================================= */
 .alerta-error {
   background-color: #FEE2E2;
   color: #991B1B;
-  padding: 10px 15px;
+  padding: 12px 15px;
   border-radius: 8px;
   font-size: 13px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
+  border-left: 4px solid #DC2626;
 }
 
-/* --- RESPONSIVO --- */
+/* =========================================
+   7. RESPONSIVO (Celulares)
+   ========================================= */
 @media (max-width: 900px) {
-  body {
-    justify-content: center;
-    padding-right: 0;
+  .login-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
   }
 
-  .login-sidebar {
-    display: none;
+  .login-imagen {
+    height: 40vh;
+    /* La imagen ocupa el 40% de la pantalla en celular */
+    min-height: 250px;
+  }
+
+  .contenido-logo {
+    margin-top: 0;
+  }
+
+  .logo-onda {
+    max-width: 200px;
+  }
+
+  .slogan {
+    font-size: 14px;
+  }
+
+  .login-formulario {
+    padding: 40px 20px;
   }
 }

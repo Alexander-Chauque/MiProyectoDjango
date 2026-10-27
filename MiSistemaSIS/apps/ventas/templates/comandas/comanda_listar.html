@@ -32,10 +32,6 @@
         <p>Gestiona los pedidos y comandas del restaurante.</p>
       </div>
     </div>
-    <div class="page-header-acciones">
-      <a href="{% url 'ventas:comanda_consultar' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">search</span> Consultar
-      </a>
       <a href="{% url 'ventas:comanda_crear' %}" class="btn-primario">
         <span class="material-symbols-outlined">add</span> Nueva Comanda
       </a>
@@ -187,25 +183,24 @@
                     <span class="material-symbols-outlined">published_with_changes</span>
                   </button>
                   <div class="dropdown-menu-estado">
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pendiente" class="dropdown-item">
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pendiente&next={{ request.get_full_path|urlencode }}" class="dropdown-item">
                       <span class="punto-estado pendiente"></span> Pendiente
                     </a>
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=en_preparacion"
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=en_preparacion&next={{ request.get_full_path|urlencode }}"
                       class="dropdown-item">
                       <span class="punto-estado preparacion"></span> En Preparación
                     </a>
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=entregado" class="dropdown-item">
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=entregado&next={{ request.get_full_path|urlencode }}" class="dropdown-item">
                       <span class="punto-estado entregado"></span> Entregado
                     </a>
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pagado" class="dropdown-item">
+                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pagado&next={{ request.get_full_path|urlencode }}" class="dropdown-item">
                       <span class="punto-estado pagado"></span> Pagado
                     </a>
                     <hr class="dropdown-divider">
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=anulado"
-                      class="dropdown-item texto-peligro">
-                      <span class="punto-estado anulado"></span> Anular Comanda
+                    <a href="#" class="dropdown-item texto-peligro"
+                      onclick="event.preventDefault(); abrirModalAnular('{{ comanda.id_comanda }}', '{{ comanda.mesa.numero_mesa }}', '{{ comanda.mesa.ubicacion|default:"Salón" }}', '{{ comanda.fecha_hora|date:"d/m/Y H:i" }}', '{{ comanda.estado_comanda }}', '{{ comanda.empleado.get_full_name|default:"Sin asignar" }}', '{{ comanda.total_comanda }}');">
+                        <span class="punto-estado anulado"></span> Anular Comanda
                     </a>
-                  </div>
                 </div>
                 <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-icon btn-detalle"
                   title="Ver detalle">
@@ -268,6 +263,122 @@
     </main>
   </div>
 </div>
+<!-- MODAL PARA ANULAR COMANDA -->
+<div class="modal-overlay" id="modal-anular-comanda" style="display: none;">
+  <div class="modal-contenido" style="max-width: 750px;">
+    
+    <div class="modal-header">
+      <div class="modal-icono-alerta peligro">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <div>
+        <h3>¿Anular la comanda?</h3>
+        <p style="font-size: 14px; color: #718096; margin: 5px 0 0 0;">Esta acción anulará la comanda seleccionada.</p>
+      </div>
+      <button class="btn-cerrar-modal" onclick="cerrarModalAnular()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="form-anular-comanda" method="POST" action="">
+      {% csrf_token %}
+      
+      <div class="modal-body">
+        <!-- RESUMEN DE LA COMANDA -->
+        <div class="modal-resumen-premium">
+          <!-- Bloque Izquierdo: Icono + Número de comanda -->
+          <div class="resumen-bloque-izq">
+            <div class="resumen-icono-caja">
+              <span class="material-symbols-outlined">receipt_long</span>
+            </div>
+            <div class="resumen-id-comanda">
+              <span class="resumen-label">Comanda</span>
+              <strong class="resumen-valor-id">#<span id="resumen-id-texto"></span></strong>
+            </div>
+          </div>
+
+          <div class="resumen-divisor"></div>
+
+          <!-- Bloque Central: Detalles (Mesa, Mozo, Fecha) -->
+          <div class="resumen-bloque-centro">
+            <div class="resumen-fila">
+              <span class="material-symbols-outlined">table_restaurant</span>
+              <div>
+                <span class="resumen-label">Mesa</span>
+                <strong class="resumen-valor"><span id="resumen-mesa-num"></span> (<span id="resumen-mesa-ubi"></span>)</strong>
+              </div>
+            </div>
+            <div class="resumen-fila">
+              <span class="material-symbols-outlined">person</span>
+              <div>
+                <span class="resumen-label">Mozo</span>
+                <strong class="resumen-valor" id="resumen-mozo"></strong>
+              </div>
+            </div>
+            <div class="resumen-fila">
+              <span class="material-symbols-outlined">calendar_month</span>
+              <div>
+                <span class="resumen-label">Fecha y hora</span>
+                <strong class="resumen-valor" id="resumen-fecha-completa"></strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="resumen-divisor"></div>
+
+          <!-- Estado y Total -->
+          <div class="resumen-bloque-der">
+            <div class="resumen-fila">
+              <span class="material-symbols-outlined">fact_check</span>
+              <div>
+                <span class="resumen-label">Estado actual</span>
+                <span class="badge" id="resumen-estado"></span>
+              </div>
+            </div>
+            <div class="resumen-fila">
+              <span class="material-symbols-outlined">attach_money</span>
+              <div>
+                <span class="resumen-label">Total</span>
+                <strong class="resumen-valor-total" id="resumen-total"></strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- MOTIVO -->
+        <div class="grupo-campo" style="margin-top: 20px;">
+          <label>Motivo de la anulación <span class="req">*</span></label>
+          <textarea name="motivo_cambio" id="motivo-cambio" class="form-control" rows="3" maxlength="250" placeholder="Ej.: el cliente se retiró, error en el pedido, cambio de mesa, etc." required></textarea>
+          <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+            <span class="modal-ayuda">Registrá el motivo para dejar constancia en el historial de la comanda.</span>
+            <span class="modal-ayuda" id="contador-motivo">0/250</span>
+          </div>
+        </div>
+
+        <!-- BLOQUE IMPORTANTE -->
+        <div class="modal-alerta-peligro">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <strong>Importante</strong>
+            <ul>
+              <li>Se liberará la mesa asociada.</li>
+              <li>Se anularán todos los ítems de la comanda.</li>
+              <li><strong>Esta acción no se puede deshacer.</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalAnular()">Cancelar</button>
+        <button type="submit" class="btn-peligro">
+          <span class="material-symbols-outlined">delete</span> Sí, anular comanda
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
   // Cambiar paginación
@@ -321,5 +432,47 @@
       });
     }
   });
+
+  // Variable para guardar la URL a la que queremos ir al confirmar
+  let urlAnularComanda = '';
+function abrirModalAnular(id, mesaNum, mesaUbi, fecha, estadoActual, mozo, total) {
+    // Cerrar el menú
+    document.querySelectorAll('.dropdown-menu-estado').forEach(menu => {
+        menu.classList.remove('mostrar');
+    });
+
+    //Configurar formulario
+    const form = document.getElementById('form-anular-comanda');
+    form.action = `/ventas/comandas/estado/${id}/?estado=anulado`;
+    
+    // Llenar los datos
+    document.getElementById('resumen-id-texto').textContent = id;
+    document.getElementById('resumen-mesa-num').textContent = mesaNum;
+    document.getElementById('resumen-mesa-ubi').textContent = mesaUbi;
+    document.getElementById('resumen-mozo').textContent = mozo;
+    document.getElementById('resumen-fecha-completa').textContent = fecha;
+    document.getElementById('resumen-total').textContent = `$${parseFloat(total).toLocaleString('es-AR')}`;
+    
+    // Formatear el badge del estado
+    const badge = document.getElementById('resumen-estado');
+    badge.textContent = estadoActual.charAt(0).toUpperCase() + estadoActual.slice(1).replace('_', ' ');
+    
+    if (estadoActual === 'pagado') badge.className = 'badge badge-pagado';
+    else if (estadoActual === 'pendiente') badge.className = 'badge badge-pendiente';
+    else if (estadoActual === 'en_preparacion') badge.className = 'badge badge-preparacion';
+    else if (estadoActual === 'entregado') badge.className = 'badge badge-entregado';
+    else badge.className = 'badge badge-anulado';
+    
+    // Mostrar modal
+    document.getElementById('modal-anular-comanda').style.display = 'flex';
+}
+function cerrarModalAnular() {
+    document.getElementById('modal-anular-comanda').style.display = 'none';
+}
+
+// Contador de caracteres del textarea
+document.getElementById('motivo-cambio')?.addEventListener('input', function() {
+    document.getElementById('contador-motivo').textContent = `${this.value.length}/250`;
+});
 </script>
 {% endblock %}

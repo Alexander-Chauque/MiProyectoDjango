@@ -1,0 +1,100 @@
+
+/* Para que el texto largo no rompa la tabla */
+.detalle-celda {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Para que los inputs de fecha se apilen */
+.filtro-fechas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-buscar-fecha {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-buscar-fecha label {
+  font-size: 11px;
+  color: var(--color-gris-medio, #718096);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  font-family: 'Oswald', sans-serif;
+}
+
+.input-buscar-fecha input[type="date"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--color-gris-oscuro, #3D3D3D);
+  background-color: #FFFFFF;
+  box-sizing: border-box;
+}
+
+.input-buscar-fecha input[type="date"]:focus {
+  outline: none;
+  border-color: var(--color-naranja, #F5A623);
+}
+
+/* Para que el select ocupe todo el ancho */
+.filtro-select {
+  width: 100%;
+  padding: 10px 15px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--color-gris-oscuro, #3D3D3D);
+  background-color: #FFFFFF;
+  cursor: pointer;
+}
+
+.filtro-select:focus {
+  outline: none;
+  border-color: var(--color-naranja, #F5A623);
+}
+
+/* Ajuste para el modal de detalle */
+.detalle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.detalle-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detalle-item span {
+  font-size: 12px;
+  color: #3D3D3D;
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-weight: bolder;
+}
+
+.detalle-item strong {
+  font-size: 14px;
+  color: #718096;
+  font-weight:400;
+}
+
+.detalle-item p {
+  font-size: 14px;
+  color: #3D3D3D;
+  margin: 5px 0 0 0;
+  line-height: 1.4;
+}
+.modal-header h3{
+  color: #3D3D3D;
+  font-family: 'Oswald', sans-serif;
+}

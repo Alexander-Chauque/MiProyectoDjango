@@ -179,11 +179,17 @@
                   <a href="{% url 'inventario:editar_ingrediente' ingrediente.pk %}" class="btn-icon btn-editar" title="Modificar">
                     <span class="material-symbols-outlined">edit</span>
                   </a>
-                  <a href="{% url 'inventario:estado_ingrediente' ingrediente.pk %}"class="btn-icon {% if ingrediente.estado_ingrediente %}btn-baja{% else %}btn-reactivar{% endif %}"
-                    data-url="{% url 'inventario:estado_ingrediente' ingrediente.pk %}" data-nombre="{{ ingrediente.nombre_ingrediente }}" data-estado="{{ ingrediente.estado_ingrediente|yesno:'true,false' }}" onclick="event.preventDefault(); abrirModalDesdeBoton(this);" title="{% if ingrediente.estado_ingrediente %}Desactivar{% else %}Activar{% endif %}">
-                    <span class="material-symbols-outlined">
-                      {% if ingrediente.estado_ingrediente %}toggle_off{% else %}toggle_on{% endif %}
-                    </span>
+                  <a href="#" class="btn-icon {% if ingrediente.estado_ingrediente %}btn-baja{% else %}btn-reactivar{% endif %}" 
+                    data-url="{% url 'inventario:estado_ingrediente' ingrediente.pk %}" 
+                    data-nombre="{{ ingrediente.nombre_ingrediente }}" 
+                    data-unidad="{{ ingrediente.unidad_medida|default:'Sin unidad' }}" 
+                    data-costo="{{ ingrediente.costo_unitario|default:'0' }}" 
+                    data-estado="{{ ingrediente.estado_ingrediente|yesno:'true,false' }}" 
+                    onclick="event.preventDefault(); abrirModalDesdeBoton(this);" 
+                    title="{% if ingrediente.estado_ingrediente %}Desactivar{% else %}Activar{% endif %}">
+                      <span class="material-symbols-outlined">
+                          {% if ingrediente.estado_ingrediente %}toggle_off{% else %}toggle_on{% endif %}
+                      </span>
                   </a>
                   <a href="{% url 'inventario:eliminar_ingrediente' ingrediente.pk}" class="btn-icon btn-clave" title="Eliminar">
                     <span class="material-symbols-outlined">delete</span>
@@ -243,37 +249,66 @@
     </main>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-estado" style="display: none;">
   <div class="modal-contenido">
+    
     <div class="modal-header">
       <div class="modal-icono-alerta">
         <span class="material-symbols-outlined">warning</span>
       </div>
-      <h3>¿Cambiar estado de ingrediente?</h3>
-      <button class="btn-cerrar-modal" id="btn-cerrar-modal">
+      <div>
+        <h3 id="modal-titulo">¿Cambiar estado del ingrediente?</h3>
+        <p class="text-gris" id="modal-subtitulo">Estás seguro de cambiar el estado del ingrediente seleccionado.</p>
+      </div>
+      <button class="btn-cerrar-modal" onclick="cerrarModalEstado()">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
 
-    <!--Texto y caja de advertencia -->
-    <div class="modal-body">
-      <p>Estás seguro de que querés cambiar el estado de <strong id="nombre-ingrediente-modal"></strong> a <strong
-          id="nuevo-estado-modal"></strong>?</p>
+    <form id="form-cambiar-estado" method="POST" action="">
+      {% csrf_token %}
+      
+      <div class="modal-body">
+        
+        <div class="tarjeta-resumen">
+          <div class="resumen-info-izq">
+            <div class="resumen-datos">
+              <strong id="nombre-ingrediente-modal">Tomate</strong>
+              <small class="text-gris" id="unidad-ingrediente-modal">Unidad: kg</small>
+              <span class="resumen-precio" id="costo-ingrediente-modal">$ 1.200</span>
+            </div>
+          </div>
+          <div class="resumen-info-der">
+            <span class="resumen-label">Estado actual</span>
+            <span class="badge" id="estado-actual-modal">Disponible</span>
+          </div>
+        </div>
 
-      <div class="modal-alerta-info">
-        <span class="material-symbols-outlined">info</span>
-        <p id="texto-alerta-modal"></p>
+        <div class="grupo-campo" style="margin-top: 25px;">
+          <label>Motivo del cambio <span class="req">*</span></label>
+          <textarea name="motivo_cambio" id="motivo-cambio" class="form-control" rows="3" maxlength="250" placeholder="Ej.: falta de stock, producto vencido, error de carga, etc." required></textarea>
+          <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+            <span class="text-gris">Registrá el motivo para dejar constancia en el historial.</span>
+            <span class="text-gris" id="contador-motivo">0/250</span>
+          </div>
+        </div>
+
+        <div class="modal-alerta-info">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <strong>Importante</strong>
+            <ul id="lista-importante"></ul>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!--Botones cancelar y confirmar-->
-    <div class="modal-footer">
-      <button type="button" class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
-      <button type="button" class="btn-primario" id="btn-confirmar-modal">
-        <span class="material-symbols-outlined">toggle_on</span> Confirmar cambio
-      </button>
-    </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalEstado()">Cancelar</button>
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">sync</span> Confirmar cambio
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -319,50 +354,58 @@
   });
 
   function abrirModalDesdeBoton(elemento) {
-    urlPendiente = elemento.getAttribute('data-url');
+    const url = elemento.getAttribute('data-url');
     const nombre = elemento.getAttribute('data-nombre');
+    const unidad = elemento.getAttribute('data-unidad') || 'Sin unidad';
+    const costo = elemento.getAttribute('data-costo') || '0';
     const estaActivo = elemento.getAttribute('data-estado') === 'true';
+    
+    window.abrirModalEstadoIngrediente(url, nombre, unidad, costo, estaActivo);
+}
 
+document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modal-estado');
+    const form = document.getElementById('form-cambiar-estado');
+    
     const nombreIngredienteModal = document.getElementById('nombre-ingrediente-modal');
-    const nuevoEstadoModal = document.getElementById('nuevo-estado-modal');
-    const textoAlertaModal = document.getElementById('texto-alerta-modal');
-
-    nombreIngredienteModal.textContent = `"${nombre}"`;
-
-    if (estaActivo) {
-      nuevoEstadoModal.textContent = "No disponible";
-      nuevoEstadoModal.style.color = "#F5A623";
-      textoAlertaModal.textContent = "El ingrediente dejará de estar disponible para nuevas recetas, pero se conservará su información en los platos existentes.";
-    } else {
-      nuevoEstadoModal.textContent = "Disponible";
-      nuevoEstadoModal.style.color = "#27AE60";
-      textoAlertaModal.textContent = "El ingrediente volverá a estar disponible para nuevas recetas.";
-    }
-
-    modal.style.display = 'flex';
-  }
-
-  // Configuración de los botones del modal
-  document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('modal-estado');
-    const btnCancelar = document.getElementById('btn-cancelar-modal');
-    const btnConfirmar = document.getElementById('btn-confirmar-modal');
-    const btnCerrar = document.getElementById('btn-cerrar-modal');
-
-    function cerrarModal() {
-      modal.style.display = 'none';
-      urlPendiente = '';
-    }
-
-    btnCancelar.addEventListener('click', cerrarModal);
-    btnCerrar.addEventListener('click', cerrarModal);
-
-    btnConfirmar.addEventListener('click', function () {
-      if (urlPendiente) {
-        window.location.href = urlPendiente;
-      }
+    const unidadIngredienteModal = document.getElementById('unidad-ingrediente-modal');
+    const costoIngredienteModal = document.getElementById('costo-ingrediente-modal');
+    const estadoActualModal = document.getElementById('estado-actual-modal');
+    const listaImportante = document.getElementById('lista-importante');
+    
+    document.getElementById('motivo-cambio')?.addEventListener('input', function() {
+        document.getElementById('contador-motivo').textContent = `${this.value.length}/250`;
     });
-  });
+
+    window.abrirModalEstadoIngrediente = function (url, nombre, unidad, costo, estaActivo) {
+      form.action = url;
+      nombreIngredienteModal.textContent = nombre;
+      unidadIngredienteModal.textContent = `Unidad: ${unidad}`;
+      costoIngredienteModal.textContent = `$${parseFloat(costo).toLocaleString('es-AR')}`;
+
+      if (estaActivo) {
+        estadoActualModal.textContent = 'Disponible';
+        estadoActualModal.className = 'badge badge-disponible';
+        listaImportante.innerHTML = `
+          <li>El ingrediente dejará de estar disponible para nuevas recetas.</li>
+          <li>Se conservará su información en los platos existentes.</li>
+          <li>Podrás volver a habilitarlo luego.</li>
+        `;
+      } else {
+        estadoActualModal.textContent = 'No disponible';
+        estadoActualModal.className = 'badge badge-inactivo';
+        listaImportante.innerHTML = `
+          <li>El ingrediente volverá a estar disponible para nuevas recetas.</li>
+          <li>Los platos que lo requieren podrán prepararse nuevamente.</li>
+          <li>Se notificará a los cocineros del cambio.</li>
+        `;
+      }
+      modal.style.display = 'flex';
+    };
+
+    window.cerrarModalEstado = function () {
+      modal.style.display = 'none';
+    };
+});
 </script>
 {% endblock %}

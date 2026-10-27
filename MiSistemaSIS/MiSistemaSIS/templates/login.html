@@ -5,72 +5,187 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Iniciar Sesión - Los Cardones</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&display=swap"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Playfair+Display:ital@1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
     <link rel="stylesheet" href="{% static 'css/login.css' %}" />
   </head>
   <body>
-    <div class="login-wrapper">
-      <div class="login-panel">
-        <div class="login-card">
-          <div class="login-header">
-            <img
-              src="{% static 'img/logo.jpg' %}"
-              alt="Logo Los Cardones"
-              class="login-logo"
-            />
-            <h1>LOS CARDONES</h1>
-            <p>Sistema de Gestión Gastronómica</p>
-          </div>
+    <div class="login-container">
+      <div class="login-imagen">
+        <div class="img-paisaje"></div>
+        <div class="img-empanadas"></div>
 
-          <!-- Formulario -->
-          <form method="POST" class="login-form">
-            {% csrf_token %}
-            <!-- Mensajes de Error -->
-            {% if form.errors %}
+      <svg class="onda-svg"
+     viewBox="0 0 500 900"
+     preserveAspectRatio="none"
+     xmlns="http://www.w3.org/2000/svg"
+     aria-hidden="true">
+
+    <!-- DEFINICIÓN DE LOS DEGRADADOS VERTICALES -->
+    <defs>
+        <!-- Degradado para la onda naranja superior (Arriba oscuro, abajo claro) -->
+        <linearGradient id="gradNaranjaSup" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#E0951A" />  <!-- Naranja oscuro arriba -->
+            <stop offset="100%" stop-color="#F5A623" /> <!-- Naranja claro abajo -->
+        </linearGradient>
+
+        <!-- Degradado para la onda naranja inferior 1 (Arriba claro, abajo oscuro) -->
+        <linearGradient id="gradNaranjaInf1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#F5A623" />  <!-- Naranja claro arriba -->
+            <stop offset="100%" stop-color="#E0951A" /> <!-- Naranja oscuro abajo -->
+        </linearGradient>
+
+        <!-- Degradado para la onda naranja inferior 2 (Más oscura) -->
+        <linearGradient id="gradNaranjaInf2" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#E0951A" />
+            <stop offset="100%" stop-color="#C06C0F" /> <!-- Naranja más oscuro -->
+        </linearGradient>
+
+        <!-- Degradado blanco (Blanco arriba, gris muy claro abajo) -->
+        <linearGradient id="gradBlanco" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="100%" stop-color="#F3F4F6" />
+        </linearGradient>
+    </defs>
+
+    <!-- Onda naranja superior -->
+    <path
+        d="M0 210 C90 170 155 195 235 220 C330 250 410 315 500 325 L500 365 C400 350 325 290 235 260 C145 230 75 225 0 270 Z"
+        fill="url(#gradNaranjaSup)"/>
+
+    <!-- Línea clara superior -->
+    <path
+        d="M0 270 C75 225 145 230 235 260 C325 290 400 350 500 365"
+        fill="none"
+        stroke="#FFF8EC"
+        stroke-width="5"/>
+
+    <!-- Zona blanca central -->
+    <path
+        d="M0 270 C75 225 145 230 235 260 C325 290 400 350 500 365 L500 650 C405 685 330 725 245 690 C155 655 80 610 0 645 Z"
+        fill="url(#gradBlanco)"/>
+
+    <!-- Primera onda inferior -->
+    <path
+        d="M0 645 C80 610 155 655 245 690 C330 725 405 685 500 650 L500 690 C405 730 330 770 245 735 C155 700 80 655 0 690 Z"
+        fill="url(#gradNaranjaInf1)"/>
+
+    <!-- Segunda onda inferior oscura -->
+    <path
+        d="M0 690 C80 655 155 700 245 735 C330 770 405 730 500 690 L500 725 C405 770 330 805 245 770 C155 735 80 690 0 730 Z"
+        fill="url(#gradNaranjaInf2)"/>
+
+    <!-- Línea crema inferior -->
+    <path
+        d="M0 730 C80 690 155 735 245 770 C330 805 405 770 500 725"
+        fill="none"
+        stroke="#FFF8EC"
+        stroke-width="4"/>
+
+</svg>
+
+        <div class="contenido-logo">
+          <img
+            src="{% static 'img/logo/logo.png' %}"
+            alt="Los Cardones"
+            class="logo-onda"
+          />
+
+          <p class="slogan">SABORES QUE NOS UNEN</p>
+        </div>
+      </div>
+
+      <div class="login-formulario">
+        <div class="form-contenido">
+          <h1>Iniciar sesión</h1>
+          <p class="subtitulo">
+            Accedé a tu cuenta para continuar con Los Cardones.
+          </p>
+          <div class="linea-naranja"></div>
+          <form method="POST">
+            {% csrf_token %} {% if form.errors %}
             <div class="alerta-error">
               <span class="material-symbols-outlined">error</span>
               Usuario o contraseña incorrectos. Intente de nuevo.
             </div>
             {% endif %}
-            <!-- Usuario -->
-            <div class="input-group">
-              <label for="username">USUARIO</label>
+
+            <!-- Campo: Correo o Usuario -->
+            <div class="grupo-campo">
+              <label>Correo electrónico</label>
               <div class="input-con-icono">
-                <span class="material-symbols-outlined">person</span>
-                <input type="text" name="username" id="username" placeholder="Ingresá tu usuario" required autofocus/>
+                <span class="material-symbols-outlined">mail</span>
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="ejemplo@correo.com"
+                  required
+                  autofocus
+                />
               </div>
             </div>
-            <!-- Contraseña -->
-            <div class="input-group">
-              <label for="password">CONTRASEÑA</label>
+
+            <!-- Campo: Contraseña -->
+            <div class="grupo-campo">
+              <label>Contraseña</label>
               <div class="input-con-icono">
                 <span class="material-symbols-outlined">lock</span>
-                <input type="password" name="password" id="password" placeholder="Ingresá tu contraseña" required />
-                <span class="material-symbols-outlined toggle-password" onclick="togglePassword()">visibility_off</span>
+                <input
+                  type="password"
+                  name="password"
+                  id="id_password"
+                  placeholder="••••••••"
+                  required
+                />
+                <span
+                  class="material-symbols-outlined toggle-password"
+                  onclick="togglePassword()"
+                  >visibility_off</span
+                >
               </div>
             </div>
-            <!-- Olvidé mi contraseña -->
-            <div class="olvide-password">
-              <a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+
+            <!-- Recordar y Olvidé contraseña -->
+            <div class="opciones-extra">
+              <label class="recordar">
+                <input type="checkbox" name="remember" />
+                <span>Recordar sesión</span>
+              </label>
+              <a href="{% url 'password_reset' %}" class="olvide"
+                >¿Olvidaste tu contraseña?</a
+              >
             </div>
-            <!-- Botón Ingresar -->
+
+            <!-- Botón Iniciar Sesión -->
             <button type="submit" class="btn-login">
-              <span class="material-symbols-outlined">login</span>
-              INGRESAR
+              <span class="material-symbols-outlined">login</span> Iniciar
+              sesión
             </button>
-            <div class="login-footer-form">
-              <p>© 2026 Los Cardones</p>
-              <p>Salta, Argentina</p>
-            </div>
           </form>
+          <div class="ayuda-admin">
+            <span class="material-symbols-outlined">info</span>
+            <p>
+              Si tenés problemas para acceder, contactá con el administrador del
+              sistema.
+            </p>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Script para mostrar/ocultar contraseña -->
     <script>
       function togglePassword() {
         const input = document.getElementById("id_password");
         const icono = document.querySelector(".toggle-password");
-
         if (input.type === "password") {
           input.type = "text";
           icono.textContent = "visibility";

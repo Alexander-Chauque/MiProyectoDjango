@@ -3,12 +3,13 @@
   margin: 0 auto;
   padding: 20px;
   font-family: 'Segoe UI', Arial, sans-serif;
+  overflow: visible;
 }
 
 .header-comanda h1 {
   font-family: 'Oswald', sans-serif;
   font-size: 28px;
-  color: #2d3748;
+  color: #3D3D3D;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -16,7 +17,7 @@
 }
 
 .header-comanda p {
-  color: #718096;
+  color: #6B7280;;
   margin-bottom: 25px;
 }
 
@@ -35,7 +36,10 @@
   border: 1px solid #E2E8F0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   margin-bottom: 25px;
-  overflow: hidden;
+  padding-bottom: 5px;
+}
+.tarjeta-carrito {
+    min-height: 400px;
 }
 
 .titulo-tarjeta,
@@ -92,7 +96,7 @@
 
 .select-con-icono span {
   padding: 10px 12px;
-  color: #718096;
+  color: #6B7280;
   border-right: 1px solid #CBD5E0;
 }
 
@@ -107,7 +111,7 @@
 
 .texto-ayuda {
   font-size: 12px;
-  color: #718096;
+  color: #6B7280;
   margin-top: 5px;
   display: block;
 }
@@ -156,7 +160,7 @@
   border-radius: 8px;
   font-size: 14px;
   font-family: 'Segoe UI', Arial, sans-serif;
-  color: #2D3748;
+  color: #3D3D3D;
   background-color: #F7FAFC;
   transition: all 0.3s;
   resize: vertical;
@@ -205,7 +209,7 @@
   border-radius: 20px;
   cursor: pointer;
   font-size: 13px;
-  color: #4A5568;
+  color: #3D3D3D;
   transition: all 0.2s;
 }
 
@@ -247,12 +251,12 @@
 .prod-info strong {
   display: block;
   font-size: 14px;
-  color: #2D3748;
+  color: #3D3D3D;
 }
 
 .prod-info span {
   font-size: 11px;
-  color: #718096;
+  color: #6B7280;;
   display: block;
 }
 
@@ -332,12 +336,12 @@
 
 .item-datos strong {
   font-size: 14px;
-  color: #2D3748;
+  color: #3D3D3D
 }
 
 .item-datos span {
   font-size: 13px;
-  color: #718096;
+  color: #6B7280;
 }
 
 .item-controles {
@@ -373,7 +377,7 @@
   margin-left: auto;
   font-weight: 700;
   font-size: 14px;
-  color: #2D3748;
+  color: #3D3D3D;
 }
 
 .btn-eliminar {
@@ -465,7 +469,7 @@
 
 .btn-secundario {
   background: white;
-  color: #4A5568;
+  color: #3D3D3D;
   border: 1px solid #CBD5E0;
 }
 
@@ -489,6 +493,7 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   margin-bottom: 25px;
   overflow: hidden;
+  height: fit-content;
 }
 
 .titulo-tarjeta {
@@ -502,7 +507,7 @@
 .titulo-tarjeta h3 {
   font-family: 'Oswald', sans-serif;
   font-size: 18px;
-  color: #2D3748;
+  color: #3D3D3D;
   margin: 0;
 }
 
@@ -590,7 +595,7 @@
 .info-label {
   font-family: 'Oswald', sans-serif;
   font-size: 11px;
-  color: #718096;
+  color: #6B7280;
   text-transform: uppercase;
   margin-bottom: 2px;
 }
@@ -626,7 +631,7 @@
   padding: 15px 20px;
   font-family: 'Oswald', sans-serif;
   font-size: 12px;
-  color: #718096;
+  color: #6B7280;
   text-transform: uppercase;
   font-weight: 500;
   text-align: left;
@@ -676,7 +681,7 @@
   align-items: center;
   gap: 10px;
   font-size: 18px;
-  color: #2D3748;
+  color: #3D3D3D;
 }
 
 .total-label .material-symbols-outlined {
@@ -708,23 +713,40 @@
   color: #FFFFFF;
 }
 /* El menú oculto */
+.dropdown-estado {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Menú desplegable */
 .dropdown-menu-estado {
   display: none;
   position: absolute;
+  top: calc(100% + 5px);
+  bottom: auto;
   right: 0;
-  top: 100%;
-  background-color: #FFFFFF;
-  min-width: 170px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
-  z-index: 100;
+
+  min-width: 190px;
   padding: 5px 0;
-  margin-top: 5px;
+  margin: 0;
+
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+
+  z-index: 10000;
 }
-/* Mostrar al pasar el mouse */
+
+/* Mostrar menú */
 .dropdown-menu-estado.mostrar {
   display: block;
+}
+
+/* Abrir hacia arriba */
+.dropdown-menu-estado.abrir-arriba {
+  top: auto;
+  bottom: calc(100% + 5px);
 }
 /* Items del menú */
 .dropdown-item {
@@ -789,10 +811,12 @@
   background-color: #EF4444;
 }
 
+
+
 /* Truco visual: Si es la última fila, abrir el menú hacia arriba para que no se corte */
 .tabla tbody tr:last-child .dropdown-menu-estado {
   top: auto;
-  bottom: 100%;
+  bottom: calc(100% + 5px) !important;
   margin-top: 0;
   margin-bottom: 5px;
 }
