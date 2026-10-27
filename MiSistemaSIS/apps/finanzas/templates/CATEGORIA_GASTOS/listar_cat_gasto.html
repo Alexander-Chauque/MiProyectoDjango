@@ -194,12 +194,20 @@
                    title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
+                  
+                  <form method="post"
+                        action="{% url 'finanzas:estado_categoria' cat_gasto.pk %}"
+                        style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit"
+                              class="btn-icon {% if cat_gasto.estado_categoria_gasto %}btn-baja{% else %}btn-reactivar{% endif %}"
+                              title="{% if cat_gasto.estado_categoria_gasto %}Desactivar{% else %}Activar{% endif %}">
+                          <span class="material-symbols-outlined">
+                              {% if cat_gasto.estado_categoria_gasto %}toggle_off{% else %}toggle_on{% endif %}
+                          </span>
+                      </button>
+                  </form>
 
-                <a href="{% url 'finanzas:estado_categoria' cat_gasto.pk %}"
-                   class="btn-icon {% if cat_gasto.estado_categoria_gasto %}btn-baja{% else %}btn-reactivar{% endif %}"
-                   title="{% if cat_gasto.estado_categoria_gasto %}Desactivar{% else %}Activar{% endif %}">
-                  <span class="material-symbols-outlined">{% if cat_gasto.estado_categoria_gasto %}toggle_off{% else %}toggle_on{% endif %}</span>
-                </a>
 
                 <a href="{% url 'finanzas:eliminar_cat_gasto' cat_gasto.pk %}"
                    class="btn-icon btn-clave"

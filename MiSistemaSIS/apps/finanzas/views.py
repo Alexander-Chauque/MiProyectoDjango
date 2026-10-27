@@ -18,6 +18,7 @@ from ventas.models import Comanda, Mesa
 from django.utils.dateparse import parse_date
 from datetime import datetime, time, timedelta
 from django.utils import timezone
+from core.auditoria import registrar_auditoria
 @login_required
 def finanzas_home(request):
     return render(request, 'finanzas_home.html')
@@ -88,65 +89,117 @@ def crear_cat_gasto(request):
         return redirect('finanzas:listar_cat_gasto')
 
     return render(request, 'CATEGORIA_GASTOS/crear_cat_gasto.html')
+
 @login_required
 @permiso_requerido('caja', 'modificar')
 def editar_cat_gasto(request, pk):
     categoria = get_object_or_404(categoria_gasto, pk=pk)
-
-    # Impedir la modificación si ya fue utilizada
+    # Impedir la modificación si ya fue utilizada.
     if categoria.gastos.exists():
         messages.error(
             request,
             'No se puede modificar esta categoría porque ya tiene gastos asociados.'
         )
         return redirect('finanzas:listar_cat_gasto')
-
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
-
         if not nombre:
-            messages.error(request, 'El nombre es obligatorio.')
+            messages.error(
+                request,
+                'El nombre es obligatorio.'
+            )
         elif categoria_gasto.objects.filter(
             nombre_categoria_gasto__iexact=nombre
         ).exclude(pk=categoria.pk).exists():
-            messages.error(request, 'Ya existe una categoría con ese nombre.')
+            messages.error(
+                request,
+                'Ya existe una categoría con ese nombre.'
+            )
         else:
-            categoria.nombre_categoria_gasto = nombre.title()
-            categoria.descripcion_categoria_gasto = descripcion
-            categoria.save()
-
-            messages.success(request, 'Categoría actualizada correctamente.')
+            nombre = nombre.title()
+            valores_anteriores = {
+                'nombre_categoria_gasto':
+                    categoria.nombre_categoria_gasto,
+                'descripcion_categoria_gasto':
+                    categoria.descripcion_categoria_gasto,
+                'estado_categoria_gasto':
+                    categoria.estado_categoria_gasto,
+            }
+            valores_actuales = {
+                'nombre_categoria_gasto': nombre,
+                'descripcion_categoria_gasto': descripcion,
+                'estado_categoria_gasto':
+                    categoria.estado_categoria_gasto,
+            }
+            with transaction.atomic():
+                categoria.nombre_categoria_gasto = nombre
+                categoria.descripcion_categoria_gasto = descripcion
+                categoria.save()
+                # Registrar solo si hubo un cambio real.
+                if valores_anteriores != valores_actuales:
+                    registrar_auditoria(
+                        usuario=request.user,
+                        entidad='categoria_gasto',
+                        id_registro=categoria.pk,
+                        accion='MODIFICACION',
+                        valores_anteriores=valores_anteriores,
+                        valores_actuales=valores_actuales,
+                    )
+            messages.success(
+                request,
+                'Categoría actualizada correctamente.'
+            )
             return redirect('finanzas:listar_cat_gasto')
-
-    return render(request, 'CATEGORIA_GASTOS/editar_cat_gasto.html', {
-        'categoria': categoria
-    })
+    return render(
+        request,
+        'CATEGORIA_GASTOS/editar_cat_gasto.html',
+        {'categoria': categoria}
+    )
 
 @login_required
 @permiso_requerido('caja', 'eliminar')
 def eliminar_cat_gasto(request, pk):
     categoria = get_object_or_404(categoria_gasto, pk=pk)
-    # Comprobar si la categoría está siendo utilizada
     if categoria.gastos.exists():
         messages.error(
             request,
-            f'No se puede eliminar la categoría "{categoria.nombre_categoria_gasto}" '
+            f'No se puede eliminar la categoría '
+            f'"{categoria.nombre_categoria_gasto}" '
             'porque está asociada a uno o más gastos.'
         )
         return redirect('finanzas:listar_cat_gasto')
     if request.method == 'POST':
         nombre = categoria.nombre_categoria_gasto
-        categoria.delete()
+        valores_anteriores = {
+            'nombre_categoria_gasto':
+                categoria.nombre_categoria_gasto,
+            'descripcion_categoria_gasto':
+                categoria.descripcion_categoria_gasto,
+            'estado_categoria_gasto':
+                categoria.estado_categoria_gasto,
+        }
+        with transaction.atomic():
+            # Guardar el historial antes de borrar la categoría.
+            registrar_auditoria(
+                usuario=request.user,
+                entidad='categoria_gasto',
+                id_registro=categoria.pk,
+                accion='ANULACION',
+                valores_anteriores=valores_anteriores,
+                valores_actuales=None,
+            )
+            categoria.delete()
         messages.success(
             request,
             f'Categoría "{nombre}" eliminada correctamente.'
         )
         return redirect('finanzas:listar_cat_gasto')
-    return render(request, 'CATEGORIA_GASTOS/eliminar_cat_gasto.html', {
-        'categoria': categoria
-    })
-
+    return render(
+        request,
+        'CATEGORIA_GASTOS/eliminar_cat_gasto.html',
+        {'categoria': categoria}
+    )
 
 @login_required
 @permiso_requerido('caja', 'leer')
@@ -166,16 +219,59 @@ def detalle_cat_gasto(request, pk):
 @permiso_requerido('caja', 'modificar')
 def estado_categoria(request, pk):
     categoria = get_object_or_404(categoria_gasto, pk=pk)
-    categoria.estado_categoria_gasto = not categoria.estado_categoria_gasto
-    categoria.save()
-    
-    if categoria.estado_categoria_gasto:
-        messages.success(request, f'Categoría "{categoria.nombre_categoria_gasto}" activada')
+    if request.method != 'POST':
+        messages.error(
+            request,
+            'La operación debe realizarse mediante un formulario.'
+        )
+        return redirect('finanzas:listar_cat_gasto')
+    estado_anterior = categoria.estado_categoria_gasto
+    estado_actual = not estado_anterior
+    valores_anteriores = {
+        'nombre_categoria_gasto':
+            categoria.nombre_categoria_gasto,
+        'descripcion_categoria_gasto':
+            categoria.descripcion_categoria_gasto,
+        'estado_categoria_gasto': estado_anterior,
+    }
+    valores_actuales = {
+        'nombre_categoria_gasto':
+            categoria.nombre_categoria_gasto,
+        'descripcion_categoria_gasto':
+            categoria.descripcion_categoria_gasto,
+        'estado_categoria_gasto': estado_actual,
+    }
+    accion = (
+        'ANULACION' if estado_anterior
+        else 'MODIFICACION'
+    )
+    with transaction.atomic():
+        categoria.estado_categoria_gasto = estado_actual
+        categoria.save(update_fields=['estado_categoria_gasto'])
+        registrar_auditoria(
+            usuario=request.user,
+            entidad='categoria_gasto',
+            id_registro=categoria.pk,
+            accion=accion,
+            valores_anteriores=valores_anteriores,
+            valores_actuales=valores_actuales,
+        )
+    if estado_actual:
+        messages.success(
+            request,
+            f'Categoría "{categoria.nombre_categoria_gasto}" activada.'
+        )
     else:
-        messages.success(request, f'Categoría "{categoria.nombre_categoria_gasto}" desactivada')
-    
-    return redirect(request.META.get('HTTP_REFERER','finanzas:listar_cat_gasto'))
-
+        messages.success(
+            request,
+            f'Categoría "{categoria.nombre_categoria_gasto}" desactivada.'
+        )
+    return redirect(
+        request.META.get(
+            'HTTP_REFERER',
+            'finanzas:listar_cat_gasto'
+        )
+    )
 # FUNCIONES PARA METODOS DE PAGO
 @login_required
 @permiso_requerido('caja', 'leer')

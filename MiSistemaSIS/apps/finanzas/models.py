@@ -1,7 +1,7 @@
 from django.db import models
 from empleados.models import Empleado
 from ventas.models import Comanda, Mesa
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
