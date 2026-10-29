@@ -6,6 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/inventario.css' %}">
+
 {% endblock %}
 
 {% block content %}
@@ -160,8 +161,16 @@
                 <a href="{% url 'inventario:editar_plato' plato.pk %}" class="btn-icon btn-editar" title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
-                <a href="{% url 'inventario:estado_plato' plato.pk %}" class="btn-icon {% if plato.estado_plato %}btn-baja{% else %}btn-reactivar{% endif %}" data-url="{% url 'inventario:estado_plato' plato.pk %}" data-nombre="{{ plato.nombre_plato }}" data-estado="{{ plato.estado_plato|yesno:'true,false' }}" onclick="event.preventDefault(); abrirModalDesdeBoton(this);">
-                  <span class="material-symbols-outlined">{% if plato.estado_plato %}toggle_off{% else %}toggle_on{% endif %}</span>
+                <a href="#" class="btn-icon {% if plato.estado_plato %}btn-baja{% else %}btn-reactivar{% endif %}" 
+                  onclick="event.preventDefault(); abrirModalEstado(
+                      '{% url 'inventario:estado_plato' plato.pk %}',
+                      '{{ plato.nombre_plato }}',
+                      '{{ plato.precio_plato }}',
+                      {{ plato.estado_plato|yesno:'true,false' }}
+                  );">
+                    <span class="material-symbols-outlined">
+                        {% if plato.estado_plato %}toggle_off{% else %}toggle_on{% endif %}
+                    </span>
                 </a>
                 <a href="{% url 'inventario:eliminar_plato' plato.pk}" class="btn-icon btn-clave" title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
@@ -216,38 +225,68 @@
     </main>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-estado" style="display: none;">
-  <div class="modal-contenido">
-    <!--Icono de alerta + título + botón cerrar -->
+  <div class="modal-contenido" style="max-width: 700px;">
+    
+    <!-- Header -->
     <div class="modal-header">
       <div class="modal-icono-alerta">
         <span class="material-symbols-outlined">warning</span>
       </div>
-      <h3>¿Cambiar estado del plato?</h3>
-      <button class="btn-cerrar-modal" id="btn-cerrar-modal">
+      <div>
+        <h3 id="modal-titulo">¿Cambiar estado del plato?</h3>
+        <p style="font-size: 15px; color: #718096; margin: 5px 0 0 0;">Estás seguro de cambiar el estado del plato seleccionado.</p>
+      </div>
+      <button class="btn-cerrar-modal" onclick="cerrarModalEstado()">
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
 
-    <!--Texto y caja de advertencia -->
-    <div class="modal-body">
-      <p>Estás seguro de que querés cambiar el estado de <strong id="nombre-plato-modal"></strong> a <strong
-          id="nuevo-estado-modal"></strong>?</p>
+    <form id="form-cambiar-estado" method="POST" action="">
+      {% csrf_token %}
+      
+      <div class="modal-body">
+        <div class="tarjeta-resumen-plato">
+          
+          <div class="resumen-info-izq">
+            <div class="resumen-datos">
+              <strong id="nombre-plato-modal">Agnolotti con Salsa</strong>
+              <small>Plato principal</small>
+              <span class="resumen-precio" id="precio-plato-modal">$ 11.500</span>
+            </div>
+          </div>
 
-      <div class="modal-alerta-info">
-        <span class="material-symbols-outlined">info</span>
-        <p id="texto-alerta-modal"></p>
+          <div class="resumen-info-der">
+            <span class="resumen-label">Estado actual</span>
+            <span class="badge" id="estado-actual-modal">Disponible</span>
+          </div>
+        </div>
+        <div class="grupo-campo" style="margin-top: 25px;">
+          <label>Motivo del cambio <span class="req">*</span></label>
+          <textarea name="motivo_cambio" id="motivo-cambio" class="form-control" rows="3" maxlength="250" placeholder="Ej.: falta de ingredientes, retiro temporal del menú, error de carga, etc." required></textarea>
+          <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+            <span class="text-gris">Registrá el motivo para dejar constancia en el historial.</span>
+            <span class="text-gris" id="contador-motivo">0/250</span>
+          </div>
+        </div>
+        <div class="modal-alerta-info-naranja">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <strong>Importante</strong>
+            <ul id="lista-importante">
+            </ul>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!--Botones cancelar y confirmar-->
-    <div class="modal-footer">
-      <button type="button" class="btn-secundario" id="btn-cancelar-modal">Cancelar</button>
-      <button type="button" class="btn-primario" id="btn-confirmar-modal">
-        <span class="material-symbols-outlined">toggle_on</span> Confirmar cambio
-      </button>
-    </div>
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalEstado()">Cancelar</button>
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">sync</span> Confirmar cambio
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -296,55 +335,49 @@
     });
   });
 
-  function abrirModalDesdeBoton(elemento) {
-    const url = elemento.getAttribute('data-url');
-    const nombre = elemento.getAttribute('data-nombre');
-    const estaActivo = elemento.getAttribute('data-estado') === 'true';
-    window.abrirModalEstado(url, nombre, estaActivo);
-  }
-
   document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modal-estado');
-    const btnCancelar = document.getElementById('btn-cancelar-modal');
-    const btnConfirmar = document.getElementById('btn-confirmar-modal');
-    const btnCerrar = document.getElementById('btn-cerrar-modal');
-
+    const form = document.getElementById('form-cambiar-estado');
+    
+    // Elementos del modal
     const nombrePlatoModal = document.getElementById('nombre-plato-modal');
-    const nuevoEstadoModal = document.getElementById('nuevo-estado-modal');
-    const textoAlertaModal = document.getElementById('texto-alerta-modal');
-
-    let urlPendiente = '';
-
-    window.abrirModalEstado = function (url, nombre, estaActivo) {
-      urlPendiente = url;
-      nombrePlatoModal.textContent = `"${nombre}"`;
-
-      if (estaActivo) {
-        nuevoEstadoModal.textContent = "No disponible";
-        nuevoEstadoModal.style.color = "#F5A623";
-        textoAlertaModal.textContent = "El plato dejará de estar disponible para nuevas comandas, pero se conservará su información para el historial.";
-      } else {
-        nuevoEstadoModal.textContent = "Disponible";
-        nuevoEstadoModal.style.color = "#27AE60";
-        textoAlertaModal.textContent = "El plato volverá a estar disponible para nuevas comandas.";
-      }
-
-      modal.style.display = 'flex';
+    const precioPlatoModal = document.getElementById('precio-plato-modal');
+    const estadoActualModal = document.getElementById('estado-actual-modal');
+    const listaImportante = document.getElementById('lista-importante');
+    
+    // Contador de caracteres
+    document.getElementById('motivo-cambio')?.addEventListener('input', function() {
+        document.getElementById('contador-motivo').textContent = `${this.value.length}/250`;
+    });
+    window.abrirModalEstado = function (url, nombre, precio, estaActivo) {
+        form.action = url;
+        nombrePlatoModal.textContent = nombre;
+        precioPlatoModal.textContent = `$${parseFloat(precio).toLocaleString('es-AR')}`;
+        if (estaActivo) {
+            estadoActualModal.textContent = 'Disponible';
+            estadoActualModal.className = 'badge badge-disponible';
+            
+            listaImportante.innerHTML = `
+                <li>El plato dejará de estar disponible para nuevas comandas.</li>
+                <li>Se conservará su información para el historial.</li>
+                <li>Podrás volver a habilitarlo luego.</li>
+            `;
+        } else {
+            estadoActualModal.textContent = 'No disponible';
+            estadoActualModal.className = 'badge badge-inactivo';
+            
+            listaImportante.innerHTML = `
+                <li>El plato volverá a aparecer en la carta.</li>
+                <li>Podrá ser agregado a nuevas comandas.</li>
+                <li>Se notificará a los mozos del cambio.</li>
+            `;
+        }
+        modal.style.display = 'flex';
     };
 
-    function cerrarModal() {
-      modal.style.display = 'none';
-      urlPendiente = '';
-    }
-
-    btnCancelar.addEventListener('click', cerrarModal);
-    btnCerrar.addEventListener('click', cerrarModal);
-
-    btnConfirmar.addEventListener('click', function () {
-      if (urlPendiente) {
-        window.location.href = urlPendiente;
-      }
-    });
+    window.cerrarModalEstado = function () {
+        modal.style.display = 'none';
+    };
   });
 </script>
 {% endblock %}

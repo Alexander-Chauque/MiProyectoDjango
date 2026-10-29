@@ -39,7 +39,19 @@
     </div>
   </div>
 
-  <!-- FORMULARIO-->
+  {% if form.errors %}
+    <div class="alert alert-error" style="margin-bottom: 20px;">
+      <strong>Corregí los siguientes errores:</strong>
+      <ul>
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+    <!-- FORMULARIO-->
   <form method="POST" class="tarjeta-formulario-mesa">
     {% csrf_token %}
 
@@ -50,26 +62,27 @@
         <label>Número de mesa <span class="req">*</span></label>
         <div class="input-icono-mesa">
           <span class="material-symbols-outlined">table_restaurant</span>
-          <input type="text" name="numero_mesa" class="form-control-mesa" placeholder="Ej. 12" required
-            value="{{ request.POST.numero_mesa }}">
+          {{ form.numero_mesa }}
         </div>
         <span class="texto-ayuda">Ingresá un número único para identificar la mesa.</span>
+        {% if form.numero_mesa.errors %}
+          <span style="color: red; font-size: 12px;">{{ form.numero_mesa.errors.0 }}</span>
+        {% endif %}
       </div>
 
-      <!-- Ubicación -->
-      <div class="grupo-campo">
-        <label>Ubicación <span class="req">*</span></label>
-        <div class="input-icono-mesa">
-          <span class="material-symbols-outlined">location_on</span>
-          <select name="ubicacion" class="form-control-mesa" required>
-            <option value="">Seleccioná una ubicación</option>
-            <option value="Salon" {% if request.POST.ubicacion == 'Salon' %}selected{% endif %}>Salón interior</option>
-            <option value="Patio" {% if request.POST.ubicacion == 'Patio' %}selected{% endif %}>Patio</option>
-          </select>
-        </div>
-        <span class="texto-ayuda">Opciones: Salón interior, Patio.</span>
-      </div>
+  <!-- Ubicación -->
+  <div class="grupo-campo">
+    <label>Ubicación <span class="req">*</span></label>
+    <div class="input-icono-mesa">
+      <span class="material-symbols-outlined">location_on</span>
+      {{ form.ubicacion }}
     </div>
+    <span class="texto-ayuda">Opciones: Salón interior, Patio.</span>
+    {% if form.ubicacion.errors %}
+      <span style="color: red; font-size: 12px;">{{ form.ubicacion.errors.0 }}</span>
+    {% endif %}
+  </div>
+</div>
     <div class="acciones-formulario-mesa">
       <a href="{% url 'ventas:listar_mesa' %}" class="btn-secundario-mesa">Cancelar</a>
       <button type="submit" class="btn-primario-mesa">
@@ -77,42 +90,6 @@
       </button>
     </div>
   </form>
-
-  <div class="tarjeta-estado-mesas">
-    <div class="header-estado-mesas">
-      <div class="titulo-estado">
-        <span class="material-symbols-outlined icono-naranja">table_restaurant</span>
-        <div>
-          <h2>Estado de las mesas</h2>
-          <p>Visualizá el estado actual de las mesas del salón.</p>
-        </div>
-      </div>
-      <div class="leyenda-estados">
-        <span class="badge badge-libre">● Libre</span>
-        <span class="badge badge-ocupada">● Ocupada</span>
-        <span class="badge badge-fuera">● Fuera de servicio</span>
-      </div>
-    </div>
-
-    <!-- Grilla de Mesas de Ejemplo -->
-    <div class="grilla-estado-mesas">
-      <div class="mesa-card mesa-libre">
-        <span class="material-symbols-outlined">table_restaurant</span>
-        <div class="mesa-info"><strong>01</strong><span class="badge badge-libre">Libre</span></div>
-      </div>
-      <div class="mesa-card mesa-ocupada">
-        <span class="material-symbols-outlined">table_restaurant</span>
-        <div class="mesa-info"><strong>02</strong><span class="badge badge-ocupada">Ocupada</span></div>
-      </div>
-      <div class="mesa-card mesa-libre">
-        <span class="material-symbols-outlined">table_restaurant</span>
-        <div class="mesa-info"><strong>03</strong><span class="badge badge-libre">Libre</span></div>
-      </div>
-      <div class="mesa-card mesa-fuera">
-        <span class="material-symbols-outlined">table_restaurant</span>
-        <div class="mesa-info"><strong>04</strong><span class="badge badge-fuera">Fuera de servicio</span></div>
-      </div>
-    </div>
   </div>
 
 </div>

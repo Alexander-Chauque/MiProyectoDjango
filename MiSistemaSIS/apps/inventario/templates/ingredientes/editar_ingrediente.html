@@ -62,11 +62,11 @@
       <label>Unidad de Medida <span class="req">*</span></label>
       <select name="unidad_medida" class="form-control" required>
         <option value="">Seleccionar unidad</option>
-        <option value="kg" {% if ingrediente.unidad_medida=='kg' %}selected{% endif %}>Kilogramos (kg)</option>
-        <option value="g" {% if ingrediente.unidad_medida=='g' %}selected{% endif %}>Gramos (g)</option>
-        <option value="litro" {% if ingrediente.unidad_medida=='litro' %}selected{% endif %}>Litros (L)</option>
-        <option value="ml" {% if ingrediente.unidad_medida=='ml' %}selected{% endif %}>Mililitros (ml)</option>
-        <option value="unidad" {% if ingrediente.unidad_medida=='unidad' %}selected{% endif %}>Unidades</option>
+        <option value="kg" {% if ingrediente.unidad_medida == 'kg' %}selected{% endif %}>Kilogramos (kg)</option>
+        <option value="g" {% if ingrediente.unidad_medida == 'g' %}selected{% endif %}>Gramos (g)</option>
+        <option value="litro" {% if ingrediente.unidad_medida == 'litro' %}selected{% endif %}>Litros (L)</option>
+        <option value="ml" {% if ingrediente.unidad_medida == 'ml' %}selected{% endif %}>Mililitros (ml)</option>
+        <option value="unidad" {% if ingrediente.unidad_medida == 'unidad' %}selected{% endif %}>Unidades</option>
       </select>
     </div>
 

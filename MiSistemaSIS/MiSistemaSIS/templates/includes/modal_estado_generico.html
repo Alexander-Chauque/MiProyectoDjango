@@ -1,0 +1,76 @@
+<!-- MODAL GENÉRICO PARA CAMBIO DE ESTADO -->
+<div class="modal-overlay" id="modal-cambiar-estado" style="display: none;">
+  <div class="modal-contenido" style="max-width: 600px;">
+    
+    <div class="modal-header">
+      <div class="modal-icono-alerta" id="modal-icono-caja">
+        <span class="material-symbols-outlined" id="modal-icono">edit</span>
+      </div>
+      <div>
+        <h3 id="modal-titulo">Cambiar estado</h3>
+        <p style="font-size: 14px; color: #718096; margin: 5px 0 0 0;" id="modal-subtitulo">Confirmá la acción.</p>
+      </div>
+      <button class="btn-cerrar-modal" onclick="cerrarModalEstado()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="form-cambiar-estado" method="POST" action="">
+      {% csrf_token %}
+      
+      <div class="modal-body">
+        
+        <!-- RESUMEN DEL ELEMENTO -->
+        <div class="modal-resumen-generico">
+          <div class="resumen-visual">
+            <div class="resumen-img-placeholder" id="resumen-img-caja">
+              <span class="material-symbols-outlined" id="resumen-icono">inventory_2</span>
+            </div>
+            <div>
+              <strong id="resumen-nombre">Cargando...</strong>
+              <small id="resumen-detalle">...</small>
+            </div>
+          </div>
+          <div class="resumen-estado-actual">
+            <span class="resumen-label">Estado actual</span>
+            <span class="badge" id="resumen-estado">...</span>
+          </div>
+        </div>
+
+        <!-- TEXTO DINÁMICO DE LA ACCIÓN -->
+        <div class="grupo-campo" style="margin-top: 20px;">
+          <label>Acción a realizar</label>
+          <div style="padding: 12px 15px; background-color: #FFF8E7; border: 1px solid #FEEBC8; border-radius: 8px; font-size: 14px; color: #92400E;">
+            ¿Querés cambiar el estado a <strong id="texto-nuevo-estado"></strong>?
+          </div>
+        </div>
+
+        <!-- MOTIVO -->
+        <div class="grupo-campo" style="margin-top: 15px;">
+          <label>Motivo del cambio <span class="req">*</span></label>
+          <textarea name="motivo_cambio" id="motivo-cambio" class="form-control" rows="3" maxlength="250" placeholder="Ej.: falta de stock, mantenimiento, etc." required></textarea>
+          <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+            <span class="modal-ayuda">Registrá el motivo para dejar constancia en el historial.</span>
+            <span class="modal-ayuda" id="contador-motivo">0/250</span>
+          </div>
+        </div>
+
+        <!-- BLOQUE IMPORTANTE -->
+        <div class="modal-alerta-peligro" style="margin-top: 20px;">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <strong>Importante</strong>
+            <ul id="lista-importante"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalEstado()">Cancelar</button>
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">sync</span> Confirmar cambio
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

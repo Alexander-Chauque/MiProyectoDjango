@@ -467,31 +467,3 @@
   padding-bottom: 30px;
 }
 
-/* Responsividad */
-@media (max-width: 900px) {
-  .detalle-grid {
-    grid-template-columns: 1fr;
-  }
-  .detalle-subtarjetas {
-    grid-template-columns: 1fr;
-  }
-  .detalle-imagen-contenedor {
-    min-height: 200px;
-  }
-
-  /* Responsividad para el formulario */
-@media (max-width: 768px) {
-  .grid-formulario-3 {
-    grid-template-columns: 1fr;
-  }
-
-  .acciones-formulario {
-    flex-direction: column;
-  }
-
-  .acciones-formulario .btn-primario,
-  .acciones-formulario .btn-secundario {
-    width: 100%;
-  }
-}
-}

@@ -1,89 +1,205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Los Cardones - Sistema Restaurante</title>
     {% load static %}
-    <link rel="icon" type="image/png" href="{% static 'img/favicon/favicon.png' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link
+      rel="icon"
+      type="image/png"
+      href="{% static 'img/favicon/favicon.png' %}"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
     {% block extra_css %}{% endblock %}
-</head>
-<body>
-
-    <nav class="navbar">
-    <div class="nav-container">
-        
-        <!-- Logo -->
-        <a href="{% url 'home' %}" class="navbar-brand">
-            <div class="logo-container">
-                <img src="{% static 'img/logo/logo.png' %}" alt="Los Cardones" class="logo-navbar">
-            </div>
+  </head>
+  <body>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="{% url 'home' %}">
+          <img
+            src="{% static 'img/logo/logo.png' %}"
+            alt="Los Cardones"
+            class="sidebar-logo"
+          />
         </a>
-        
-        <!-- Usuario y Cerrar Sesión -->
-        <div class="navbar-user">
-            {% if user.is_authenticated %}
-                
-                <!-- Bloque del usuario -->
-                <div class="user-dropdown">
-                    <div class="user-avatar">
-                        {{ user.empleado.nombre_empleado|first|default:user.username|first }}{{ user.empleado.apellido_empleado|first }}
-                    </div>
-                    <span class="user-cargo">{{ user.empleado.cargo.nombre_cargo|default:"Usuario" }}</span>
-                    <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
-                </div>
-                
-                <div class="separador"></div>
-                
-                <!-- Cerrar sesión -->
-                <a href="{% url 'logout' %}" class="logout">
-                    <span class="material-symbols-outlined">logout</span>
-                    Cerrar sesión
-                </a>
-                
-            {% else %}
-                <a href="{% url 'login' %}" class="login-link">Iniciar Sesión</a>
-            {% endif %}
+        <button class="btn-cerrar-sidebar" onclick="toggleSidebar()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="{% url 'home' %}" class="sidebar-item">
+          <span class="material-symbols-outlined">home</span> Inicio
+        </a>
+
+        <div class="sidebar-modulo">
+          <div
+            class="sidebar-item"
+            onclick="toggleSubmenu('submenu-inventario')"
+          >
+            <span class="material-symbols-outlined">inventory_2</span>
+            Inventario
+            <span class="material-symbols-outlined flecha-submenu"
+              >expand_more</span
+            >
+          </div>
+          <div class="sidebar-submenu" id="submenu-inventario">
+            <a href="{% url 'inventario:listar_platos' %}">Platos</a>
+            <a href="{% url 'inventario:listar_bebida' %}">Bebidas</a>
+            <a href="{% url 'inventario:listar_ingredientes' %}"
+              >Ingredientes</a
+            >
+          </div>
         </div>
-        
-    </div>
-</nav>
 
-    <div class="contenedor">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
+        <div class="sidebar-modulo">
+          <div
+            class="sidebar-item"
+            onclick="toggleSubmenu('submenu-empleados')"
+          >
+            <span class="material-symbols-outlined">groups</span> Empleados
+            <span class="material-symbols-outlined flecha-submenu"
+              >expand_more</span
+            >
+          </div>
+          <div class="sidebar-submenu" id="submenu-empleados">
+            <a href="{% url 'empleados:empleado_listar' %}">Listado</a>
+            <a href="{% url 'empleados:listar_cargo' %}">Cargos</a>
+            <a href="{% url 'empleados:listar_permiso' %}">Permisos</a>
+            <a href="{% url 'empleados:asistencia_listar' %}">Asistencia</a>
+          </div>
+        </div>
 
-        {% block content %}{% endblock %}
+        <a href="{% url 'ventas:listar_mesa' %}" class="sidebar-item">
+          <span class="material-symbols-outlined">table_restaurant</span> Mesas
+        </a>
+
+        <a href="{% url 'ventas:comanda_listar' %}" class="sidebar-item">
+          <span class="material-symbols-outlined">receipt_long</span> Comandas
+        </a>
+
+        <a href="{% url 'reportes:reportes_home' %}" class="sidebar-item">
+          <span class="material-symbols-outlined">bar_chart</span> Reportes
+        </a>
+
+        <a href="{% url 'auditoria:log_auditoria_listar' %}" class="sidebar-item">
+          <span class="material-symbols-outlined">history</span> Auditoría
+        </a>
+      </nav>
+    </aside>
+    <div class="overlay-sidebar" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="contenido-principal">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="btn-hamburguesa" onclick="toggleSidebar()">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <a href="{% url 'home' %}">
+            <img
+              src="{% static 'img/logo/logo.png' %}"
+              alt="Los Cardones"
+              class="logo-topbar"
+            />
+          </a>
+        </div>
+
+        <div class="navbar-user">
+          {% if user.is_authenticated %}
+          <div class="user-dropdown">
+            <div class="user-avatar">
+              {{ user.empleado.nombre_empleado|first|default:user.username|first }}{{ user.empleado.apellido_empleado|first }}
+            </div>
+            <span class="user-cargo"
+              >{{ user.empleado.cargo.nombre_cargo|default:"Usuario" }}</span
+            >
+            <span class="material-symbols-outlined dropdown-arrow"
+              >expand_more</span
+            >
+          </div>
+          <div class="separador"></div>
+          <a href="{% url 'logout' %}" class="logout">
+            <span class="material-symbols-outlined">logout</span>
+            Cerrar sesión
+          </a>
+          {% endif %}
+        </div>
+      </header>
+
+      <!-- CONTENIDO DE CADA PÁGINA -->
+      <main class="contenido">
+        {% if messages %} {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %} {% endif %} {% block content %}{% endblock %}
+      </main>
     </div>
+    
 
     {% block footer %}
-        {% include 'includes/footer.html' with modulo_actual="Sistema" %}
+      {% with url_name=request.resolver_match.url_name|default:'' %}
+          
+          {% if url_name == 'home' or url_name == 'bienvenida' %}
+              {% include 'includes/footer.html' with modulo_actual="SISTEMA" descripcion="PANEL PRINCIPAL DEL SISTEMA" %}
+              
+          {% elif url_name in 'listar_mesas,crear_mesa,editar_mesa,detalle_mesa' %}
+              {% include 'includes/footer.html' with modulo_actual="MESAS" descripcion="GESTIÓN DE MESAS" %}
+              
+          {% elif url_name in 'inventario_home,listar_platos,crear_plato,editar_plato,detalle_plato,listar_bebidas,crear_bebida,editar_bebida,listar_ingredientes,listar_categorias' %}
+              {% include 'includes/footer.html' with modulo_actual="INVENTARIO" descripcion="GESTIÓN DE PRODUCTOS" %}
+              
+          {% elif url_name in 'comanda_listar,comanda_crear,comanda_editar,comanda_detalle' %}
+              {% include 'includes/footer.html' with modulo_actual="COMANDAS" descripcion="GESTIÓN DE PEDIDOS" %}
+              
+          {% elif url_name in 'empleados_home,empleado_listar,empleado_alta,empleado_modificacion,empleado_detalle' %}
+              {% include 'includes/footer.html' with modulo_actual="EMPLEADOS" descripcion="GESTIÓN DE PERSONAL" %}
+              
+          {% elif url_name in 'reportes_home' %}
+              {% include 'includes/footer.html' with modulo_actual="REPORTES" descripcion="ESTADÍSTICAS Y ANÁLISIS" %}
+              
+          {% elif url_name in 'log_auditoria_listar' %}
+              {% include 'includes/footer.html' with modulo_actual="AUDITORÍA" descripcion="HISTORIAL DE MOVIMIENTOS" %}
+              
+          {% else %}
+              {% include 'includes/footer.html' with modulo_actual="SISTEMA" descripcion="PANEL PRINCIPAL DEL SISTEMA" %}
+          {% endif %}
+          
+      {% endwith %}
     {% endblock %}
-
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                document.querySelectorAll('.alert').forEach(function(alert) {
-                    alert.style.transition = 'opacity 0.5s';
-                    alert.style.opacity = '0';
-                    setTimeout(function() {
-                        alert.style.display = 'none';
-                    }, 500);
-                });
-            }, 5000);
-        });
+      
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("activo");
+        document.getElementById("overlay").classList.toggle("activo");
+      }
+
+      function toggleSubmenu(id) {
+        const submenu = document.getElementById(id);
+        submenu.classList.toggle("abierto");
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+          document.querySelectorAll(".alert").forEach(function (alert) {
+            alert.style.transition = "opacity 0.5s";
+            alert.style.opacity = "0";
+            setTimeout(function () {
+              alert.style.display = "none";
+            }, 500);
+          });
+        }, 5000);
+      });
     </script>
-    
+
     {% block extra_js %}{% endblock %}
-</body>
+  </body>
 </html>

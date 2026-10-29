@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Log de Auditoría{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+<link rel="stylesheet" href="{% static 'css/auditoria.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Auditoría</span>
+  </nav>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">history</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Log de Auditoría</h1>
+        <p>Historial de todos los cambios realizados en el sistema.</p>
+      </div>
+    </div>
+
+    <div class="page-header-acciones">
+        <a href="{% url 'auditoria:exportar_csv' %}?tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}" 
+          class="btn-primario">
+            <span class="material-symbols-outlined">download</span> Exportar Excel
+        </a>
+    </div>
+  </div>
+
+  <div class="listado-layout">
+    
+    <!-- FILTROS A LA IZQUIERDA -->
+    <aside class="filtros-panel">
+      <form method="GET">
+        <div class="filtros-header">
+          <span class="material-symbols-outlined">filter_alt</span>
+          <h3>Filtros</h3>
+        </div>
+
+        <!-- Buscador -->
+        <div class="filtro-grupo">
+          <label>Buscar en detalle</label>
+          <div class="input-buscar">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" name="detalle" value="{{ filtros.detalle }}" placeholder="Ej: motivo, nombre...">
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="filtro-grupo">
+          <label>Tabla</label>
+          <select name="tabla" class="filtro-select">
+            <option value="">Todas las tablas</option>
+            <option value="Plato" {% if filtros.tabla == 'Plato' %}selected{% endif %}>Platos</option>
+            <option value="Bebida" {% if filtros.tabla == 'Bebida' %}selected{% endif %}>Bebidas</option>
+            <option value="Ingrediente" {% if filtros.tabla == 'Ingrediente' %}selected{% endif %}>Ingredientes</option>
+            <option value="Empleado" {% if filtros.tabla == 'Empleado' %}selected{% endif %}>Empleados</option>
+            <option value="Cargo" {% if filtros.tabla == 'Cargo' %}selected{% endif %}>Cargos</option>
+            <option value="Comanda" {% if filtros.tabla == 'Comanda' %}selected{% endif %}>Comandas</option>
+            <option value="Mesa" {% if filtros.tabla == 'Mesa' %}selected{% endif %}>Mesas</option>
+          </select>
+        </div>
+
+        <!-- Acción -->
+        <div class="filtro-grupo">
+          <label>Acción</label>
+          <select name="accion" class="filtro-select">
+            <option value="">Todas las acciones</option>
+            <option value="CREAR" {% if filtros.accion == 'CREAR' %}selected{% endif %}>Crear</option>
+            <option value="MODIFICAR" {% if filtros.accion == 'MODIFICAR' %}selected{% endif %}>Modificar</option>
+            <option value="ANULAR" {% if filtros.accion == 'ANULAR' %}selected{% endif %}>Anular</option>
+            <option value="ELIMINAR" {% if filtros.accion == 'ELIMINAR' %}selected{% endif %}>Eliminar</option>
+          </select>
+        </div>
+
+        <!-- Usuario -->
+        <div class="filtro-grupo">
+          <label>Usuario</label>
+          <select name="usuario" class="filtro-select">
+            <option value="">Todos los usuarios</option>
+            {% for emp in empleados %}
+              <option value="{{ emp.id_empleado }}" {% if filtros.usuario == emp.id_empleado|stringformat:"s" %}selected{% endif %}>
+                {{ emp.nombre_empleado }} {{ emp.apellido_empleado }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Rango de fecha -->
+        <div class="filtro-grupo">
+          <label>Rango de fecha</label>
+          <div class="filtro-fechas">
+            <div class="input-buscar-fecha">
+              <label>Desde</label>
+              <input type="date" name="fecha_desde" value="{{ filtros.fecha_desde }}">
+            </div>
+            <div class="input-buscar-fecha">
+              <label>Hasta</label>
+              <input type="date" name="fecha_hasta" value="{{ filtros.fecha_hasta }}">
+            </div>
+          </div>
+        </div>
+
+        <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+
+        <button type="submit" class="btn-aplicar">
+          <span class="material-symbols-outlined">filter_alt</span> Aplicar filtros
+        </button>
+        <a href="{% url 'auditoria:log_auditoria_listar' %}" class="btn-limpiar">
+          <span class="material-symbols-outlined">refresh</span> Limpiar filtros
+        </a>
+      </form>
+    </aside>
+
+    <!-- TABLA A LA DERECHA -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Últimos movimientos</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>FECHA Y HORA</th>
+            <th>USUARIO</th>
+            <th>TABLA</th>
+            <th>ACCIÓN</th>
+            <th>REGISTRO</th>
+            <th>DETALLE</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td><strong>{{ forloop.counter }}</strong></td>
+            <td>{{ log.fecha_hora|date:"d/m/Y H:i" }}</td>
+            <td>{{ log.empleado.nombre_empleado }} {{ log.empleado.apellido_empleado }}</td>
+            <td>{{ log.tabla }}</td>
+            <td>
+              {% if log.accion == 'CREAR' %}
+                <span class="badge badge-activo">CREAR</span>
+              {% elif log.accion == 'MODIFICAR' %}
+                <span class="badge badge-pendiente">MODIFICAR</span>
+              {% elif log.accion == 'ANULAR' %}
+                <span class="badge badge-inactivo">ANULAR</span>
+              {% else %}
+                <span class="badge" style="background-color: #E5E7EB; color: #4B5563;">ELIMINAR</span>
+              {% endif %}
+            </td>
+            <td>#{{ log.registro_id }}</td>
+            <td class="detalle-celda">{{ log.valores_actuales|truncatechars:50 }}</td>
+            <td>
+              <button class="btn-icon btn-ver" onclick="abrirDetalleLog('{{ log.fecha_hora|date:"d/m/Y H:i:s" }}', '{{ log.empleado.nombre_empleado }} {{ log.empleado.apellido_empleado }}', '{{ log.tabla }}', '{{ log.accion }}', '{{ log.registro_id }}', '{{ log.valores_actuales|escapejs }}')">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="sin-resultados">No hay movimientos registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <div class="paginacion">
+        <span class="paginacion-info">Mostrando {{ logs.start_index }} a {{ logs.end_index }} de {{ logs.paginator.count }} registros</span>
+        <div class="paginacion-botones">
+          {% if logs.has_previous %}
+            <a href="?page={{ logs.previous_page_number }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_left</span>
+            </a>
+          {% endif %}
+
+          {% for num in logs.paginator.page_range %}
+            {% if logs.number == num %}
+              <a href="?page={{ num }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
+            {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
+              <a href="?page={{ num }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if logs.has_next %}
+            <a href="?page={{ logs.next_page_number }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL DE DETALLE -->
+<div class="modal-overlay" id="modal-detalle-log" style="display: none;">
+  <div class="modal-contenido" style="max-width: 600px;">
+    <div class="modal-header">
+      <div class="modal-icono-alerta" style="background-color: #FFF8E7; color: #F5A623;">
+        <span class="material-symbols-outlined">visibility</span>
+      </div>
+      <div>
+        <h3>Detalle del movimiento</h3>
+        <p class="text-gris">Información completa del registro.</p>
+      </div>
+      <button class="btn-cerrar-modal" onclick="cerrarDetalleLog()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="detalle-grid">
+        <div class="detalle-item"><span>Fecha y hora</span><strong id="detalle-fecha"></strong></div>
+        <div class="detalle-item"><span>Registro</span><strong id="detalle-registro"></strong></div>
+        <div class="detalle-item"><span>Usuario</span><strong id="detalle-usuario"></strong></div>
+        <div class="detalle-item"><span>Tabla</span><strong id="detalle-tabla"></strong></div>
+        <div class="detalle-item"><span>Acción</span><strong id="detalle-accion"></strong></div>
+        <div class="detalle-item" style="grid-column: span 2;"><span>Detalle</span><p id="detalle-texto"></p></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secundario" onclick="cerrarDetalleLog()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function cambiarPorPagina(valor) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('por_pagina', valor);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+  }
+
+  function abrirDetalleLog(fecha, usuario, tabla, accion, registro, actuales) {
+    document.getElementById('detalle-fecha').textContent = fecha;
+    document.getElementById('detalle-registro').textContent = `#${registro}`;
+    document.getElementById('detalle-usuario').textContent = usuario;
+    document.getElementById('detalle-tabla').textContent = tabla;
+    document.getElementById('detalle-accion').textContent = accion;
+    document.getElementById('detalle-texto').textContent = actuales;
+    
+    document.getElementById('modal-detalle-log').style.display = 'flex';
+  }
+
+  function cerrarDetalleLog() {
+    document.getElementById('modal-detalle-log').style.display = 'none';
+  }
+</script>
+{% endblock %}

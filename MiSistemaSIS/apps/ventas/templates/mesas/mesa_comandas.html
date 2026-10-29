@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Comandas de la Mesa {{ mesa.numero_mesa }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'ventas:listar_mesa' %}" class="breadcrumb-item">Mesas</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Comanda Mesa</span>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono" style="background-color: #FFF8E7;">
+        <span class="material-symbols-outlined" style="color: #F5A623;">table_restaurant</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Comandas de la Mesa {{ mesa.numero_mesa }}</h1>
+        <p>Historial de pedidos realizados en esta mesa.</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'ventas:listar_mesa' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">arrow_back</span> Volver a Mesas
+      </a>
+    </div>
+  </div>
+
+  <!-- Tarjeta de Resumen de la Mesa -->
+  <div class="tarjeta-comanda">
+    <div class="cuerpo-tarjeta">
+      <div class="info-grid-4">
+        <div class="info-item">
+          <div class="info-icono"><span class="material-symbols-outlined">tag</span></div>
+          <div class="info-texto">
+            <span class="info-label">NÚMERO DE MESA</span>
+            <strong>{{ mesa.numero_mesa }}</strong>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icono"><span class="material-symbols-outlined">location_on</span></div>
+          <div class="info-texto">
+            <span class="info-label">UBICACIÓN</span>
+            <strong>{{ mesa.ubicacion|default:"Salón" }}</strong>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icono">
+            <span class="material-symbols-outlined">
+              {% if mesa.estado_mesa %}check_circle{% else %}cancel{% endif %}
+            </span>
+          </div>
+          <div class="info-texto">
+            <span class="info-label">ESTADO ACTUAL</span>
+            {% if mesa.estado_mesa %}
+              <span class="badge badge-pagado" style="width: fit-content; margin-top: 4px;">Disponible</span>
+            {% else %}
+              <span class="badge badge-anulado" style="width: fit-content; margin-top: 4px;">Ocupada</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Comandas -->
+  <main class="tabla-panel">
+    <div class="tabla-header">
+      <h3>Historial de Comandas</h3>
+    </div>
+
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th># COMANDA</th>
+          <th>FECHA Y HORA</th>
+          <th>MOZO</th>
+          <th>TOTAL</th>
+          <th>ESTADO</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for comanda in comandas %}
+        <tr>
+          <td><strong>#{{ comanda.id_comanda }}</strong></td>
+          <td>{{ comanda.fecha_hora|date:"d/m/Y H:i" }}</td>
+          <td>{{ comanda.empleado.get_full_name|default:"-" }}</td>
+          <td>${{ comanda.total_comanda|floatformat:0 }}</td>
+          <td>
+            {% if comanda.estado_comanda == 'pagado' %}
+              <span class="badge badge-pagado">Pagado</span>
+            {% elif comanda.estado_comanda == 'en_preparacion' %}
+              <span class="badge badge-preparacion">En Preparación</span>
+            {% elif comanda.estado_comanda == 'entregado' %}
+              <span class="badge badge-entregado">Entregado</span>
+            {% elif comanda.estado_comanda == 'pendiente' %}
+              <span class="badge badge-pendiente">Pendiente</span>
+            {% else %}
+              <span class="badge badge-anulado">Anulado</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="acciones-tabla">
+              <a href="{% url 'ventas:comanda_detalle' comanda.pk %}" class="btn-icon btn-detalle" title="Ver Detalle">
+                <span class="material-symbols-outlined">visibility</span>
+              </a>
+              <a href="{% url 'ventas:comanda_comprobante' comanda.pk %}" class="btn-icon btn-clave" title="Comprobante" target="_blank">
+                <span class="material-symbols-outlined">receipt</span>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="sin-resultados">Esta mesa todavía no tiene comandas registradas.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+
+</div>
+{% endblock %}

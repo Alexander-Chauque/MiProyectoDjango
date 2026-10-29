@@ -15,22 +15,8 @@
         <span class="material-symbols-outlined">apps</span>
         <span class="footer-modulo-label">MÓDULO ACTUAL</span>
       </div>
-      <h4 class="footer-modulo-nombre">
-        {% if 'empleados' in request.path %}EMPLEADOS
-        {% elif 'comandas' in request.path %}COMANDAS
-        {% elif 'mesas' in request.path %}MESAS
-        {% elif 'inventario' in request.path %}INVENTARIO
-        {% elif 'ventas' in request.path %}EMPLEADOS
-        {% else %}SISTEMA{% endif %}
-      </h4>
-      <p class="footer-modulo-descripcion">
-        {% if 'empleados' in request.path %}GESTIÓN DE PERSONAL
-        {% elif 'comandas' in request.path %}GESTIÓN DE PEDIDOS
-        {% elif 'mesas' in request.path %}GESTIÓN DE MESAS
-        {% elif 'inventario' in request.path %}GESTIÓN DE PRODUCTOS
-        {% elif 'ventas' in request.path %}REGISTRO DE VENTAS
-        {% else %}PANEL PRINCIPAL DEL SISTEMA{% endif %}
-      </p>
+      <h4 class="footer-modulo-nombre">{{ modulo_actual }}</h4>
+      <p class="footer-modulo-descripcion">{{ descripcion }}</p>
     </div>
   </div>
 

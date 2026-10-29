@@ -18,7 +18,8 @@ from ventas.models import Comanda, Mesa
 from django.utils.dateparse import parse_date
 from datetime import datetime, time, timedelta
 from django.utils import timezone
-from core.auditoria import registrar_auditoria
+from auditoria.models import LogAuditoria
+from django.urls import reverse
 @login_required
 def finanzas_home(request):
     return render(request, 'finanzas_home.html')
@@ -61,39 +62,68 @@ def listar_cat_gasto(request):
         'categorias': cat_gasto, 'por_pagina': por_pagina, 'buscar': buscar, 'estados_seleccionados': estados, })
 
 
+
 @login_required
 @permiso_requerido('caja', 'escribir')
 def crear_cat_gasto(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
-
         if not nombre:
-            messages.error(request, 'El nombre de la categoría es obligatorio.')
-            return render(request, 'CATEGORIA_GASTOS/crear_cat_gasto.html')
-
+            messages.error(
+                request,
+                'El nombre de la categoría es obligatorio.'
+            )
+            return render(
+                request,
+                'CATEGORIA_GASTOS/crear_cat_gasto.html'
+            )
         nombre = nombre.title()
-
         if categoria_gasto.objects.filter(
             nombre_categoria_gasto__iexact=nombre
         ).exists():
-            messages.error(request, 'Ya existe una categoría con ese nombre.')
-            return render(request, 'CATEGORIA_GASTOS/crear_cat_gasto.html')
-
-        categoria_gasto.objects.create(
+            messages.error(
+                request,
+                'Ya existe una categoría con ese nombre.'
+            )
+            return render(
+                request,
+                'CATEGORIA_GASTOS/crear_cat_gasto.html'
+            )
+        # Crear la categoría y obtener el objeto creado.
+        categoria = categoria_gasto.objects.create(
             nombre_categoria_gasto=nombre,
             descripcion_categoria_gasto=descripcion
         )
-
-        messages.success(request, f'Categoría "{nombre}" creada correctamente.')
+        # Registrar la creación en la auditoría.
+        LogAuditoria.objects.create(
+            tabla="Categoria gastos",
+            accion="CREAR",
+            registro_id=categoria.pk,
+            valores_anteriores="",
+            valores_actuales=(
+                f"Nombre: {categoria.nombre_categoria_gasto}, "
+                f"Descripción: {categoria.descripcion_categoria_gasto}, "
+                f"Estado: {categoria.estado_categoria_gasto}"
+            ),
+            empleado=request.user.empleado,
+        )
+        messages.success(
+            request,
+            f'Categoría "{nombre}" creada correctamente.'
+        )
         return redirect('finanzas:listar_cat_gasto')
+    return render(
+        request,
+        'CATEGORIA_GASTOS/crear_cat_gasto.html'
+    )
 
-    return render(request, 'CATEGORIA_GASTOS/crear_cat_gasto.html')
 
 @login_required
 @permiso_requerido('caja', 'modificar')
 def editar_cat_gasto(request, pk):
     categoria = get_object_or_404(categoria_gasto, pk=pk)
+
     # Impedir la modificación si ya fue utilizada.
     if categoria.gastos.exists():
         messages.error(
@@ -101,14 +131,14 @@ def editar_cat_gasto(request, pk):
             'No se puede modificar esta categoría porque ya tiene gastos asociados.'
         )
         return redirect('finanzas:listar_cat_gasto')
+
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
+
         if not nombre:
-            messages.error(
-                request,
-                'El nombre es obligatorio.'
-            )
+            messages.error(request, 'El nombre es obligatorio.')
+
         elif categoria_gasto.objects.filter(
             nombre_categoria_gasto__iexact=nombre
         ).exclude(pk=categoria.pk).exists():
@@ -116,51 +146,66 @@ def editar_cat_gasto(request, pk):
                 request,
                 'Ya existe una categoría con ese nombre.'
             )
+
         else:
             nombre = nombre.title()
-            valores_anteriores = {
-                'nombre_categoria_gasto':
-                    categoria.nombre_categoria_gasto,
-                'descripcion_categoria_gasto':
-                    categoria.descripcion_categoria_gasto,
-                'estado_categoria_gasto':
-                    categoria.estado_categoria_gasto,
-            }
-            valores_actuales = {
-                'nombre_categoria_gasto': nombre,
-                'descripcion_categoria_gasto': descripcion,
-                'estado_categoria_gasto':
-                    categoria.estado_categoria_gasto,
-            }
+
+            # Capturar los valores anteriores antes de modificar.
+            valores_anteriores = (
+                f"Nombre: {categoria.nombre_categoria_gasto}, "
+                f"Descripción: {categoria.descripcion_categoria_gasto}, "
+                f"Estado: {categoria.estado_categoria_gasto}"
+            )
+
+            # Preparar los valores nuevos.
+            valores_actuales = (
+                f"Nombre: {nombre}, "
+                f"Descripción: {descripcion}, "
+                f"Estado: {categoria.estado_categoria_gasto}"
+            )
+
+            # Guardar y auditar dentro de la misma transacción.
             with transaction.atomic():
+                hubo_cambios = (
+                    categoria.nombre_categoria_gasto != nombre
+                    or categoria.descripcion_categoria_gasto != descripcion
+                )
+
                 categoria.nombre_categoria_gasto = nombre
                 categoria.descripcion_categoria_gasto = descripcion
                 categoria.save()
-                # Registrar solo si hubo un cambio real.
-                if valores_anteriores != valores_actuales:
-                    registrar_auditoria(
-                        usuario=request.user,
-                        entidad='categoria_gasto',
-                        id_registro=categoria.pk,
-                        accion='MODIFICACION',
+
+                # Registrar únicamente si hubo cambios reales.
+                if hubo_cambios:
+                    LogAuditoria.objects.create(
+                        tabla="Categoria gastos",
+                        accion="MODIFICAR",
+                        registro_id=categoria.pk,
                         valores_anteriores=valores_anteriores,
                         valores_actuales=valores_actuales,
+                        empleado=request.user.empleado,
                     )
+
             messages.success(
                 request,
                 'Categoría actualizada correctamente.'
             )
             return redirect('finanzas:listar_cat_gasto')
+
     return render(
         request,
         'CATEGORIA_GASTOS/editar_cat_gasto.html',
         {'categoria': categoria}
     )
 
+
+
 @login_required
 @permiso_requerido('caja', 'eliminar')
 def eliminar_cat_gasto(request, pk):
     categoria = get_object_or_404(categoria_gasto, pk=pk)
+
+    # Impedir la eliminación si existen gastos asociados.
     if categoria.gastos.exists():
         messages.error(
             request,
@@ -169,32 +214,36 @@ def eliminar_cat_gasto(request, pk):
             'porque está asociada a uno o más gastos.'
         )
         return redirect('finanzas:listar_cat_gasto')
+
     if request.method == 'POST':
         nombre = categoria.nombre_categoria_gasto
-        valores_anteriores = {
-            'nombre_categoria_gasto':
-                categoria.nombre_categoria_gasto,
-            'descripcion_categoria_gasto':
-                categoria.descripcion_categoria_gasto,
-            'estado_categoria_gasto':
-                categoria.estado_categoria_gasto,
-        }
+
+        # Capturar los datos antes de eliminar el registro.
+        valores_anteriores = (
+            f"Nombre: {categoria.nombre_categoria_gasto}, "
+            f"Descripción: {categoria.descripcion_categoria_gasto}, "
+            f"Estado: {categoria.estado_categoria_gasto}"
+        )
+
         with transaction.atomic():
-            # Guardar el historial antes de borrar la categoría.
-            registrar_auditoria(
-                usuario=request.user,
-                entidad='categoria_gasto',
-                id_registro=categoria.pk,
-                accion='ANULACION',
+            # Registrar la auditoría ANTES de eliminar la categoría.
+            LogAuditoria.objects.create(
+                tabla="Categoria gastos",
+                accion="ANULAR",
+                registro_id=categoria.pk,
                 valores_anteriores=valores_anteriores,
                 valores_actuales=None,
+                empleado=request.user.empleado,
             )
+
             categoria.delete()
+
         messages.success(
             request,
             f'Categoría "{nombre}" eliminada correctamente.'
         )
         return redirect('finanzas:listar_cat_gasto')
+
     return render(
         request,
         'CATEGORIA_GASTOS/eliminar_cat_gasto.html',
@@ -215,47 +264,50 @@ def detalle_cat_gasto(request, pk):
         }
     )
 
+
 @login_required
 @permiso_requerido('caja', 'modificar')
 def estado_categoria(request, pk):
-    categoria = get_object_or_404(categoria_gasto, pk=pk)
     if request.method != 'POST':
         messages.error(
             request,
             'La operación debe realizarse mediante un formulario.'
         )
         return redirect('finanzas:listar_cat_gasto')
+
+    categoria = get_object_or_404(categoria_gasto, pk=pk)
+
     estado_anterior = categoria.estado_categoria_gasto
     estado_actual = not estado_anterior
-    valores_anteriores = {
-        'nombre_categoria_gasto':
-            categoria.nombre_categoria_gasto,
-        'descripcion_categoria_gasto':
-            categoria.descripcion_categoria_gasto,
-        'estado_categoria_gasto': estado_anterior,
-    }
-    valores_actuales = {
-        'nombre_categoria_gasto':
-            categoria.nombre_categoria_gasto,
-        'descripcion_categoria_gasto':
-            categoria.descripcion_categoria_gasto,
-        'estado_categoria_gasto': estado_actual,
-    }
-    accion = (
-        'ANULACION' if estado_anterior
-        else 'MODIFICACION'
+
+    valores_anteriores = (
+        f"Nombre: {categoria.nombre_categoria_gasto}, "
+        f"Descripción: {categoria.descripcion_categoria_gasto}, "
+        f"Estado: {estado_anterior}"
     )
+
+    valores_actuales = (
+        f"Nombre: {categoria.nombre_categoria_gasto}, "
+        f"Descripción: {categoria.descripcion_categoria_gasto}, "
+        f"Estado: {estado_actual}"
+    )
+
+    # Desactivar = ANULAR; reactivar = MODIFICAR.
+    accion = 'ANULAR' if estado_anterior else 'MODIFICAR'
+
     with transaction.atomic():
         categoria.estado_categoria_gasto = estado_actual
         categoria.save(update_fields=['estado_categoria_gasto'])
-        registrar_auditoria(
-            usuario=request.user,
-            entidad='categoria_gasto',
-            id_registro=categoria.pk,
+
+        LogAuditoria.objects.create(
+            tabla="Categoria gastos",
             accion=accion,
+            registro_id=categoria.pk,
             valores_anteriores=valores_anteriores,
             valores_actuales=valores_actuales,
+            empleado=request.user.empleado,
         )
+
     if estado_actual:
         messages.success(
             request,
@@ -266,12 +318,14 @@ def estado_categoria(request, pk):
             request,
             f'Categoría "{categoria.nombre_categoria_gasto}" desactivada.'
         )
+
     return redirect(
         request.META.get(
             'HTTP_REFERER',
-            'finanzas:listar_cat_gasto'
+            reverse('finanzas:listar_cat_gasto')
         )
     )
+
 # FUNCIONES PARA METODOS DE PAGO
 @login_required
 @permiso_requerido('caja', 'leer')

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Nueva Comanda{% endblock %}
+{% block title %}Editar Comanda{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -20,7 +20,7 @@
     <a href="{% url 'ventas:comanda_listar' %}" class="breadcrumb-item">Comandas</a>
     <span class="breadcrumb-separator">></span>
     </a>
-    <span class="breadcrumb-item active">Crear</span>
+    <span class="breadcrumb-item active">Editar</span>
   </nav>
   <div class="page-header">
     <div class="page-header-info">
@@ -57,6 +57,7 @@
                 <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
                 {{ form.mesa.errors }}
               </div>
+
               <div class="grupo-campo">
                 <label>Mozo</label>
                 <div class="mozo-info">
@@ -64,7 +65,7 @@
                     <span class="material-symbols-outlined">person</span>
                   </div>
                   <div>
-                    <span class="nombre-mozo">{{comanda.empplaed|default:request.user.username}}</span>
+                    <span class="nombre-mozo">{{comanda.get_full|default:request.user.username}}</span>
                     <span class="rol-mozo-badge">{{ request.user.empleado.cargo.nombre_cargo|default:"Mozo" }}</span>
                   </div>
                 </div>
@@ -149,7 +150,9 @@
           </div>
           <div class="botones-carrito">
             <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">Cancelar</a>
-            <button type="submit" class="btn-primario">Crear comanda</button>
+            <button type="submit" class="btn-primario">
+              <span class="material-symbols-outlined">save</span> Guardar Cambios
+            </button>
           </div>
         </div>
       </div>
@@ -256,37 +259,47 @@
     function actualizarFormset() {
       formsetTbody.querySelectorAll('.fila-generada-js').forEach(f => f.remove());
 
-      if (Object.keys(carrito).length === 0) {
-        formsetTbody.querySelectorAll('.fila-detalle-oculta').forEach(fila => {
-          const deleteInput = fila.querySelector('input[name$="-DELETE"]');
-          if (deleteInput) deleteInput.checked = true;
-        });
-        if (totalFormsInput) totalFormsInput.value = 1;
-        return;
-      }
+      const filasOriginales = formsetTbody.querySelectorAll('.fila-detalle-oculta:not(.fila-generada-js)');
 
-      let index = 0;
-      Object.values(carrito).forEach(item => {
+      filasOriginales.forEach(fila => {
+        const deleteInput = fila.querySelector('input[name$="-DELETE"]');
+        if (deleteInput) {
+            if (deleteInput.type === 'checkbox') {
+                deleteInput.checked = true;
+            } else {
+                deleteInput.value = 'on'; 
+            }
+        }
+    });
+
+    let index = filasOriginales.length;
+    const itemsCarrito = Object.values(carrito);
+    itemsCarrito.forEach(item => {
         const tr = document.createElement('tr');
         tr.className = 'fila-detalle-oculta fila-generada-js';
         tr.innerHTML = `
-                <input type="hidden" name="detalles-${index}-id" id="id_detalles-${index}-id">
-                ${item.tipo === 'plato'
-            ? `<input type="hidden" name="detalles-${index}-plato" value="${item.id}">
-              <input type="hidden" name="detalles-${index}-cant_plato" value="${item.cantidad}">
-              <input type="hidden" name="detalles-${index}-bebida" value="">
-              <input type="hidden" name="detalles-${index}-cant_bebida" value="0">`
-            : `<input type="hidden" name="detalles-${index}-plato" value="">
-              <input type="hidden" name="detalles-${index}-cant_plato" value="0">
-              <input type="hidden" name="detalles-${index}-bebida" value="${item.id}">
-              <input type="hidden" name="detalles-${index}-cant_bebida" value="${item.cantidad}">`
-          }
-                <input type="hidden" name="detalles-${index}-DELETE" id="id_detalles-${index}-DELETE">`;
+            <input type="hidden" name="detalles-${index}-id" id="id_detalles-${index}-id">
+            ${item.tipo === 'plato'
+                ? `<input type="hidden" name="detalles-${index}-plato" value="${item.id}">
+                  <input type="hidden" name="detalles-${index}-cant_plato" value="${item.cantidad}">
+                  <input type="hidden" name="detalles-${index}-bebida" value="">
+                  <input type="hidden" name="detalles-${index}-cant_bebida" value="0">`
+                : `<input type="hidden" name="detalles-${index}-plato" value="">
+                  <input type="hidden" name="detalles-${index}-cant_plato" value="0">
+                  <input type="hidden" name="detalles-${index}-bebida" value="${item.id}">
+                  <input type="hidden" name="detalles-${index}-cant_bebida" value="${item.cantidad}">`
+            }
+            <input type="hidden" name="detalles-${index}-DELETE" id="id_detalles-${index}-DELETE">
+        `;
         formsetTbody.appendChild(tr);
         index++;
-      });
-      if (totalFormsInput) totalFormsInput.value = index;
+    });
+
+    // 6. Actualizar el TOTAL_FORMS (suma de originales + nuevos)
+    if (totalFormsInput) {
+        totalFormsInput.value = index;
     }
+}
 
     document.querySelectorAll('.btn-agregar-prod').forEach(btn => {
       btn.addEventListener('click', function () {
