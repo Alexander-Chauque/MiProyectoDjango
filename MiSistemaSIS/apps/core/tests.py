@@ -112,6 +112,20 @@ class FiltrosDeFechaEnPantallasTests(TestCase):
             with self.subTest(nombre):
                 self.assertIn("js/filtros_fecha.js", self.client.get(reverse(nombre)).content.decode())
 
+    def test_alta_de_empleado_muestra_nombre_y_apellido(self):
+        html = self.client.get(reverse("empleados:empleado_alta")).content.decode()
+        self.assertIn('name="nombre_empleado"', html)
+        self.assertIn('name="apellido_empleado"', html)
+        self.assertNotIn("<<<<<<<", html)
+
+    def test_alta_de_empleado_muestra_los_errores_de_nombre(self):
+        respuesta = self.client.post(
+            reverse("empleados:empleado_alta"), {"nombre_empleado": "Juan2", "apellido_empleado": "P3rez"}
+        )
+        html = respuesta.content.decode()
+        self.assertIn("El nombre solo puede contener letras", html)
+        self.assertIn("El apellido solo puede contener letras", html)
+
     def test_exportar_auditoria_limita_la_fecha(self):
         respuesta = self.client.get(reverse("auditoria:exportar_csv"), {"fecha_hasta": "abc"})
         self.assertEqual(respuesta.status_code, 200)
