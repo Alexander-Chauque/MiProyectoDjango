@@ -1,0 +1,404 @@
+```html
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/Comandas.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor-comanda">
+
+    <!-- Navegación -->
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}">Inicio</a>
+        <span>/</span>
+        <span>Ventas</span>
+    </nav>
+
+    <!-- Encabezado -->
+    <div class="page-header">
+        <div class="page-header-icono">
+            <span class="material-symbols-outlined">point_of_sale</span>
+        </div>
+
+        <div class="page-header-texto">
+            <h1>Gestión de ventas</h1>
+            <p>Registrar pagos y consultar las ventas realizadas.</p>
+        </div>
+        <div class="page-header-acciones">
+            <a href="{% url 'finanzas:listar_met_pago' %}" class="btn-secundario">
+                <span class="material-symbols-outlined">category</span> Métodos de pago
+            </a>
+        </div>
+    </div>
+
+    <!-- Mensajes de Django -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alerta-info">
+                <span class="material-symbols-outlined">info</span>
+                <p>{{ message }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Formulario de registro de venta -->
+    <div class="tarjeta-comanda">
+        <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined">payments</span>
+            <h2>Registrar venta</h2>
+        </div>
+
+        <div class="cuerpo-tarjeta">
+
+            {% if caja_abierta %}
+
+                <div class="alerta-info">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <p>
+                        Caja abierta. Puedes registrar una nueva venta.
+                    </p>
+                </div>
+
+            {% else %}
+
+                <div class="alerta-info">
+                    <span class="material-symbols-outlined">warning</span>
+                    <p>
+                        No hay una caja abierta. Debes abrir una caja antes
+                        de registrar ventas.
+                    </p>
+                </div>
+
+            {% endif %}
+
+            <form method="POST" action="{% url 'finanzas:venta_crear' %}">
+                {% csrf_token %}
+
+                <div class="fila-doble">
+
+                    <!-- Comanda -->
+                    <div class="grupo-campo">
+                        <label for="comanda_id">Comanda pendiente</label>
+
+                        <select
+                            name="comanda_id"
+                            id="comanda_id"
+                            class="form-control"
+                            required
+                            {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
+                                disabled
+                            {% endif %}
+                        >
+                            <option value="">Seleccionar comanda</option>
+
+                            {% for c in comandas_pendientes %}
+                                <option
+                                    value="{{ c.id_comanda }}"
+                                    data-total="{{ c.total }}"
+                                >
+                                    Comanda #{{ c.id_comanda }}
+                                    {% if c.mesa %}
+                                        - Mesa {{ c.mesa.numero_mesa }}
+                                    {% endif %}
+                                    - Total: ${{ c.total }}
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>
+                                    No hay comandas pendientes de pago
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Método de pago -->
+                    <div class="grupo-campo">
+                        <label for="metodo_pago_id">Método de pago</label>
+
+                        <select
+                            name="metodo_pago_id"
+                            id="metodo_pago_id"
+                            class="form-control"
+                            required
+                            {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
+                                disabled
+                            {% endif %}
+                        >
+                            <option value="">Seleccionar método de pago</option>
+
+                            {% for mp in metodos_pago %}
+                                <option value="{{ mp.id }}">
+                                    {{ mp.nombre_metodo }}
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>
+                                    No hay métodos de pago registrados
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="fila-doble">
+
+                    <!-- Total de la comanda -->
+                    <div class="grupo-campo">
+                        <label for="total_comanda">Total de la venta</label>
+
+                        <input
+                            type="text"
+                            id="total_comanda"
+                            class="form-control"
+                            placeholder="$ 0.00"
+                            readonly
+                        >
+                    </div>
+
+                    <!-- Monto recibido -->
+                    <div class="grupo-campo">
+                        <label for="monto_recibido">Monto recibido</label>
+
+                        <input
+                            type="number"
+                            name="monto_recibido"
+                            id="monto_recibido"
+                            class="form-control"
+                            min="0"
+                            step="0.01"
+                            placeholder="Ingresar monto recibido"
+                            required
+                            {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
+                                disabled
+                            {% endif %}
+                        >
+                    </div>
+
+                </div>
+
+                <!-- Vuelto calculado visualmente -->
+                <div class="grupo-campo">
+                    <label for="vuelto_calculado">Vuelto estimado</label>
+
+                    <input
+                        type="text"
+                        id="vuelto_calculado"
+                        class="form-control"
+                        placeholder="$ 0.00"
+                        readonly
+                    >
+                </div>
+
+                <div class="alerta-info">
+                    <span class="material-symbols-outlined">info</span>
+                    <p>
+                        El monto recibido debe ser igual o superior al total
+                        de la comanda. El vuelto se calcula automáticamente.
+                    </p>
+                </div>
+
+                <div class="botones-carrito">
+                    <a
+                        href="{% url 'home' %}"
+                        class="btn-secundario"
+                    >
+                        Cancelar
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn-primario"
+                        {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
+                            disabled
+                        {% endif %}
+                    >
+                        <span class="material-symbols-outlined">payments</span>
+                        Registrar venta
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Historial de ventas -->
+    <div class="tarjeta-comanda">
+        <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <h2>Historial de ventas</h2>
+        </div>
+
+        <div class="cuerpo-tarjeta">
+
+            <div class="grupo-campo">
+                <label for="por_pagina">Registros por página</label>
+
+                <form method="GET">
+                    <select
+                        name="por_pagina"
+                        id="por_pagina"
+                        class="form-control"
+                        onchange="this.form.submit()"
+                    >
+                        <option value="10"
+                            {% if request.GET.por_pagina == '10' or not request.GET.por_pagina %}
+                                selected
+                            {% endif %}
+                        >
+                            10
+                        </option>
+
+                        <option value="25"
+                            {% if request.GET.por_pagina == '25' %}
+                                selected
+                            {% endif %}
+                        >
+                            25
+                        </option>
+
+                        <option value="50"
+                            {% if request.GET.por_pagina == '50' %}
+                                selected
+                            {% endif %}
+                        >
+                            50
+                        </option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="tabla-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N.º de venta</th>
+                            <th>Fecha</th>
+                            <th>Comanda</th>
+                            <th>Método de pago</th>
+                            <th>Total</th>
+                            <th>Monto recibido</th>
+                            <th>Vuelto</th>
+                            <th>Empleado</th>
+                            <th>Caja</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for v in ventas %}
+                            <tr>
+                                <td>#{{ v.id_venta }}</td>
+
+                                <td>
+                                    {{ v.fecha_venta|date:"d/m/Y H:i" }}
+                                </td>
+
+                                <td>
+                                    #{{ v.comanda.id_comanda }}
+                                </td>
+
+                                <td>
+                                    {{ v.metodo_pago.nombre_metodo }}
+                                </td>
+
+                                <td>
+                                    ${{ v.total_venta }}
+                                </td>
+
+                                <td>
+                                    ${{ v.monto_recibido }}
+                                </td>
+
+                                <td>
+                                    ${{ v.vuelto }}
+                                </td>
+
+                                <td>
+                                    {% if v.empleado_venta %}
+                                        {{ v.empleado_venta.nombre_empleado }}
+                                        {{ v.empleado_venta.apellido_empleado }}
+                                    {% else %}
+                                        No disponible
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if v.caja %}
+                                        #{{ v.caja.id_caja }}
+                                    {% else %}
+                                        No disponible
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                        {% empty %}
+                            <tr>
+                                <td colspan="9">
+                                    No hay ventas registradas.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if ventas.has_other_pages %}
+                <div class="botones-carrito">
+
+                    {% if ventas.has_previous %}
+                        <a
+                            class="btn-secundario"
+                            href="?page={{ ventas.previous_page_number }}&por_pagina={{ request.GET.por_pagina|default:'10' }}"
+                        >
+                            Anterior
+                        </a>
+                    {% endif %}
+
+                    <span>
+                        Página {{ ventas.number }} de {{ ventas.paginator.num_pages }}
+                    </span>
+
+                    {% if ventas.has_next %}
+                        <a
+                            class="btn-primario"
+                            href="?page={{ ventas.next_page_number }}&por_pagina={{ request.GET.por_pagina|default:'10' }}"
+                        >
+                            Siguiente
+                        </a>
+                    {% endif %}
+
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const comandaSelect = document.getElementById('comanda_id');
+    const totalInput = document.getElementById('total_comanda');
+    const recibidoInput = document.getElementById('monto_recibido');
+    const vueltoInput = document.getElementById('vuelto_calculado');
+
+    function actualizarImportes() {
+        const opcion = comandaSelect.options[comandaSelect.selectedIndex];
+        const total = parseFloat(opcion?.dataset.total || '0');
+        const recibido = parseFloat(recibidoInput.value || '0');
+
+        totalInput.value = '$ ' + total.toFixed(2);
+
+        const vuelto = Math.max(0, recibido - total);
+        vueltoInput.value = '$ ' + vuelto.toFixed(2);
+    }
+
+    comandaSelect.addEventListener('change', actualizarImportes);
+    recibidoInput.addEventListener('input', actualizarImportes);
+
+    actualizarImportes();
+});
+</script>
+{% endblock %}
+```

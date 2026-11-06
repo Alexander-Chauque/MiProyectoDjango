@@ -1,0 +1,244 @@
+/* ==========================================================================
+   LOS CARDONES - MÓDULO DE VENTAS Y COBROS (ventas.css)
+   ========================================================================== */
+
+/* --- CONTENEDOR PRINCIPAL --- */
+.contenedor-comanda {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #2D3748;
+}
+
+/* --- ENCABEZADO --- */
+.header-comanda h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 28px;
+  color: #2d3748;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.header-comanda p {
+  color: #718096;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+/* --- LAYOUT GRID --- */
+.layout-comanda {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+  align-items: start;
+}
+
+/* --- TARJETAS BASE --- */
+.tarjeta-comanda,
+.tarjeta-carrito {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+
+.titulo-tarjeta,
+.titulo-carrito {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border-bottom: 1px solid #EDF2F7;
+  background-color: #FFFFFF;
+}
+
+.titulo-tarjeta h3,
+.titulo-carrito h3 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  color: #2D3748;
+  margin: 0;
+}
+
+.cuerpo-tarjeta {
+  padding: 20px;
+}
+
+/* --- CAMPOS Y FORMULARIOS --- */
+.grupo-campo label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4A5568;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.select-con-icono {
+  display: flex;
+  align-items: center;
+  border: 1px solid #CBD5E0;
+  border-radius: 8px;
+  background: #F7FAFC;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.select-con-icono:focus-within {
+  border-color: #F5A623;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+.select-con-icono span {
+  padding: 10px 12px;
+  color: #718096;
+  border-right: 1px solid #CBD5E0;
+  background: #EDF2F7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.select-con-icono select,
+.select-con-icono input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #2D3748;
+}
+
+/* --- BOTONES --- */
+.botones-carrito {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primario,
+.btn-secundario {
+  padding: 12px;
+  border-radius: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.btn-primario {
+  background: #F5A623;
+  color: #FFFFFF;
+  border: none;
+  width: 100%;
+}
+
+.btn-primario:hover {
+  background: #E0951A;
+}
+
+.btn-secundario {
+  background: #FFFFFF;
+  color: #4A5568;
+  border: 1px solid #CBD5E0;
+}
+
+.btn-secundario:hover {
+  border-color: #A0AEC0;
+  background-color: #F7FAFC;
+}
+
+/* --- ALERTAS Y NOTIFICACIONES DE ESTADO --- */
+.alerta-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #FEEBC8;
+}
+
+.alerta-info span {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.alerta-info p {
+  font-size: 13px;
+  margin: 0;
+}
+
+/* --- TABLA DE HISTORIAL DE VENTAS --- */
+.tabla-detalle-productos {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-detalle-productos thead {
+  background-color: #F7FAFC;
+}
+
+.tabla-detalle-productos th {
+  padding: 15px 20px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  color: #718096;
+  text-transform: uppercase;
+  font-weight: 500;
+  text-align: left;
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.tabla-detalle-productos td {
+  padding: 15px 20px;
+  font-size: 14px;
+  color: #4A5568;
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.tabla-detalle-productos tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badges de métodos de pago y estados */
+.badge-tipo {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-bebida {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+/* --- RESPONSIVIDAD --- */
+@media (max-width: 1024px) {
+  .layout-comanda {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .contenedor-comanda {
+    padding: 10px;
+  }
+  
+  .cuerpo-tarjeta {
+    padding: 15px;
+  }
+}

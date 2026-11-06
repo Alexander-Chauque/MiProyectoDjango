@@ -1,0 +1,446 @@
+
+/* =========================================
+   ESTILOS GENERALES DEL MODULO CAJA
+   ========================================= */
+
+:root {
+    --caja-naranja: #F5A623;
+    --caja-naranja-hover: #E0951A;
+    --caja-fondo: #F7FAFC;
+    --caja-blanco: #FFFFFF;
+    --caja-texto: #2D3748;
+    --caja-texto-secundario: #718096;
+    --caja-borde: #E2E8F0;
+    --caja-verde: #38A169;
+    --caja-rojo: #E53E3E;
+    --caja-azul: #3182CE;
+    --caja-radio: 10px;
+    --caja-sombra: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.contenedor-caja {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    box-sizing: border-box;
+    color: var(--caja-texto);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Encabezado */
+
+.header-caja {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.header-caja h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.header-caja p {
+    margin: 0;
+    color: var(--caja-texto-secundario);
+    font-size: 14px;
+}
+
+.breadcrumb-caja {
+    margin-bottom: 18px;
+    color: var(--caja-texto-secundario);
+    font-size: 13px;
+}
+
+.breadcrumb-caja a {
+    color: var(--caja-naranja-hover);
+    text-decoration: none;
+}
+
+/* Tarjetas */
+
+.tarjeta-caja {
+    margin-bottom: 22px;
+    overflow: hidden;
+    background: var(--caja-blanco);
+    border: 1px solid var(--caja-borde);
+    border-radius: var(--caja-radio);
+    box-shadow: var(--caja-sombra);
+}
+
+.tarjeta-caja-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--caja-borde);
+}
+
+.tarjeta-caja-titulo h2,
+.tarjeta-caja-titulo h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.tarjeta-caja-cuerpo {
+    padding: 22px;
+}
+
+/* Formularios */
+
+.formulario-caja {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.formulario-caja-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.campo-caja {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.campo-caja label {
+    color: #4A5568;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.campo-caja input,
+.campo-caja select,
+.campo-caja textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    border: 1px solid #CBD5E0;
+    border-radius: 8px;
+    outline: none;
+    background: var(--caja-fondo);
+    color: var(--caja-texto);
+    font: inherit;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.campo-caja textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.campo-caja input:focus,
+.campo-caja select:focus,
+.campo-caja textarea:focus {
+    border-color: var(--caja-naranja);
+    background: var(--caja-blanco);
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+}
+
+.ayuda-campo-caja {
+    color: var(--caja-texto-secundario);
+    font-size: 12px;
+}
+
+/* Botones */
+
+.botones-caja {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.btn-caja {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    padding: 10px 16px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.btn-caja:hover {
+    transform: translateY(-1px);
+}
+
+.btn-caja-principal {
+    background: var(--caja-naranja);
+    color: #FFFFFF;
+}
+
+.btn-caja-principal:hover {
+    background: var(--caja-naranja-hover);
+}
+
+.btn-caja-secundario {
+    border-color: var(--caja-borde);
+    background: #FFFFFF;
+    color: var(--caja-texto);
+}
+
+.btn-caja-secundario:hover {
+    background: var(--caja-fondo);
+}
+
+.btn-caja-peligro {
+    background: var(--caja-rojo);
+    color: #FFFFFF;
+}
+
+.btn-caja-peligro:hover {
+    background: #C53030;
+}
+
+.btn-caja-exito {
+    background: var(--caja-verde);
+    color: #FFFFFF;
+}
+
+.btn-caja-exito:hover {
+    background: #2F855A;
+}
+
+/* Resumen de importes */
+
+.resumen-cajas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.resumen-caja {
+    padding: 20px;
+    border: 1px solid var(--caja-borde);
+    border-left: 4px solid var(--caja-naranja);
+    border-radius: var(--caja-radio);
+    background: #FFFFFF;
+    box-shadow: var(--caja-sombra);
+}
+
+.resumen-caja span {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--caja-texto-secundario);
+    font-size: 13px;
+}
+
+.resumen-caja strong {
+    font-size: 24px;
+    overflow-wrap: anywhere;
+}
+
+/* Tablas */
+
+.tabla-caja-contenedor {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabla-caja {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.tabla-caja thead {
+    background: #F7FAFC;
+}
+
+.tabla-caja th {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--caja-borde);
+    color: #4A5568;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.tabla-caja td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #EDF2F7;
+    vertical-align: middle;
+}
+
+.tabla-caja tbody tr:hover {
+    background: #FFF8E7;
+}
+
+.tabla-caja tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.acciones-caja {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-caja-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    border: 1px solid var(--caja-borde);
+    border-radius: 7px;
+    background: #FFFFFF;
+    color: var(--caja-texto);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-caja-icono:hover {
+    border-color: var(--caja-naranja);
+    color: var(--caja-naranja-hover);
+}
+
+/* Estados */
+
+.estado-caja {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.estado-caja-abierta {
+    background: #C6F6D5;
+    color: #22543D;
+}
+
+.estado-caja-cerrada {
+    background: #FED7D7;
+    color: #822727;
+}
+
+.estado-caja-pendiente {
+    background: #FEEBC8;
+    color: #744210;
+}
+
+/* Mensajes informativos */
+
+.alerta-caja {
+    margin-bottom: 18px;
+    padding: 13px 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.alerta-caja-info {
+    border-color: #BEE3F8;
+    background: #EBF8FF;
+    color: #2A4365;
+}
+
+.alerta-caja-exito {
+    border-color: #9AE6B4;
+    background: #F0FFF4;
+    color: #22543D;
+}
+
+.alerta-caja-error {
+    border-color: #FEB2B2;
+    background: #FFF5F5;
+    color: #822727;
+}
+
+/* Paginación */
+
+.paginacion-caja {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 20px;
+}
+
+.paginacion-caja a,
+.paginacion-caja span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--caja-borde);
+    border-radius: 7px;
+    color: var(--caja-texto);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.paginacion-caja .pagina-activa {
+    border-color: var(--caja-naranja);
+    background: var(--caja-naranja);
+    color: #FFFFFF;
+}
+
+/* Diseño adaptable */
+
+@media (max-width: 768px) {
+    .contenedor-caja {
+        padding: 14px;
+    }
+
+    .header-caja h1 {
+        font-size: 23px;
+    }
+
+    .formulario-caja-grid,
+    .resumen-cajas {
+        grid-template-columns: 1fr;
+    }
+
+    .tarjeta-caja-titulo,
+    .tarjeta-caja-cuerpo {
+        padding: 16px;
+    }
+
+    .botones-caja .btn-caja {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-caja {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .resumen-caja strong {
+        font-size: 21px;
+    }
+}

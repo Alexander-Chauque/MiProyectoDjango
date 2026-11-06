@@ -31,7 +31,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("inventario/", include("inventario.urls")),
     path("empleados/", include("empleados.urls")),
-    path("ventas/", include("ventas.urls")),
+    path("finanzas/", include("finanzas.urls")),
+    path('ventas/', include('ventas.urls')),
     path("reportes/", include("reportes.urls")),
     path("auditoria/", include("auditoria.urls")),
     path("api/", include("api.urls")),  # API que usa la app móvil
