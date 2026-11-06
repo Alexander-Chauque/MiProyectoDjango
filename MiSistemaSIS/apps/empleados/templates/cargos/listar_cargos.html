@@ -96,6 +96,7 @@
             <th>NOMBRE</th>
             <th>DESCRIPCIÓN</th>
             <th>NIVEL</th>
+            <th>SUELDOS</th>
             <th>PERMISOS</th>
             <th>ACCIONES</th>
           </tr>
@@ -108,6 +109,7 @@
             <td>
               <span class="badge badge-activo">{{ cargo.nivel_acceso }}</span>
             </td>
+            <td>${{ cargo.sueldo_cargo|floatformat:2 }}</td>
             <td>
               <a href="{% url 'empleados:ver_permisos_cargo' cargo.pk %}" class="btn-icon btn-ver" title="Ver permisos del cargo">
                   <span class="material-symbols-outlined">visibility</span>

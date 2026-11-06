@@ -110,11 +110,11 @@
         <div class="filtro-fecha">
           <div class="input-buscar-fecha">
             <label>Desde</label>
-            <input type="date" name="fecha_desde" value="{{ fecha_desde }}">
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}" max="{% now 'Y-m-d' %}">
           </div>
           <div class="input-buscar-fecha">
             <label>Hasta</label>
-            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}">
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" max="{% now 'Y-m-d' %}">
           </div>
         </div>
       </div>
@@ -161,7 +161,12 @@
             <td><strong>{{ comanda.id_comanda }}</strong></td>
             <td>Mesa {{ comanda.mesa.numero_mesa }}</td>
             <td>{{ comanda.empleado.get_full_name }}</td>
-            <td>${{ comanda.total_comanda|floatformat:0 }}</td>
+            <td>
+              ${{ comanda.total_comanda|floatformat:0 }}
+              {% if comanda.estado_comanda != 'pagado' and comanda.total_pagado > 0 %}
+              <br><small class="text-gris">Saldo: ${{ comanda.saldo_pendiente|floatformat:2 }}</small>
+              {% endif %}
+            </td>
             <td>
               {% if comanda.estado_comanda == 'pagado' %}
               <span class="badge badge-pagado">Pagado</span>
@@ -178,38 +183,57 @@
             <td>{{ comanda.fecha_hora|date:"d/m/Y H:i" }}</td>
             <td>
               <div class="acciones-tabla">
-                <div class="dropdown-estado">
-                  <button type="button" class="btn-icon btn-estado" title="Cambiar Estado" onclick="toggleDropdownEstado(event, this)">
-                    <span class="material-symbols-outlined">published_with_changes</span>
-                  </button>
-                  <div class="dropdown-menu-estado">
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pendiente&next={{ request.get_full_path|urlencode }}" class="dropdown-item">
-                      <span class="punto-estado pendiente"></span> Pendiente
-                    </a>
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=en_preparacion&next={{ request.get_full_path|urlencode }}"
-                      class="dropdown-item">
-                      <span class="punto-estado preparacion"></span> En Preparación
-                    </a>
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=entregado&next={{ request.get_full_path|urlencode }}" class="dropdown-item">
-                      <span class="punto-estado entregado"></span> Entregado
-                    </a>
-                    <a href="{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}?estado=pagado&next={{ request.get_full_path|urlencode }}" class="dropdown-item">
-                      <span class="punto-estado pagado"></span> Pagado
-                    </a>
-                    <hr class="dropdown-divider">
-                    <a href="#" class="dropdown-item texto-peligro"
-                      onclick="event.preventDefault(); abrirModalAnular('{{ comanda.id_comanda }}', '{{ comanda.mesa.numero_mesa }}', '{{ comanda.mesa.ubicacion|default:"Salón" }}', '{{ comanda.fecha_hora|date:"d/m/Y H:i" }}', '{{ comanda.estado_comanda }}', '{{ comanda.empleado.get_full_name|default:"Sin asignar" }}', '{{ comanda.total_comanda }}');">
-                        <span class="punto-estado anulado"></span> Anular Comanda
-                    </a>
-                </div>
+                {% if comanda.estado_comanda != 'pagado' and comanda.estado_comanda != 'anulado' %}
+                  <div class="dropdown-estado">
+                    <button type="button" class="btn-icon btn-estado" title="Cambiar Estado" onclick="toggleDropdownEstado(event, this)">
+                      <span class="material-symbols-outlined">published_with_changes</span>
+                    </button>
+                    <div class="dropdown-menu-estado">
+                      <a href="#" class="dropdown-item" onclick="event.preventDefault(); cambiarEstadoComanda('{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}', 'pendiente');">
+                        <span class="punto-estado pendiente"></span> Pendiente
+                      </a>
+                      <a href="#" class="dropdown-item" onclick="event.preventDefault(); cambiarEstadoComanda('{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}', 'en_preparacion');">
+                        <span class="punto-estado preparacion"></span> En Preparación
+                      </a>
+                      <a href="#" class="dropdown-item" onclick="event.preventDefault(); cambiarEstadoComanda('{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}', 'entregado');">
+                        <span class="punto-estado entregado"></span> Entregado
+                      </a>
+                      <a href="#" class="dropdown-item"
+                        onclick="event.preventDefault(); abrirModalPago('{{ comanda.id_comanda }}', '{{ comanda.total_comanda|stringformat:".2f" }}', '{{ comanda.saldo_pendiente|stringformat:".2f" }}');">
+                        <span class="punto-estado pagado"></span> Pagado
+                      </a>
+                      <hr class="dropdown-divider">
+                      {% if comanda.total_pagado > 0 %}
+                      <span class="dropdown-item" style="color: #A0AEC0; cursor: not-allowed;" title="La comanda tiene pagos registrados">
+                          <span class="punto-estado anulado"></span> Anular Comanda
+                      </span>
+                      {% else %}
+                      <a href="#" class="dropdown-item texto-peligro"
+                        onclick="event.preventDefault(); abrirModalAnular('{{ comanda.id_comanda }}', '{{ comanda.mesa.numero_mesa }}', '{{ comanda.mesa.ubicacion|default:"Salón" }}', '{{ comanda.fecha_hora|date:"d/m/Y H:i" }}', '{{ comanda.estado_comanda }}', '{{ comanda.empleado.get_full_name|default:"Sin asignar" }}', '{{ comanda.total_comanda }}');">
+                          <span class="punto-estado anulado"></span> Anular Comanda
+                      </a>
+                      {% endif %}
+                  </div>
+                {% else %}
+                  <span class="btn-icon" style="background-color: #F3F4F6; color: #A0AEC0; cursor: not-allowed;" title="Comanda cerrada">
+                    <span class="material-symbols-outlined">lock</span>
+                  </span>
+                {% endif %}
                 <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-icon btn-detalle"
                   title="Ver detalle">
                   <span class="material-symbols-outlined">visibility</span>
                 </a>
+                {% if comanda.esta_abierta %}
                 <a href="{% url 'ventas:comanda_editar' comanda.id_comanda %}" class="btn-icon btn-editar"
                   title="Editar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
+                {% else %}
+                <span class="btn-icon" style="background-color: #F3F4F6; color: #A0AEC0; cursor: not-allowed;"
+                  title="No se puede editar: la comanda está cerrada">
+                  <span class="material-symbols-outlined">edit_off</span>
+                </span>
+                {% endif %}
                 <a href="{% url 'ventas:comanda_comprobante' comanda.id_comanda %}" class="btn-icon btn-clave"
                   title="Comprobante" target="_blank">
                   <span class="material-symbols-outlined">receipt</span>
@@ -380,6 +404,77 @@
   </div>
 </div>
 
+<form id="form-estado-comanda" method="POST" hidden>
+  {% csrf_token %}
+  <input type="hidden" name="estado">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+</form>
+
+<div class="modal-overlay" id="modal-pago" style="display: none;">
+  <div class="modal-contenido">
+    <div class="modal-header">
+      <div class="modal-icono-alerta" style="background-color: #D1FAE5; color: #065F46;">
+        <span class="material-symbols-outlined">payments</span>
+      </div>
+      <div>
+        <h3>Registrar Pago</h3>
+        <p class="text-gris">Comanda #<span id="pago-id-comanda"></span></p>
+      </div>
+      <button type="button" class="btn-cerrar-modal" onclick="cerrarModalPago()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="form-pago" method="POST" action="{% url 'ventas:comanda_cobrar' %}">
+      {% csrf_token %}
+      <input type="hidden" name="comanda_id" id="pago-comanda-id">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+      <div class="modal-body">
+        <div class="tarjeta-resumen" style="text-align: center; margin-bottom: 20px;">
+          <span class="text-gris">Saldo a pagar:</span>
+          <h2 style="color: #F5A623; margin: 5px 0;">$<span id="pago-saldo"></span></h2>
+          <span class="text-gris" id="pago-detalle-total"></span>
+        </div>
+
+        <div class="grupo-campo">
+          <label>¿Cómo desea abonar?</label>
+          <div style="display: flex; gap: 10px; margin-top: 5px;">
+            <label class="checkbox-item" style="flex: 1; border: 1px solid #E5E7EB; padding: 10px; border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="tipo_pago" value="total" checked>
+              <span>Pagar todo de una vez</span>
+            </label>
+            <label class="checkbox-item" style="flex: 1; border: 1px solid #E5E7EB; padding: 10px; border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="tipo_pago" value="parcial">
+              <span>Pagar por partes</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="grupo-campo" style="margin-top: 15px;">
+          <label>Método de Pago <span class="req">*</span></label>
+          <select name="metodo_pago" class="form-control" required>
+            <option value="">Seleccione un método...</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta de Débito/Crédito</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="mercadopago">Mercado Pago</option>
+          </select>
+        </div>
+        
+        <div class="grupo-campo" id="campo-monto-parcial" style="display: none; margin-top: 15px;">
+          <label>Monto a abonar <span class="req">*</span></label>
+          <input type="number" name="monto_abonado" class="form-control" step="0.01" min="0.01" placeholder="Ej: 1500.00">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalPago()">Cancelar</button>
+        <button type="submit" class="btn-primario">Confirmar Pago</button>
+      </div>
+    </form>
+  </div>
+</div>
 <script>
   // Cambiar paginación
   function cambiarPorPagina(valor) {
@@ -433,6 +528,13 @@
     }
   });
 
+  function cambiarEstadoComanda(url, estado) {
+    const form = document.getElementById('form-estado-comanda');
+    form.action = url;
+    form.elements.estado.value = estado;
+    form.submit();
+  }
+
   // Variable para guardar la URL a la que queremos ir al confirmar
   let urlAnularComanda = '';
 function abrirModalAnular(id, mesaNum, mesaUbi, fecha, estadoActual, mozo, total) {
@@ -474,5 +576,55 @@ function cerrarModalAnular() {
 document.getElementById('motivo-cambio')?.addEventListener('input', function() {
     document.getElementById('contador-motivo').textContent = `${this.value.length}/250`;
 });
+
+
+function abrirModalPago(idComanda, total, saldo) {
+    // Cerrar el menú
+    document.querySelectorAll('.dropdown-menu-estado').forEach(menu => {
+        menu.classList.remove('mostrar');
+    });
+
+    // Resetear el formulario
+    document.getElementById('form-pago').reset();
+    const campoMonto = document.getElementById('campo-monto-parcial');
+    const inputMonto = campoMonto.querySelector('input');
+    campoMonto.style.display = 'none';
+    inputMonto.required = false;
+    inputMonto.max = saldo;
+
+    const formatear = valor => parseFloat(valor).toLocaleString('es-AR', {minimumFractionDigits: 2});
+    document.getElementById('pago-comanda-id').value = idComanda;
+    document.getElementById('pago-id-comanda').textContent = idComanda;
+    document.getElementById('pago-saldo').textContent = formatear(saldo);
+    document.getElementById('pago-detalle-total').textContent =
+        parseFloat(saldo) < parseFloat(total) ? `Total de la comanda: $${formatear(total)}` : '';
+
+    document.getElementById('modal-pago').style.display = 'flex';
+}
+
+function cerrarModalPago() {
+    document.getElementById('modal-pago').style.display = 'none';
+}
+
+// --- MOSTRAR/OCULTAR EL MONTO PARCIAL ---
+document.addEventListener('DOMContentLoaded', function() {
+    const radiosPago = document.querySelectorAll('input[name="tipo_pago"]');
+    const campoMonto = document.getElementById('campo-monto-parcial');
+    const inputMonto = campoMonto.querySelector('input');
+
+    radiosPago.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'parcial') {
+                campoMonto.style.display = 'block';
+                inputMonto.required = true;
+            } else {
+                campoMonto.style.display = 'none';
+                inputMonto.required = false;
+                inputMonto.value = ''; // Limpiamos el valor
+            }
+        });
+    });
+});
+
 </script>
 {% endblock %}

@@ -6,24 +6,33 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Mesa, Comanda, DetalleComanda
+from .servicios import ESTADOS_ABIERTOS, registrar_pago
 from django.forms import inlineformset_factory
 from .forms import MesaForm, ComandaForm, DetalleComandaForm
-from inventario.models import Plato, Bebida
+from inventario.models import Plato, Bebida, CategoriaPlato, TipoBebida 
 from auditoria.models import LogAuditoria
-from empleados.decorators import permiso_requerido
+from empleados.decorators import permiso_requerido, tiene_permiso
 from django.db import transaction
 from reportlab.pdfgen import canvas
 from django.http import HttpResponse
 from django.utils import timezone
-from django.db.models import Q
+from core.fechas import limitar_rango
+from django.db.models import Exists, OuterRef, Q
 from django.core.paginator import Paginator
 from django.utils.http import url_has_allowed_host_and_scheme
 import traceback
 
+_MENSAJE_COMANDA_BLOQUEADA = "La comanda #{} está cerrada o tiene pagos registrados: no se puede {}."
+
+
 @login_required
 @permiso_requerido("mesas", "leer")
 def mesa_listar(request):
-    mesas = Mesa.objects.all().order_by("numero_mesa")
+    mesas = Mesa.objects.annotate(
+        comanda_abierta=Exists(
+            Comanda.objects.filter(mesa=OuterRef("pk"), estado_comanda__in=ESTADOS_ABIERTOS)
+        )
+    ).order_by("numero_mesa")
 
     buscar = request.GET.get("buscar", "").strip()
     ubicaciones = request.GET.getlist("ubicacion")
@@ -65,6 +74,7 @@ def mesa_listar(request):
             "buscar": buscar,
             "ubicaciones_seleccionadas": ubicaciones,
             "estados_seleccionados": estados,
+            "puede_crear_comanda": tiene_permiso(request.user, "comandas", "escribir"),
         },
     )
 
@@ -75,7 +85,7 @@ def mesa_crear(request):
     if request.method == "POST":
         form = MesaForm(request.POST)
         if form.is_valid():
-            mesa=form.save()
+            mesa = form.save()
 
             LogAuditoria.objects.create(
                 tabla="Mesa",
@@ -85,7 +95,7 @@ def mesa_crear(request):
                 valores_actuales=f"Mesa creada: N° {mesa.numero_mesa}. Ubicación: {mesa.ubicacion}",
                 empleado=request.user.empleado,
             )
-            
+
             messages.success(request, "Mesa creada exitosamente")
             return redirect("ventas:listar_mesa")
     else:
@@ -104,26 +114,26 @@ def mesa_editar(request, pk):
     if request.method == "POST":
         form = MesaForm(request.POST, instance=mesa)
         if form.is_valid():
-          valores_viejos = f"N° {mesa.numero_mesa}, Ubicación: {mesa.ubicacion}"
-          form.save()
-          
-          valores_nuevos = f"N° {mesa.numero_mesa}, Ubicación: {mesa.ubicacion}"
-          LogAuditoria.objects.create(
-              tabla="Mesa",
-              accion="MODIFICAR",
-              registro_id=mesa.id_mesa,
-              valores_anteriores=valores_viejos,
-              valores_actuales=valores_nuevos,
-              empleado=request.user.empleado
+            valores_viejos = f"N° {mesa.numero_mesa}, Ubicación: {mesa.ubicacion}"
+            form.save()
+
+            valores_nuevos = f"N° {mesa.numero_mesa}, Ubicación: {mesa.ubicacion}"
+            LogAuditoria.objects.create(
+                tabla="Mesa",
+                accion="MODIFICAR",
+                registro_id=mesa.id_mesa,
+                valores_anteriores=valores_viejos,
+                valores_actuales=valores_nuevos,
+                empleado=request.user.empleado,
             )
-          messages.success(request, "Mesa actualizada")
-          return redirect("ventas:listar_mesa")
+            messages.success(request, "Mesa actualizada")
+            return redirect("ventas:listar_mesa")
     else:
         form = MesaForm(instance=mesa)
     return render(
         request,
         "mesas/editar_mesa.html",
-        {"form": form, 'mesa':mesa, "titulo": "Editar Mesa", "boton": "Actualizar"},
+        {"form": form, "mesa": mesa, "titulo": "Editar Mesa", "boton": "Actualizar"},
     )
 
 
@@ -131,15 +141,10 @@ def mesa_editar(request, pk):
 @permiso_requerido("mesas", "eliminar")
 def mesa_eliminar(request, pk):
     mesa = get_object_or_404(Mesa, pk=pk)
-
-    # verificar si la mesa tiene comandas activas
-    comandas_activas = Comanda.objects.filter(
-        mesa=mesa, estado_comanda__in=["pendiente", "en_preparacion", "entregado"]
-    )
-    if comandas_activas.exists():
+    if mesa.comandas.exists():
         messages.error(
             request,
-            f"No se puede eliminar la mesa {mesa.numero_mesa} porque tiene comandas activas.",
+            f"No se puede eliminar la mesa {mesa.numero_mesa} porque tiene comandas registradas.",
         )
         return redirect("ventas:listar_mesa")
 
@@ -166,10 +171,10 @@ def mesa_eliminar(request, pk):
 @permiso_requerido("mesas", "modificar")
 def mesa_estado(request, pk):
     mesa = get_object_or_404(Mesa, pk=pk)
-    # 1. Capturamos el motivo que viene del modal
+    if request.method != "POST":
+        return redirect("ventas:listar_mesa")
     motivo = request.POST.get("motivo_cambio", "Cambio de estado desde el listado")
-
-    # 2. Si la mesa está OCUPADA (False), verificar que no tenga comandas activas
+    
     if mesa.estado_mesa == False:
         comandas_activas = mesa.comandas.filter(
             estado_comanda__in=["pendiente", "en_preparacion", "entregado"]
@@ -183,12 +188,12 @@ def mesa_estado(request, pk):
             )
             return redirect("ventas:listar_mesa")
 
-    # 3. Si llegó acá, se puede cambiar el estado
+    # Si llegó acá, se puede cambiar el estado
     estado_anterior = mesa.estado_mesa
     mesa.estado_mesa = not mesa.estado_mesa
     mesa.save()
 
-    # 4. Registrar en el Log de Auditoría
+    # Registrar en el Log de Auditoría
     LogAuditoria.objects.create(
         tabla="Mesa",
         accion="MODIFICAR",
@@ -198,15 +203,16 @@ def mesa_estado(request, pk):
         empleado=request.user.empleado,
     )
 
-    # 5. Mensaje de éxito
+    # Mensaje de éxito
     estado = "disponible" if mesa.estado_mesa else "ocupada"
     messages.success(request, f"Mesa {mesa.numero_mesa} ahora está {estado}")
     return redirect("ventas:listar_mesa")
 
+
 @login_required
+@permiso_requerido("mesas", "leer")
 def mesa_ver_comandas(request, pk):
     mesa = get_object_or_404(Mesa, pk=pk)
-    # Traemos todas las comandas de esa mesa, ordenadas por la más reciente
     comandas = Comanda.objects.filter(mesa=mesa).order_by("-fecha_hora")
 
     return render(
@@ -225,15 +231,16 @@ def comanda_listar(request):
             "mesa",
             "empleado",
         )
-        .order_by("id_comanda")
+        .order_by("-fecha_hora")
     )
     mesas = Mesa.objects.all().order_by("numero_mesa")
 
     buscar = request.GET.get("buscar", "").strip()
     estados = request.GET.getlist("estado")
     mesas_ids = request.GET.getlist("mesa")
-    fecha_desde = request.GET.get("fecha_desde", "")
-    fecha_hasta = request.GET.get("fecha_hasta", "")
+    fecha_desde, fecha_hasta = limitar_rango(
+        request.GET.get("fecha_desde", ""), request.GET.get("fecha_hasta", "")
+    )
     if buscar:
         comandas = comandas.filter(
             Q(id_comanda__icontains=buscar)
@@ -301,8 +308,6 @@ def comanda_listar(request):
 
 # CREAR COMANDA
 from django.db import transaction
-
-
 @login_required
 @permiso_requerido("comandas", "escribir")
 def comanda_crear(request):
@@ -314,7 +319,6 @@ def comanda_crear(request):
         form = ComandaForm(request.POST)
         formset = DetalleFormSet(request.POST)
         if form.is_valid() and formset.is_valid():
-            # Validar que haya al menos un detalle
             detalles_validos = 0
             for form_detalle in formset:
                 if form_detalle.cleaned_data and not form_detalle.cleaned_data.get(
@@ -337,10 +341,11 @@ def comanda_crear(request):
                         "formset": formset,
                         "platos": Plato.objects.filter(estado_plato=True),
                         "bebidas": Bebida.objects.filter(disponible_bebida=True),
+                        "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
+                        "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
                     },
                 )
             try:
-                # TRANSACCIÓN: si algo falla, se revierte TODO
                 with transaction.atomic():
                     # Crear la comanda (sin guardar aún)
                     comanda = form.save(commit=False)
@@ -387,7 +392,7 @@ def comanda_crear(request):
                 print("=" * 60)
 
     else:
-        form = ComandaForm()
+        form = ComandaForm(initial={"mesa": request.GET.get("mesa")})
         formset = DetalleFormSet()
 
     return render(
@@ -398,6 +403,8 @@ def comanda_crear(request):
             "formset": formset,
             "platos": Plato.objects.filter(estado_plato=True),
             "bebidas": Bebida.objects.filter(disponible_bebida=True),
+            "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
+            "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
         },
     )
 
@@ -406,6 +413,10 @@ def comanda_crear(request):
 @permiso_requerido("comandas", "modificar")
 def comanda_editar(request, pk):
     comanda = get_object_or_404(Comanda, id_comanda=pk)
+    if not comanda.esta_abierta:
+        messages.error(request, f"La comanda #{comanda.id_comanda} está cerrada: no se puede editar.")
+        return redirect("ventas:comanda_listar")
+    tiene_pagos = comanda.pagos.exists()
     mesa_anterior = comanda.mesa
     DetalleFormSet = inlineformset_factory(
         Comanda,
@@ -418,34 +429,46 @@ def comanda_editar(request, pk):
 
     if request.method == "POST":
         form = ComandaForm(request.POST, instance=comanda)
-        formset = DetalleFormSet(request.POST, instance=comanda)
+        formset = DetalleFormSet(request.POST, instance=comanda, form_kwargs={"comanda": comanda})
         if form.is_valid() and formset.is_valid():
-            comanda_guardada = form.save(commit=False)
-            comanda_guardada.mesa = form.cleaned_data["mesa"]
-            comanda_guardada.save()
-            formset.instance = comanda_guardada
-            formset.save()
-            comanda_guardada.calcular_total()
+            try:
+                with transaction.atomic():
+                    _validar_cambios_detalle(pk, formset, tiene_pagos)
+                    comanda_guardada = form.save(commit=False)
+                    comanda_guardada.mesa = form.cleaned_data["mesa"]
+                    comanda_guardada.save()
+                    formset.save()
+                    comanda_guardada.detalles.all().delete()
+                    formset.instance = comanda_guardada
+                    formset.save()
+                    comanda_guardada.calcular_total()
+                    if comanda_guardada.total_comanda < comanda_guardada.total_pagado:
+                        raise ValueError(
+                            f"El nuevo total (${comanda_guardada.total_comanda}) no puede ser menor a lo ya cobrado (${comanda_guardada.total_pagado})."
+                        )
 
-            if mesa_anterior != comanda_guardada.mesa:
-                mesa_anterior.estado_mesa = True  # Liberar la anterior
-                mesa_anterior.save()
-                comanda_guardada.mesa.estado_mesa = False  # Ocupar la nueva
-                comanda_guardada.mesa.save()
+                    if mesa_anterior != comanda_guardada.mesa:
+                        mesa_anterior.estado_mesa = True  # Liberar la anterior
+                        mesa_anterior.save()
+                        comanda_guardada.mesa.estado_mesa = False  # Ocupar la nueva
+                        comanda_guardada.mesa.save()
 
-            LogAuditoria.objects.create(
-                tabla="Comanda",
-                accion="MODIFICAR",
-                registro_id=comanda_guardada.id_comanda,
-                valores_anteriores=f"Comanda #{comanda_guardada.id_comanda}",
-                valores_actuales=f"Comanda #{comanda_guardada.id_comanda} actualizada. Mesa: {comanda_guardada.mesa.numero_mesa}. Total: ${comanda_guardada.total_comanda}",
-                empleado=request.user.empleado,
-            )
-            messages.success(request, f"Comanda #{comanda.id_comanda} actualizada")
+                    LogAuditoria.objects.create(
+                        tabla="Comanda",
+                        accion="MODIFICAR",
+                        registro_id=comanda_guardada.id_comanda,
+                        valores_anteriores=f"Comanda #{comanda_guardada.id_comanda}",
+                        valores_actuales=f"Comanda #{comanda_guardada.id_comanda} actualizada. Mesa: {comanda_guardada.mesa.numero_mesa}. Total: ${comanda_guardada.total_comanda}",
+                        empleado=request.user.empleado,
+                    )
+            except ValueError as e:
+                messages.error(request, str(e))
+                return redirect("ventas:comanda_editar", pk=pk)
+            messages.success(request, f"Comanda #{pk} actualizada")
             return redirect("ventas:comanda_listar")
     else:
         form = ComandaForm(instance=comanda)
-        formset = DetalleFormSet(instance=comanda)
+        formset = DetalleFormSet(instance=comanda, form_kwargs={"comanda": comanda})
     return render(
         request,
         "comandas/comanda_editar.html",
@@ -453,26 +476,68 @@ def comanda_editar(request, pk):
             "form": form,
             "formset": formset,
             "comanda": comanda,
+            "tiene_pagos": tiene_pagos,
+            "productos_no_disponibles": _productos_no_disponibles(comanda),
             "platos": Plato.objects.filter(estado_plato=True),
             "bebidas": Bebida.objects.filter(disponible_bebida=True),
+            "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
+            "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
         },
     )
 
 
-# ELIMINAR COMANDA
-@login_required
-@permiso_requerido("comandas", "eliminar")
-def comanda_eliminar(request, pk):
-    comanda = get_object_or_404(Comanda, id_comanda=pk)
-    if request.method == "POST":
-        # Liberar la mesa
-        comanda.mesa.estado_mesa = True
-        comanda.mesa.save()
+def _productos_no_disponibles(comanda):
+    """Productos de la comanda que ya no se venden: no están en la grilla, pero siguen en el carrito."""
+    productos = []
+    for d in comanda.detalles.select_related("plato", "bebida"):
+        if d.plato and not d.plato.estado_plato:
+            productos.append(
+                {"tipo": "plato", "id": d.plato_id, "nombre": d.plato.nombre_plato, "precio": d.plato.precio_plato}
+            )
+        if d.bebida and not d.bebida.disponible_bebida:
+            productos.append(
+                {"tipo": "bebida", "id": d.bebida_id, "nombre": d.bebida.nombre_bebida, "precio": d.bebida.precio_bebida}
+            )
+    return productos
 
-        comanda.delete()
-        messages.success(request, "Comanda eliminada")
-        return redirect("ventas:comanda_listar")
-    return render(request, "comandas/comanda_eliminar.html", {"comanda": comanda})
+
+def _sumar_cantidades(filas):
+    """Agrupa (plato, cant_plato, bebida, cant_bebida) en {producto: cantidad total}."""
+    cantidades = {}
+    for plato, cant_plato, bebida, cant_bebida in filas:
+        if plato:
+            cantidades[plato] = cantidades.get(plato, 0) + (cant_plato or 0)
+        if bebida:
+            cantidades[bebida] = cantidades.get(bebida, 0) + (cant_bebida or 0)
+    return cantidades
+
+
+def _validar_cambios_detalle(id_comanda, formset, tiene_pagos):
+    """Un producto no disponible no puede aumentar. Con pagos, tampoco se puede quitar ni reducir nada."""
+    anteriores = _sumar_cantidades(
+        (d.plato, d.cant_plato, d.bebida, d.cant_bebida)
+        for d in DetalleComanda.objects.filter(comanda_id=id_comanda).select_related("plato", "bebida")
+    )
+    nuevas = _sumar_cantidades(
+        (
+            form.cleaned_data.get("plato"),
+            form.cleaned_data.get("cant_plato"),
+            form.cleaned_data.get("bebida"),
+            form.cleaned_data.get("cant_bebida"),
+        )
+        for form in formset.forms
+        if not form.cleaned_data.get("DELETE")
+    )
+    if tiene_pagos:
+        for producto, cantidad in anteriores.items():
+            if nuevas.get(producto, 0) < cantidad:
+                raise ValueError(
+                    "La comanda tiene pagos registrados: podés agregar productos, pero no quitar ni reducir los que ya tenía."
+                )
+    for producto, cantidad in nuevas.items():
+        disponible = producto.estado_plato if isinstance(producto, Plato) else producto.disponible_bebida
+        if not disponible and cantidad > anteriores.get(producto, 0):
+            raise ValueError("Un producto no disponible no se puede agregar ni aumentar.")
 
 
 # DETALLE COMANDA
@@ -493,10 +558,30 @@ def comanda_detalle(request, pk):
 @permiso_requerido("comandas", "modificar")
 def comanda_cambiar_estado(request, pk):
     comanda = get_object_or_404(Comanda, id_comanda=pk)
-    nuevo_estado = request.GET.get("estado") or request.POST.get("estado")
+    if request.method != "POST":
+        return redirect("ventas:comanda_listar")
+    nuevo_estado = request.POST.get("estado") or request.GET.get("estado")
+
+    if comanda.estado_comanda in ["pagado", "anulado"]:
+        messages.error(
+            request,
+            f"La comanda #{comanda.id_comanda} ya está {comanda.get_estado_comanda_display()} y no se puede modificar.",
+        )
+        return redirect("ventas:comanda_listar")
+
+    if nuevo_estado == "pagado":
+        messages.error(request, "Para marcar una comanda como pagada, registrá el pago.")
+        return redirect("ventas:comanda_listar")
+
+    if nuevo_estado not in ["pendiente", "en_preparacion", "entregado", "anulado"]:
+        messages.error(request, "Estado no válido.")
+        return redirect("ventas:comanda_listar")
+
+    if nuevo_estado == "anulado" and not comanda.puede_modificarse:
+        messages.error(request, _MENSAJE_COMANDA_BLOQUEADA.format(comanda.id_comanda, "anular"))
+        return redirect("ventas:comanda_listar")
 
     if nuevo_estado:
-        # Si el estado es 'anulado', anular
         if nuevo_estado == "anulado":
             motivo = request.POST.get("motivo_cambio", "Anulada desde el listado")
 
@@ -511,14 +596,15 @@ def comanda_cambiar_estado(request, pk):
                     # Revertir la mesa a "Disponible"
                     comanda.mesa.estado_mesa = True
                     comanda.mesa.save()
+
+                    # LOG DE AUDITORÍA
                     LogAuditoria.objects.create(
                         tabla="Comanda",
                         accion="ANULAR",
                         registro_id=comanda.id_comanda,
                         valores_anteriores=f"Estado: {estado_anterior}",
                         valores_actuales=f"Estado: anulado. Motivo: {motivo}. Fecha anulación: {timezone.now().strftime('%d/%m/%Y %H:%M')}",
-                        empleado=request.user.empleado
-                        # El campo fecha_hora se llena solo con auto_now_add=True
+                        empleado=request.user.empleado,
                     )
                 messages.success(
                     request, f"Comanda #{comanda.id_comanda} anulada exitosamente"
@@ -528,14 +614,24 @@ def comanda_cambiar_estado(request, pk):
         else:
             try:
                 with transaction.atomic():
+                    estado_anterior = comanda.estado_comanda
                     comanda.estado_comanda = nuevo_estado
                     comanda.save()
-                    # Cambiar el estado de la mesa según el nuevo estado de la comanda
                     if nuevo_estado in ["pagado", "anulado"]:
                         comanda.mesa.estado_mesa = True
                     elif nuevo_estado in ["pendiente", "en_preparacion", "entregado"]:
                         comanda.mesa.estado_mesa = False
                     comanda.mesa.save()
+
+                    # LOG DE AUDITORÍA
+                    LogAuditoria.objects.create(
+                        tabla="Comanda",
+                        accion="MODIFICAR",
+                        registro_id=comanda.id_comanda,
+                        valores_anteriores=f"Estado: {estado_anterior}",
+                        valores_actuales=f"Estado: {nuevo_estado}",
+                        empleado=request.user.empleado,
+                    )
 
                 messages.success(
                     request,
@@ -543,7 +639,7 @@ def comanda_cambiar_estado(request, pk):
                 )
             except Exception as e:
                 messages.error(request, f"Error al cambiar el estado: {e}")
-    next_url = request.GET.get("next")
+    next_url = request.POST.get("next")
     if next_url and url_has_allowed_host_and_scheme(
         next_url, allowed_hosts={request.get_host()}
     ):
@@ -553,15 +649,22 @@ def comanda_cambiar_estado(request, pk):
 
 
 @login_required
-@permiso_requerido("comandas", "eliminar")  # Solo Admin
+@permiso_requerido("comandas", "eliminar")  
 def comanda_eliminar(request, pk):
     comanda = get_object_or_404(Comanda, id_comanda=pk)
+    if not comanda.puede_modificarse:
+        messages.error(request, _MENSAJE_COMANDA_BLOQUEADA.format(comanda.id_comanda, "eliminar"))
+        return redirect("ventas:comanda_listar")
 
     if request.method == "POST":
+        id_comanda = comanda.id_comanda
         try:
             with transaction.atomic():
+                # Liberar la mesa
+                comanda.mesa.estado_mesa = True
+                comanda.mesa.save()
                 comanda.delete()
-            messages.success(request, f"Comanda #{comanda.id_comanda} eliminada")
+            messages.success(request, f"Comanda #{id_comanda} eliminada")
             return redirect("ventas:comanda_listar")
         except Exception as e:
             messages.error(request, f"Error al eliminar la comanda: {e}")
@@ -573,6 +676,10 @@ def comanda_eliminar(request, pk):
 @permiso_requerido("comandas", "modificar")
 def comanda_anular(request, pk):
     comanda = get_object_or_404(Comanda, id_comanda=pk)
+
+    if not comanda.puede_modificarse:
+        messages.error(request, _MENSAJE_COMANDA_BLOQUEADA.format(comanda.id_comanda, "anular"))
+        return redirect("ventas:comanda_listar")
 
     if request.method == "POST":
         motivo = request.POST.get("motivo")
@@ -602,8 +709,9 @@ def comanda_anular(request, pk):
 def comanda_consultar(request):
     comandas = Comanda.objects.all().order_by("-fecha_hora")
 
-    fecha_desde = request.GET.get("fecha_desde")
-    fecha_hasta = request.GET.get("fecha_hasta")
+    fecha_desde, fecha_hasta = limitar_rango(
+        request.GET.get("fecha_desde"), request.GET.get("fecha_hasta")
+    )
     estado = request.GET.get("estado")
     mesa_id = request.GET.get("mesa")
 
@@ -612,7 +720,7 @@ def comanda_consultar(request):
 
     if fecha_desde:
         try:
-            # Creamos un objeto datetime a las 00:00:00 del día elegido
+            # Crear un objeto datetime a las 00:00:00 del día elegido
             desde_dt = datetime.strptime(fecha_desde, "%Y-%m-%d")
             desde_con_tz = timezone.make_aware(
                 datetime.combine(desde_dt.date(), time.min), tz_actual
@@ -679,11 +787,6 @@ def comanda_ticket(request, pk):
     comanda = get_object_or_404(Comanda, id_comanda=pk)
     detalles = comanda.detalles.all().select_related("plato", "bebida")
 
-    if comanda.estado_comanda == "pendiente":
-        comanda.estado_comanda = "en_preparacion"
-        comanda.save()
-        messages.success(request, f"Comanda #{comanda.id_comanda} enviada a cocina")
-
     return render(
         request,
         "comandas/comanda_ticket.html",
@@ -692,3 +795,41 @@ def comanda_ticket(request, pk):
             "detalles": detalles,
         },
     )
+
+@login_required
+@permiso_requerido("comandas", "modificar")
+def comanda_cobrar(request):
+    if request.method == "POST":
+        try:
+            with transaction.atomic():
+                _registrar_pago(request)
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f"Error al registrar el pago: {e}")
+
+    next_url = request.POST.get("next")
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}
+    ):
+        return redirect(next_url)
+    return redirect("ventas:comanda_listar")
+
+
+def _registrar_pago(request):
+    """Guarda el pago y cierra la comanda si queda sin saldo. Lanza ValueError si los datos no son válidos."""
+    comanda, monto, saldo_restante = registrar_pago(
+        request.POST.get("comanda_id"),
+        request.POST.get("tipo_pago"),
+        request.POST.get("metodo_pago"),
+        request.POST.get("monto_abonado", ""),
+        request.user.empleado,
+    )
+
+    if saldo_restante == 0:
+        messages.success(request, f"Comanda #{comanda.id_comanda} pagada en su totalidad.")
+    else:
+        messages.success(
+            request,
+            f"Pago de ${monto} registrado en la comanda #{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}.",
+        )

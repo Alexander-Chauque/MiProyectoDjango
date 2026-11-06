@@ -51,13 +51,13 @@
       <div class="grid-formulario">
         <div class="grupo-campo">
           <label>Nombre del plato <span class="req">*</span></label>
-          <input type="text" name="nombre" class="form-control" required value="{{ plato.nombre_plato }}">
+          <input type="text" name="nombre" class="form-control" required value="{{ datos.nombre }}">
         </div>
         <div class="grupo-campo">
           <label>Precio <span class="req">*</span></label>
           <div class="input-con-prefijo">
             <span>$</span>
-            <input type="number" name="precio" step="0.01" min="0"  required value="{{ plato.precio_plato }}">
+            <input type="number" name="precio" step="0.01" min="0"  required value="{{ datos.precio }}">
           </div>
         </div>
         <div class="grupo-campo">
@@ -65,7 +65,7 @@
           <select name="categoria" class="form-control" required>
             <option value="">Seleccionar categoría</option>
             {% for categoria in categorias %}
-            <option value="{{ categoria.id_categoria_plato }}" {% if categoria.id_categoria_plato == plato.categoria.id_categoria_plato %}selected{% endif %}>
+            <option value="{{ categoria.id_categoria_plato }}" {% if categoria.id_categoria_plato|stringformat:"s" == datos.categoria %}selected{% endif %}>
               {{ categoria.nombre_categoria_plato }}
             </option>
             {% endfor %}
@@ -76,7 +76,7 @@
       <div class="grupo-campo relative">
         <label>Descripción (opcional)</label>
         <textarea name="descripcion" id="descripcion-plato" class="form-control" rows="3" maxlength="250"
-          placeholder="Ej. Descripción breve del plato...">{{ plato.descripcion_plato|default:'' }}</textarea>
+          placeholder="Ej. Descripción breve del plato...">{{ datos.descripcion }}</textarea>
         <span class="contador-caracteres" id="contador-desc">0/250</span>
       </div>
     </div>
@@ -95,20 +95,18 @@
       </div>
       <div class="grilla-ingredientes" id="lista-ingredientes">
         {% for ingrediente in ingredientes %}
-        {% if ingrediente.estado_ingrediente == 'Disponible' or not ingrediente.estado_ingrediente %}
         <label class="ingrediente-item" data-nombre="{{ ingrediente.nombre_ingrediente|lower }}">
           <input type="checkbox" name="ingredientes" value="{{ ingrediente.id_ingrediente }}" class="check-ingrediente"
-            {% if ingrediente in plato.ingredientes.all %}checked{% endif %}>
+            {% if ingrediente.id_ingrediente in ingredientes_seleccionados %}checked{% endif %}>
 
           <div class="ingrediente-info">
             <span class="material-symbols-outlined icono-ingrediente">grocery</span>
             <div class="textos-ingrediente">
               <span class="nombre-ingrediente">{{ ingrediente.nombre_ingrediente }}</span>
-              <span class="unidad-ingrediente">{{ ingrediente.unidad_medida|default:'' }}</span>
+              <span class="unidad-ingrediente">{{ ingrediente.unidad_medida|default:'' }}{% if not ingrediente.estado_ingrediente %} · No disponible{% endif %}</span>
             </div>
           </div>
         </label>
-        {% endif %}
         {% empty %}
         <p class="text-muted">No hay ingredientes cargados.</p>
         {% endfor %}

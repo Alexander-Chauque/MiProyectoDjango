@@ -72,6 +72,25 @@
           <span class="material-symbols-outlined">admin_panel_settings</span>
           {{ form.nivel_acceso }}
         </div>
+        {% if form.nivel_acceso.errors %}
+        <span style="color: #DC2626; font-size: 12px; margin-top: 5px;">{{ form.nivel_acceso.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Sueldo -->
+      <div class="grupo-campo">
+        <label>Sueldo <span class="req">*</span> </label>
+        <div class="input-icono">
+          <span class="material-symbols-outlined">attach_money</span>
+          {{ form.sueldo_cargo }}
+        </div>
+        {% if form.sueldo_cargo.errors %} 
+          <div class="error-mensaje" style="color: #DC2626; font-size: 12px; margin-top: 5px;">
+            {% for error in form.sueldo_cargo.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
 
       <div class="acciones-formulario">

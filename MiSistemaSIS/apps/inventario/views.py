@@ -1,7 +1,10 @@
+from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
+from django.db import IntegrityError, transaction
 from .models import Plato, CategoriaPlato, Ingrediente, DetallePlato, TipoBebida, Bebida
 from .forms import TipoBebidaForm, BebidaForm
+from .servicios import cambiar_estado_ingrediente
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -16,7 +19,6 @@ from auditoria.models import LogAuditoria
 @login_required
 def inventario_home(request):
     return render(request, "inventario_home.html")
-
 
 # Funciones para listar, crear, editar y eliminar platos
 @login_required
@@ -52,7 +54,7 @@ def listar_platos(request):
             platos = platos.filter(q_estado)
 
     if categoria_id_int:
-        platos = platos.filter(id_categoria_plato__in=categoria_id_int)
+        platos = platos.filter(categoria_id__in=categoria_id_int)
     # Paginacion
     try:
         por_pagina = int(por_pagina)
@@ -78,129 +80,127 @@ def listar_platos(request):
     )
 
 
+def _formulario_plato(request, plato=None):
+    actuales = set()
+    if plato:
+        actuales = set(plato.detalleplato_set.values_list("ingrediente_id", flat=True))
+
+    if request.method == "POST":
+        seleccionados = {
+            int(i) for i in request.POST.getlist("ingredientes") if i.isdigit()
+        }
+        datos = {
+            campo: request.POST.get(campo, "")
+            for campo in ("nombre", "precio", "categoria", "descripcion")
+        }
+    else:
+        seleccionados = actuales
+        datos = {}
+        if plato:
+            datos = {
+                "nombre": plato.nombre_plato,
+                "precio": f"{plato.precio_plato:.2f}",
+                "categoria": str(plato.categoria_id),
+                "descripcion": plato.descripcion_plato,
+            }
+
+    return {
+        "plato": plato,
+        "datos": datos,
+        "categorias": CategoriaPlato.objects.all().order_by("nombre_categoria_plato"),
+        "ingredientes": Ingrediente.objects.filter(
+            Q(estado_ingrediente=True) | Q(pk__in=actuales)
+        ).order_by("nombre_ingrediente"),
+        "ingredientes_seleccionados": seleccionados,
+    }
+
+
+def _validar_plato(request, plato=None):
+    """Devuelve los datos limpios del formulario o lanza ValueError con el motivo."""
+    nombre = request.POST.get("nombre", "").strip().title()
+    if not nombre or len(nombre) > 100 or not re.match(r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s/-]+$", nombre):
+        raise ValueError(
+            "Nombre inválido: solo se permiten letras, números, espacios, / y -"
+        )
+    existentes = Plato.objects.filter(nombre_plato__iexact=nombre)
+    if plato:
+        existentes = existentes.exclude(pk=plato.pk)
+    if existentes.exists():
+        raise ValueError(f'Plato "{nombre}" ya existe')
+
+    try:
+        precio = Decimal(request.POST.get("precio", ""))
+    except InvalidOperation:
+        raise ValueError("Precio inválido: ingrese un número válido")
+    if not precio.is_finite() or precio <= 0 or precio >= 10**8:
+        raise ValueError("Precio inválido: debe ser mayor a 0 y menor a 100.000.000")
+    if precio != precio.quantize(Decimal("0.01")):
+        raise ValueError("Precio inválido: se permiten hasta 2 decimales")
+
+    categoria_id = request.POST.get("categoria", "")
+    categoria = None
+    if categoria_id.isdigit():
+        categoria = CategoriaPlato.objects.filter(pk=categoria_id).first()
+    if not categoria:
+        raise ValueError("Debe seleccionar una categoría válida")
+
+    ids = request.POST.getlist("ingredientes")
+    if not ids:
+        raise ValueError("Debe seleccionar al menos un ingrediente")
+    if not all(i.isdigit() for i in ids):
+        raise ValueError("Hay ingredientes inválidos")
+    actuales = plato.detalleplato_set.values("ingrediente_id") if plato else []
+    ingredientes = list(
+        Ingrediente.objects.filter(pk__in=ids).filter(
+            Q(estado_ingrediente=True) | Q(pk__in=actuales)
+        )
+    )
+    if len(ingredientes) != len(set(ids)):
+        raise ValueError("Hay ingredientes que no existen o no están disponibles")
+
+    return {
+        "nombre": nombre,
+        "precio": precio,
+        "categoria": categoria,
+        "ingredientes": ingredientes,
+        "descripcion": request.POST.get("descripcion", ""),
+    }
+
+
 @login_required
 @permiso_requerido("platos", "escribir")
 def crear_plato(request):
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        if nombre:
-            nombre = nombre.title()
-        precio = request.POST.get("precio")
-        categoria_id = request.POST.get("categoria")
-        ingredientes_ids = request.POST.getlist("ingredientes")
-        descripcion = request.POST.get("descripcion", "")
-        # Validar precio
         try:
-            if float(precio) <= 0:
-                messages.error(request, "Precio inválido: el precio debe ser mayor a 0")
-                return render(
-                    request,
-                    "./platos/crear.html",
-                    {
-                        "ingredientes": Ingrediente.objects.all().order_by(
-                            "nombre_ingrediente"
-                        ),
-                        "categorias": CategoriaPlato.objects.all().order_by(
-                            "nombre_categoria_plato"
-                        ),
-                    },
+            datos = _validar_plato(request)
+            with transaction.atomic():
+                plato = Plato.objects.create(
+                    nombre_plato=datos["nombre"],
+                    precio_plato=datos["precio"],
+                    descripcion_plato=datos["descripcion"],
+                    categoria=datos["categoria"],
                 )
-        except ValueError:
-            messages.error(request, "Precio inválido: ingrese un número válido")
-            return render(
-                request,
-                "inventario/platos/crear.html",
-                {
-                    "ingredientes": Ingrediente.objects.all().order_by(
-                        "nombre_ingrediente"
-                    ),
-                    "categorias": CategoriaPlato.objects.all().order_by(
-                        "nombre_categoria_plato"
-                    ),
-                },
-            )
-        # Validar nombre
-        if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s/-]+$", nombre):
-            messages.error(
-                request, "Nombre inválido: solo se permiten letras, espacios, / y -"
-            )
-            return render(
-                request,
-                "inventario/platos/crear.html",
-                {
-                    "ingredientes": Ingrediente.objects.all().order_by(
-                        "nombre_ingrediente"
-                    ),
-                    "categorias": CategoriaPlato.objects.all().order_by(
-                        "nombre_categoria_plato"
-                    ),
-                },
-            )
-        # Validar que no exista
-        if Plato.objects.filter(nombre_plato=nombre).exists():
-            messages.error(request, f'Plato "{nombre}" ya existe')
-            return render(
-                request,
-                "inventario/platos/crear.html",
-                {
-                    "ingredientes": Ingrediente.objects.all().order_by(
-                        "nombre_ingrediente"
-                    ),
-                    "categorias": CategoriaPlato.objects.all().order_by(
-                        "nombre_categoria_plato"
-                    ),
-                },
-            )
-        # Validar que tenga al menos un ingrediente
-        if not ingredientes_ids:
-            messages.error(request, "Debe seleccionar al menos un ingrediente")
-            return render(
-                request,
-                "./platos/crear.html",
-                {
-                    "ingredientes": Ingrediente.objects.all().order_by(
-                        "nombre_ingrediente"
-                    ),
-                    "categorias": CategoriaPlato.objects.all().order_by(
-                        "nombre_categoria_plato"
-                    ),
-                },
-            )
-        # Crear el plato
-        categoria = CategoriaPlato.objects.get(id_categoria_plato=categoria_id)
-        plato = Plato.objects.create(
-            nombre_plato=nombre,
-            precio_plato=precio,
-            descripcion_plato=descripcion,
-            categoria=categoria,
-        )
-        # Agregar ingredientes
-        for ingrediente_id in ingredientes_ids:
-            DetallePlato.objects.create(
-                plato=plato,
-                ingrediente=Ingrediente.objects.get(id_ingrediente=ingrediente_id),
-                cantidad=1,
-            )
+                for ingrediente in datos["ingredientes"]:
+                    DetallePlato.objects.create(
+                        plato=plato, ingrediente=ingrediente, cantidad=1
+                    )
+                LogAuditoria.objects.create(
+                    tabla="Plato",
+                    accion="CREAR",
+                    registro_id=plato.id_plato,
+                    valores_anteriores="",
+                    valores_actuales=f"Plato creado: {plato.nombre_plato}. Precio: ${plato.precio_plato}",
+                    empleado=request.user.empleado,
+                )
+        except ValueError as e:
+            messages.error(request, str(e))
+        except IntegrityError:
+            messages.error(request, "Ya existe un plato con ese nombre")
+        else:
+            messages.success(request, f'Plato "{plato.nombre_plato}" creado exitosamente')
+            return redirect("inventario:listar_platos")
 
-        LogAuditoria.objects.create(
-            tabla="Plato",
-            accion="CREAR",
-            registro_id=plato.id_plato,
-            valores_anteriores="",
-            valores_actuales=f"Plato creado: {plato.nombre_plato}. Precio: ${plato.precio_plato}",
-            empleado=request.user.empleado,
-        )
-        messages.success(request, f'Plato "{nombre}" creado exitosamente')
-        return redirect("inventario:listar_platos")
-
-    else:
-        ingredientes = Ingrediente.objects.all().order_by("nombre_ingrediente")
-        categorias = CategoriaPlato.objects.all().order_by("nombre_categoria_plato")
-        return render(
-            request,
-            "platos/crear.html",
-            {"ingredientes": ingredientes, "categorias": categorias},
-        )
+    return render(request, "platos/crear.html", _formulario_plato(request))
 
 
 @login_required
@@ -209,110 +209,46 @@ def editar_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
 
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        if nombre:
-            nombre = nombre.title()
-
-        precio = request.POST.get("precio")
-        categoria_id = request.POST.get("categoria")
-        ingredientes_ids = request.POST.getlist("ingredientes")
-        # Validar precio
         try:
-            if float(precio) <= 0:
-                messages.error(request, "Precio inválido: el precio debe ser mayor a 0")
-                return render(
-                    request,
-                    "inventario/platos/editar.html",
-                    {
-                        "plato": plato,
-                        "categorias": CategoriaPlato.objects.all().order_by(
-                            "nombre_categoria_plato"
-                        ),
-                        "ingredientes": Ingrediente.objects.all().order_by(
-                            "nombre_ingrediente"
-                        ),
-                    },
+            datos = _validar_plato(request, plato)
+            valores_viejos = f"Nombre: {plato.nombre_plato}, Precio: {plato.precio_plato}, Categoría: {plato.categoria.nombre_categoria_plato}"
+            with transaction.atomic():
+                plato.nombre_plato = datos["nombre"]
+                plato.precio_plato = datos["precio"]
+                plato.categoria = datos["categoria"]
+                plato.descripcion_plato = datos["descripcion"]
+                plato.save()
+
+                # Reemplazar los ingredientes, conservando la cantidad de los que siguen
+                cantidades = dict(
+                    plato.detalleplato_set.values_list("ingrediente_id", "cantidad")
                 )
-        except ValueError:
-            messages.error(request, "Precio inválido: ingrese un número válido")
-            return render(
-                request,
-                "inventario/platos/editar.html",
-                {
-                    "plato": plato,
-                    "categorias": CategoriaPlato.objects.all().order_by(
-                        "nombre_categoria_plato"
-                    ),
-                    "ingredientes": Ingrediente.objects.all().order_by(
-                        "nombre_ingrediente"
-                    ),
-                },
-            )
-        # Validar que tenga al menos un ingrediente
-        if not ingredientes_ids:
-            messages.error(request, "Debe seleccionar al menos un ingrediente")
-            return render(
-                request,
-                "inventario/platos/editar.html",
-                {
-                    "plato": plato,
-                    "categorias": CategoriaPlato.objects.all().order_by(
-                        "nombre_categoria_plato"
-                    ),
-                    "ingredientes": Ingrediente.objects.all().order_by(
-                        "nombre_ingrediente"
-                    ),
-                },
-            )
-        # Validar que no exista otro plato con el mismo nombre
-        if Plato.objects.filter(nombre_plato=nombre).exclude(pk=pk).exists():
-            messages.error(request, f'Plato "{nombre}" ya existe')
-            return render(
-                request,
-                "inventario/platos/editar.html",
-                {
-                    "plato": plato,
-                    "categorias": CategoriaPlato.objects.all().order_by(
-                        "nombre_categoria_plato"
-                    ),
-                    "ingredientes": Ingrediente.objects.all().order_by(
-                        "nombre_ingrediente"
-                    ),
-                },
-            )
-        # Actualizar plato
-        valores_viejos = f"Nombre: {plato.nombre_plato}, Precio: {plato.precio_plato}, Categoría: {plato.categoria.nombre_categoria_plato}"
-        plato.nombre_plato = nombre
-        plato.precio_plato = precio
-        plato.categoria = CategoriaPlato.objects.get(id_categoria_plato=categoria_id)
-        plato.save()
-        # Eliminar ingredientes anteriores y agregar los nuevos
-        plato.detalleplato_set.all().delete()
-        for ingrediente_id in ingredientes_ids:
-            DetallePlato.objects.create(
-                plato=plato,
-                ingrediente=Ingrediente.objects.get(id_ingrediente=ingrediente_id),
-                cantidad=1,
-            )
-        valores_nuevos = f"Nombre: {plato.nombre_plato}, Precio: {plato.precio_plato}, Categoría: {plato.categoria.nombre_categoria_plato}"
-        LogAuditoria.objects.create(
-            tabla="Plato",
-            accion="MODIFICAR",
-            registro_id=plato.id_plato,
-            valores_anteriores=valores_viejos,
-            valores_actuales=valores_nuevos,
-            empleado=request.user.empleado,
-        )
-        messages.success(request, f'Plato "{nombre}" editado exitosamente')
-        return redirect("inventario:listar_platos")
-    else:
-        categorias = CategoriaPlato.objects.all().order_by("nombre_categoria_plato")
-        ingredientes = Ingrediente.objects.all().order_by("nombre_ingrediente")
-        return render(
-            request,
-            "platos/editar.html",
-            {"plato": plato, "categorias": categorias, "ingredientes": ingredientes},
-        )
+                plato.detalleplato_set.all().delete()
+                for ingrediente in datos["ingredientes"]:
+                    DetallePlato.objects.create(
+                        plato=plato,
+                        ingrediente=ingrediente,
+                        cantidad=cantidades.get(ingrediente.pk, 1),
+                    )
+
+                LogAuditoria.objects.create(
+                    tabla="Plato",
+                    accion="MODIFICAR",
+                    registro_id=plato.id_plato,
+                    valores_anteriores=valores_viejos,
+                    valores_actuales=f"Nombre: {plato.nombre_plato}, Precio: {plato.precio_plato}, Categoría: {plato.categoria.nombre_categoria_plato}",
+                    empleado=request.user.empleado,
+                )
+        except ValueError as e:
+            messages.error(request, str(e))
+        except IntegrityError:
+            plato.refresh_from_db()
+            messages.error(request, "Ya existe un plato con ese nombre")
+        else:
+            messages.success(request, f'Plato "{plato.nombre_plato}" editado exitosamente')
+            return redirect("inventario:listar_platos")
+
+    return render(request, "platos/editar.html", _formulario_plato(request, plato))
 
 
 @login_required
@@ -427,7 +363,7 @@ def crear_ingrediente(request):
             nombre = nombre.lower()
         unidad_medida = request.POST.get("unidad_medida")
         if unidad_medida:
-            unidad_medida = unidad_medida.title()
+            unidad_medida = unidad_medida.lower()
         costo_unitario = request.POST.get("costo_unitario", 0)
 
         ingrediente = Ingrediente.objects.create(
@@ -527,53 +463,7 @@ def estado_ingrediente(request, pk):
 
     if request.method == "POST":
         motivo = request.POST.get("motivo_cambio", "Cambio desde el listado")
-
-        estado_anterior = ingrediente.estado_ingrediente
-        ingrediente.estado_ingrediente = not ingrediente.estado_ingrediente
-        ingrediente.save()
-
-        if not ingrediente.estado_ingrediente:
-            platos_afectados = Plato.objects.filter(
-                detalleplato__ingrediente=ingrediente, estado_plato=True
-            )
-            for plato in platos_afectados:
-                plato.estado_plato = False
-                plato.save()
-
-                LogAuditoria.objects.create(
-                    tabla="Plato",
-                    accion="MODIFICAR",
-                    registro_id=plato.id_plato,
-                    valores_anteriores="Estado: Disponible",
-                    valores_actuales=f"Estado: No disponible. Motivo: Ingrediente '{ingrediente.nombre_ingrediente}' fuera de stock.",
-                    empleado=request.user.empleado,
-                )
-        else:
-            platos_afectados = Plato.objects.filter(
-                detalleplato__ingrediente=ingrediente, estado_plato=False
-            )
-            for plato in platos_afectados:
-                plato.estado_plato = True
-                plato.save()
-
-                LogAuditoria.objects.create(
-                    tabla="Plato",
-                    accion="MODIFICAR",
-                    registro_id=plato.id_plato,
-                    valores_anteriores="Estado: No disponible",
-                    valores_actuales=f"Estado: Disponible. Motivo: Ingrediente '{ingrediente.nombre_ingrediente}' vuelve a estar en stock.",
-                    empleado=request.user.empleado,
-                )
-
-        # LOG DEL INGREDIENTE
-        LogAuditoria.objects.create(
-            tabla="Ingrediente",
-            accion="MODIFICAR",
-            registro_id=ingrediente.id_ingrediente,
-            valores_anteriores=f"Estado: {'Disponible' if estado_anterior else 'No disponible'}",
-            valores_actuales=f"Estado: {'Disponible' if ingrediente.estado_ingrediente else 'No disponible'}. Motivo: {motivo}",
-            empleado=request.user.empleado,
-        )
+        cambiar_estado_ingrediente(ingrediente, request.user.empleado, motivo)
 
         estado_texto = (
             "disponible" if ingrediente.estado_ingrediente else "no disponible"
@@ -706,6 +596,8 @@ def detalle_categoria(request, pk):
 @permiso_requerido("categorias", "modificar")
 def estado_categoria(request, pk):
     categoria = get_object_or_404(CategoriaPlato, pk=pk)
+    if request.method != "POST":
+        return redirect("inventario:listar_categorias")
     categoria.estado_categoria_plato = not categoria.estado_categoria_plato
     categoria.save()
 
@@ -718,7 +610,7 @@ def estado_categoria(request, pk):
             request, f'Categoría "{categoria.nombre_categoria_plato}" desactivada'
         )
 
-    return redirect(request.META.get("HTTP_REFERER,", "inventario:listar_categorias"))
+    return redirect("inventario:listar_categorias")
 
 
 # funcion de Tipo de Bebidas

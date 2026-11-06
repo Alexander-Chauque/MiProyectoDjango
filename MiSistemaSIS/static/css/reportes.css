@@ -96,7 +96,7 @@
   border: 2px solid #E5E7EB;
   border-radius: 8px;
   font-family: 'Oswald', sans-serif;
-  color: #2D3748;
+  color: #3D3D3D;
   outline: none;
 }
 
@@ -124,7 +124,7 @@
 .titulo-grafico h3 {
   font-family: 'Oswald', sans-serif;
   font-size: 18px;
-  color: #2D3748;
+  color: #3D3D3D;
   margin: 0;
   text-transform: uppercase;
 }
@@ -161,7 +161,7 @@
 .titulo-top h3 {
   font-family: 'Oswald', sans-serif;
   font-size: 18px;
-  color: #2D3748;
+  color: #3D3D3D;
   margin: 0;
   text-transform: uppercase;
 }
@@ -185,7 +185,7 @@
   padding: 12px 20px;
   border-bottom: 1px solid #F3F4F6;
   font-size: 14px;
-  color: #2D3748;
+  color: #3D3D3D;
   font-family: 'Segoe UI', Arial, sans-serif;
 }
 
@@ -247,4 +247,38 @@
   gap: 15px;
   align-items: flex-end;
   flex-wrap: wrap;
+}
+
+.tabs-reportes {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #E5E7EB;
+  padding-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #6B7280;
+  font-family: 'Oswald', sans-serif;
+  border-radius: 8px 8px 0 0;
+  transition: 0.2s;
+}
+
+.tab-btn:hover {
+  background: #F3F4F6;
+  color: #F5A623;
+}
+
+.tab-btn.activo {
+  background: #FFF8E7;
+  color: #F5A623;
+  font-weight: 600;
+  border-bottom: 3px solid #F5A623;
+  margin-bottom: -12px;
 }

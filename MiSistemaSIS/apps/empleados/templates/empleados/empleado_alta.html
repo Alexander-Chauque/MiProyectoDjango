@@ -1,24 +1,20 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Alta de Empleado{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
-{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Alta de Empleado{%endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+/>
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}" />
+{% endblock %} {% block content %}
 <div class="contenedor">
-
   <!-- Breadcrumb -->
   <nav class="breadcrumb">
     <a href="{% url 'home' %}" class="breadcrumb-item">
       <span class="material-symbols-outlined">home</span> Inicio
     </a>
     <span class="breadcrumb-separator">></span>
-    <a href="{% url 'empleados:empleado_listar' %}" class="breadcrumb-item">Empleados</a>
+    <a href="{% url 'empleados:empleado_listar' %}" class="breadcrumb-item"
+      >Empleados</a
+    >
     <span class="breadcrumb-separator">></span>
     <span class="breadcrumb-item active">Crear</span>
   </nav>
@@ -26,7 +22,11 @@
   <!-- Header -->
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'empleados:empleado_listar' %}" class="btn-volver-flecha" title="Volver">
+      <a
+        href="{% url 'empleados:empleado_listar' %}"
+        class="btn-volver-flecha"
+        title="Volver"
+      >
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
@@ -41,6 +41,15 @@
 
   <form method="POST">
     {% csrf_token %}
+
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-error">
+        {% for error in form.non_field_errors %}
+          <span>{{ error }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <div class="layout-empleado">
       <div class="columna-empleado">
@@ -62,7 +71,14 @@
               <label>Nombre <span class="req">*</span></label>
               <div class="input-icono">
                 <span class="material-symbols-outlined">person</span>
-                {{ form.nombre }}
+                {{ form.nombre }} 
+                {% if form.nombre_empleado.errors %}
+                <div class="error-mensaje">
+                  {% for error in form.nombre_empleado.errors %}
+                  <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
               </div>
             </div>
 
@@ -72,6 +88,13 @@
               <div class="input-icono">
                 <span class="material-symbols-outlined">person</span>
                 {{ form.apellido }}
+                {% if form.apellido_empleado.errors %}
+                  <div class="error-mensaje">
+                    {% for error in form.apellido_empleado.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               </div>
             </div>
 
@@ -81,6 +104,13 @@
               <div class="input-icono">
                 <span class="material-symbols-outlined">badge</span>
                 {{ form.dni }}
+                {% if form.dni.errors %}
+                  <div class="error-mensaje">
+                    {% for error in form.dni.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -107,6 +137,13 @@
               <div class="input-icono">
                 <span class="material-symbols-outlined">call</span>
                 {{ form.telefono }}
+                {% if form.telefono.errors %}
+                  <div class="error-mensaje">
+                    {% for error in form.telefono.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               </div>
             </div>
 
@@ -116,6 +153,13 @@
               <div class="input-icono">
                 <span class="material-symbols-outlined">mail</span>
                 {{ form.correo }}
+                {% if form.correo.errors %}
+                  <div class="error-mensaje">
+                    {% for error in form.correo.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -138,6 +182,13 @@
               <div class="input-icono">
                 <span class="material-symbols-outlined">list</span>
                 {{ form.cargo }}
+                {% if form.cargo.errors %}
+                  <div class="error-mensaje">
+                    {% for error in form.cargo.errors %}
+                      <span>{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -146,7 +197,7 @@
     </div>
 
     <!-- Datos de acceso -->
-    <div class="tarjeta-empleado" style="margin-top: 25px;">
+    <div class="tarjeta-empleado" style="margin-top: 25px">
       <div class="tarjeta-cabecera">
         <div class="tarjeta-icono">
           <span class="material-symbols-outlined">lock</span>
@@ -158,14 +209,24 @@
       </div>
       <div class="tarjeta-cuerpo">
         <div class="fila-doble-password">
-
           <!-- Contraseña -->
           <div class="grupo-campo">
             <label>Contraseña <span class="req">*</span></label>
             <div class="input-icono input-password">
               <span class="material-symbols-outlined">lock</span>
               {{ form.contrasena }}
-              <span class="material-symbols-outlined toggle-password" onclick="togglePassword(this)">visibility</span>
+              {% if form.contrasena.errors %}
+                <div class="error-mensaje">
+                  {% for error in form.contrasena.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <span
+                class="material-symbols-outlined toggle-password"
+                onclick="togglePassword(this)"
+                >visibility</span
+              >
             </div>
           </div>
 
@@ -174,23 +235,39 @@
             <label>Confirmar contraseña <span class="req">*</span></label>
             <div class="input-icono input-password">
               <span class="material-symbols-outlined">lock</span>
-              {{ form.confirmar_contrasena }} <!-- Ajusta al nombre de tu campo -->
-              <span class="material-symbols-outlined toggle-password" onclick="togglePassword(this)">visibility</span>
+              {{ form.confirmar_contrasena }}
+              {% if form.confirmar_contrasena.errors %}
+                <div class="error-mensaje">
+                  {% for error in form.confirmar_contrasena.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <!-- Ajusta al nombre de tu campo -->
+              <span
+                class="material-symbols-outlined toggle-password"
+                onclick="togglePassword(this)"
+                >visibility</span
+              >
             </div>
           </div>
         </div>
       </div>
     </div>
     <div class="footer-formulario-empleado">
-      <span class="texto-obligatorio"><span class="req">*</span> Campos obligatorios</span>
+      <span class="texto-obligatorio"
+        ><span class="req">*</span> Campos obligatorios</span
+      >
       <div class="botones-accion">
-        <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
+        <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario"
+          >Cancelar</a
+        >
         <button type="submit" class="btn-primario">
-          <span class="material-symbols-outlined">person_add</span> Crear empleado
+          <span class="material-symbols-outlined">person_add</span> Crear
+          empleado
         </button>
       </div>
     </div>
-
   </form>
 </div>
 
@@ -206,5 +283,49 @@
       icono.textContent = "visibility";
     }
   }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const dniInput = document.querySelector('input[name="dni"]');
+    if (dniInput) {
+      dniInput.addEventListener("input", function (e) {
+        // 1. Quitamos todo lo que no sea número
+        let value = this.value.replace(/\D/g, "");
+
+        // 2. Limitamos a 8 números
+        if (value.length > 8) value = value.slice(0, 8);
+
+        // 3. Formateamos con puntos (ej: 12.345.678)
+        if (value.length > 5) {
+          value = value.replace(/(\d{2})(\d{3})(\d{0,3})/, "$1.$2.$3");
+        } else if (value.length > 2) {
+          value = value.replace(/(\d{2})(\d{0,3})/, "$1.$2");
+        }
+
+        // 4. Asignamos el valor formateado
+        this.value = value;
+      });
+    }
+
+    const telInput = document.querySelector('input[name="telefono"]');
+    if (telInput) {
+      telInput.addEventListener("input", function (e) {
+        // 1. Quitamos todo lo que no sea número
+        let value = this.value.replace(/\D/g, "");
+
+        // 2. Limitamos a 10 números (característica + número)
+        if (value.length > 10) value = value.slice(0, 10);
+
+        // 3. Formateamos (ej: 381-555-4444)
+        if (value.length > 6) {
+          value = value.replace(/(\d{3})(\d{3})(\d{0,4})/, "$1-$2-$3");
+        } else if (value.length > 3) {
+          value = value.replace(/(\d{3})(\d{0,3})/, "$1-$2");
+        }
+
+        // Asignamos el valor formateado
+        this.value = value;
+      });
+    }
+  });
 </script>
 {% endblock %}

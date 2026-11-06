@@ -20,7 +20,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-from core.views import home, password_reset_view 
+from core.views import home
+from empleados.forms import NuevaContrasenaForm
 from empleados.views import login_view
 
 
@@ -33,9 +34,18 @@ urlpatterns = [
     path("ventas/", include("ventas.urls")),
     path("reportes/", include("reportes.urls")),
     path("auditoria/", include("auditoria.urls")),
+    path("api/", include("api.urls")),  # API que usa la app móvil
     path("login/", login_view, name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
-    path("password-reset/", password_reset_view, name="password_reset"),
+    path(
+        "password-reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="registration/password_reset_form.html",
+            email_template_name="registration/password_reset_email.html",
+            subject_template_name="registration/password_reset_subject.txt",
+        ),
+        name="password_reset",
+    ),
     path(
         "password-reset/done/",
         auth_views.PasswordResetDoneView.as_view(
@@ -47,6 +57,7 @@ urlpatterns = [
         "password-reset-confirm/<uidb64>/<token>/",
         auth_views.PasswordResetConfirmView.as_view(
             template_name="registration/password_reset_confirm.html",
+            form_class=NuevaContrasenaForm,  # Misma regla que Cambiar contraseña
             success_url="/password-reset-complete/",
         ),
         name="password_reset_confirm",
@@ -59,3 +70,6 @@ urlpatterns = [
         name="password_reset_complete",
     ),
 ]
+
+# Permite ver las fotos subidas. Solo funciona con DEBUG=True, es decir, en desarrollo.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

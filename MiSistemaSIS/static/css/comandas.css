@@ -811,7 +811,42 @@
   background-color: #EF4444;
 }
 
+/* Fila de categorías, debajo de las pestañas Platos/Bebidas */
+.tabs-categorias {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  padding: 0 20px;
+}
 
+.tabs-categorias .cat-btn {
+  margin-bottom: 12px;
+}
+
+/* Botones tipo pastilla */
+.cat-btn {
+  background-color: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cat-btn:hover {
+  background-color: #E5E7EB;
+}
+
+/* Estado activo (cuando se selecciona) */
+.cat-btn.activo {
+  background-color: #FFF8E7;
+  color: #F5A623;
+  border-color: #F5A623;
+  font-weight: 600;
+}
 
 /* Truco visual: Si es la última fila, abrir el menú hacia arriba para que no se corte */
 .tabla tbody tr:last-child .dropdown-menu-estado {

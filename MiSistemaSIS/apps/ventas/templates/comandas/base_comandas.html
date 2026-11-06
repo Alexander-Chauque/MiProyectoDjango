@@ -10,7 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/flatpickr/flatpickr.min.css' %}">
     {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/calendario.css' %}">
 </head>
 <body>
     <nav class="navbar">
@@ -67,6 +69,9 @@
             }, 5000);
         });
     </script>
+    <script src="{% static 'vendor/flatpickr/flatpickr.min.js' %}"></script>
+    <script src="{% static 'vendor/flatpickr/es.js' %}"></script>
+    <script src="{% static 'js/filtros_fecha.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
