@@ -21,13 +21,13 @@
                     <div class="columna-mitad">
                         <div class="grupo-campo">
                             <label>Fecha Desde</label>
-                            <input type="date" name="fecha_desde" class="form-control" value="{{ filtros.fecha_desde|default:'' }}">
+                            <input type="date" name="fecha_desde" class="form-control" value="{{ filtros.fecha_desde|default:'' }}" max="{% now 'Y-m-d' %}">
                         </div>
                     </div>
                     <div class="columna-mitad">
                         <div class="grupo-campo">
                             <label>Fecha Hasta</label>
-                            <input type="date" name="fecha_hasta" class="form-control" value="{{ filtros.fecha_hasta|default:'' }}">
+                            <input type="date" name="fecha_hasta" class="form-control" value="{{ filtros.fecha_hasta|default:'' }}" max="{% now 'Y-m-d' %}">
                         </div>
                     </div>
                 </div>

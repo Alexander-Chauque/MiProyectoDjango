@@ -4,9 +4,9 @@
 {% block title %}Nueva Comanda{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+<link rel="stylesheet" href="{% static 'css/selector_mesa.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -19,26 +19,36 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'ventas:comanda_listar' %}" class="breadcrumb-item">Comandas</a>
     <span class="breadcrumb-separator">></span>
-    </a>
     <span class="breadcrumb-item active">Crear</span>
   </nav>
+
   <div class="page-header">
     <div class="page-header-info">
-
       <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver-flecha" title="Volver a Comandas">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
-
       <div class="page-header-icono">
-        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="material-symbols-outlined">add</span>
       </div>
-
       <div class="page-header-texto">
-        <h1 >Nueva comanda</h1>
+        <h1>Registrar comanda</h1>
       </div>
-
     </div>
   </div>
+
+  {% if form.non_field_errors or formset.non_form_errors %}
+    <div class="alert alert-error" style="margin-bottom: 20px; border-left: 4px solid #DC2626; background-color: #FEE2E2; color: #991B1B; padding: 15px; border-radius: 8px;">
+      <strong><span class="material-symbols-outlined" style="vertical-align: middle;">warning</span> Error en la comanda:</strong>
+      <ul style="margin-top: 10px; margin-bottom: 0; padding-left: 20px;">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+        {% for error in formset.non_form_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
 
   <form method="POST" id="form-comanda">
     {% csrf_token %}
@@ -51,16 +61,21 @@
             <h3>Datos del pedido</h3>
           </div>
           <div class="cuerpo-tarjeta">
-            <div class="fila-doble">
-              <div class="grupo-campo">
-                <label>Mesa <span class="req">*</span></label>
-                <div class="select-con-icono">
-                  <span class="material-symbols-outlined">table_restaurant</span>
-                  {{ form.mesa }}
+            <div class="grupo-campo">
+              <label>Mesa <span class="req">*</span></label>
+              {% include "comandas/_selector_mesa.html" %}
+              <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
+
+              {% if form.mesa.errors %}
+                <div class="error-mensaje" style="color: #DC2626; font-size: 12px; font-weight: 600; margin-top: 5px;">
+                  {% for error in form.mesa.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
                 </div>
-                <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
-                {{ form.mesa.errors }}
-              </div>
+              {% endif %}
+            </div>
+
+            <div class="fila-doble">
               <div class="grupo-campo">
                 <label>Mozo</label>
                 <div class="mozo-info">
@@ -74,9 +89,17 @@
                 </div>
               </div>
             </div>
+            
             <div class="grupo-campo">
               <label>Observaciones (opcional)</label>
-              <textarea name="observaciones_comanda" class="form-control-textarea" rows="3" placeholder="Ej:  sin cebolla, bien cocida ...">{{ form.observaciones_comanda.value|default:''}}</textarea>
+              <textarea name="observaciones_comanda" class="form-control-textarea" rows="3" placeholder="Ej: sin cebolla, bien cocida ...">{{ form.observaciones_comanda.value|default:''}}</textarea>
+              {% if form.observaciones_comanda.errors %}
+                <div class="error-mensaje" style="color: #DC2626; font-size: 12px; font-weight: 600; margin-top: 5px;">
+                  {% for error in form.observaciones_comanda.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -88,23 +111,47 @@
             <h3>Agregar productos</h3>
             <span class="subtitulo">Seleccioná platos y bebidas para la comanda.</span>
           </div>
+          
           <div class="buscador-productos">
             <span class="material-symbols-outlined">search</span>
             <input type="text" id="buscador-productos" placeholder="Buscar plato o bebida...">
           </div>
+          
+          <!-- Pestañas principales -->
           <div class="tabs-productos">
             <button type="button" class="tab-btn activo" data-filtro="todos">Todos</button>
-            <button type="button" class="tab-btn" data-filtro="plato"><span
-                class="material-symbols-outlined">restaurant</span> Platos</button>
-            <button type="button" class="tab-btn" data-filtro="bebida"><span
-                class="material-symbols-outlined">local_drink</span> Bebidas</button>
+            <button type="button" class="tab-btn" data-filtro="plato"><span class="material-symbols-outlined">restaurant</span> Platos</button>
+            <button type="button" class="tab-btn" data-filtro="bebida"><span class="material-symbols-outlined">local_drink</span> Bebidas</button>
           </div>
+
+          <!-- Filtros de Categorías (Ocultos al inicio) -->
+          <div class="tabs-categorias" id="tabs-categorias">
+            <button type="button" class="cat-btn activo" data-categoria="todas" style="display: none;">Todas las categorías</button>
+            
+            {% for categoria in categorias %}
+              <button type="button" class="cat-btn" data-tipo="plato" data-categoria="{{ categoria.nombre_categoria_plato|lower }}" style="display: none;">
+                {{ categoria.nombre_categoria_plato }}
+              </button>
+            {% endfor %}
+
+            {% for tipo in tipos_bebida %}
+              <button type="button" class="cat-btn" data-tipo="bebida" data-categoria="{{ tipo.nombre_tipo_bebida|lower }}" style="display: none;">
+                {{ tipo.nombre_tipo_bebida }}
+              </button>
+            {% endfor %}
+          </div>
+
+          <!-- Grilla de Productos -->
           <div class="grilla-productos" id="lista-productos">
 
             <!-- PLATOS -->
             {% for plato in platos %}
-            <div class="producto-card" data-id="{{ plato.id_plato }}" data-tipo="plato"
-              data-nombre="{{ plato.nombre_plato }}" data-precio="{{ plato.precio_plato }}">
+            <div class="producto-card" 
+                data-id="{{ plato.id_plato }}" 
+                data-tipo="plato" 
+                data-categoria="{{ plato.categoria.nombre_categoria_plato|lower }}" 
+                data-nombre="{{ plato.nombre_plato }}" 
+                data-precio="{{ plato.precio_plato }}">
               <div class="prod-info">
                 <strong>{{ plato.nombre_plato }}</strong>
                 <span>Platos | {{ plato.categoria.nombre_categoria_plato }}</span>
@@ -114,10 +161,14 @@
             </div>
             {% endfor %}
 
-            <!--BEBIDAS -->
+            <!-- BEBIDAS -->
             {% for bebida in bebidas %}
-            <div class="producto-card" data-id="{{ bebida.id_bebida }}" data-tipo="bebida"
-              data-nombre="{{ bebida.nombre_bebida }}" data-precio="{{ bebida.precio_bebida }}">
+            <div class="producto-card" 
+                data-id="{{ bebida.id_bebida }}" 
+                data-tipo="bebida" 
+                data-categoria="{{ bebida.id_tipo_bebida.nombre_tipo_bebida|lower }}" 
+                data-nombre="{{ bebida.nombre_bebida }}" 
+                data-precio="{{ bebida.precio_bebida }}">
               <div class="prod-info">
                 <strong>{{ bebida.nombre_bebida }}</strong>
                 <span>Bebidas | {{ bebida.id_tipo_bebida.nombre_tipo_bebida }}</span>
@@ -130,6 +181,7 @@
           </div>
         </div>
       </div>
+      
       <div class="columna-derecha">
         <div class="tarjeta-carrito">
           <div class="titulo-carrito">
@@ -157,6 +209,8 @@
         </div>
       </div>
     </div>
+    
+    <!-- Formset Oculto -->
     <div style="display: none;">
       {{ formset.management_form }}
       <table>
@@ -176,11 +230,12 @@
     </div>
   </form>
 </div>
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
     // VARIABLES GLOBALES
-    const carrito = {}; // Guarda: { 'plato_12': {tipo, id, nombre, precio, cantidad}, ... }
+    const carrito = {};
     const carritoContainer = document.getElementById('carrito-items');
     const totalComanda = document.getElementById('total-comanda');
     const formsetTbody = document.getElementById('formset-tbody');
@@ -227,16 +282,14 @@
       });
 
       totalComanda.textContent = `$ ${total.toFixed(2)}`;
-      actualizarFormset(); // Sincronizar con Django
+      actualizarFormset();
     }
 
     // FUNCIÓN PARA ACTUALIZAR EL FORMSET OCULTO
     function actualizarFormset() {
-      // Limpiar filas generadas por JS (dejamos la primera que viene de Django por defecto)
       const filasGeneradas = formsetTbody.querySelectorAll('.fila-generada-js');
       filasGeneradas.forEach(f => f.remove());
 
-      // Si no hay items, dejamos los campos en blanco para que no falle
       if (Object.keys(carrito).length === 0) {
         if (totalFormsInput) totalFormsInput.value = 1;
         return;
@@ -244,11 +297,8 @@
 
       let index = 0;
       Object.values(carrito).forEach(item => {
-        // Creamos una fila nueva para el formset
         const tr = document.createElement('tr');
         tr.className = 'fila-detalle-oculta fila-generada-js';
-
-        // Armamos los inputs ocultos con el formato que espera Django (ej: id_form-0-plato)
         tr.innerHTML = `
                 <input type="hidden" name="detalles-${index}-id" id="id_detalles-${index}-id">
                 ${item.tipo === 'plato'
@@ -275,7 +325,7 @@
       btn.addEventListener('click', function () {
         const card = this.closest('.producto-card');
         const id = card.dataset.id;
-        const tipo = card.dataset.tipo; // 'plato' o 'bebida'
+        const tipo = card.dataset.tipo;
         const nombre = card.dataset.nombre;
         const precio = parseFloat(card.dataset.precio);
 
@@ -292,13 +342,11 @@
 
     // BOTONES DENTRO DEL CARRITO
     carritoContainer.addEventListener('click', function (e) {
-      // Sumar
       if (e.target.closest('.btn-sumar')) {
         const key = e.target.closest('.btn-sumar').dataset.key;
         carrito[key].cantidad++;
         renderizarCarrito();
       }
-      // Restar
       if (e.target.closest('.btn-restar')) {
         const key = e.target.closest('.btn-restar').dataset.key;
         if (carrito[key].cantidad > 1) {
@@ -306,7 +354,6 @@
           renderizarCarrito();
         }
       }
-      // Eliminar
       if (e.target.closest('.btn-eliminar')) {
         const key = e.target.closest('.btn-eliminar').dataset.key;
         delete carrito[key];
@@ -314,22 +361,28 @@
       }
     });
 
-    // BUSCADOR Y FILTROS
+    // FILTROS (TEXTO + TIPO + CATEGORÍA)
     const buscador = document.getElementById('buscador-productos');
     const tabBtns = document.querySelectorAll('.tab-btn');
+    const catBtns = document.querySelectorAll('.cat-btn');
     const productosCards = document.querySelectorAll('.producto-card');
+    
     let filtroActual = 'todos';
+    let filtroCategoria = 'todas';
 
     function filtrarProductos() {
       const texto = buscador.value.toLowerCase();
+      
       productosCards.forEach(card => {
         const nombre = card.dataset.nombre.toLowerCase();
         const tipo = card.dataset.tipo;
+        const categoria = card.dataset.categoria ? card.dataset.categoria.toLowerCase() : '';
 
         const coincideTexto = nombre.includes(texto);
         const coincideTipo = (filtroActual === 'todos' || tipo === filtroActual);
+        const coincideCategoria = (filtroCategoria === 'todas' || categoria === filtroCategoria);
 
-        if (coincideTexto && coincideTipo) {
+        if (coincideTexto && coincideTipo && coincideCategoria) {
           card.style.display = 'flex';
         } else {
           card.style.display = 'none';
@@ -341,11 +394,52 @@
       buscador.addEventListener('input', filtrarProductos);
     }
 
+    // EVENTO DE LAS PESTAÑAS (TODOS / PLATOS / BEBIDAS)
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('activo'));
         btn.classList.add('activo');
         filtroActual = btn.dataset.filtro;
+
+        // Lógica para mostrar/ocultar categorías
+        catBtns.forEach(catBtn => {
+          const tipoCat = catBtn.dataset.tipo;
+          
+          if (filtroActual === 'todos') {
+            catBtn.style.display = 'none'; // Ocultar todas las categorías
+          } 
+          else if (filtroActual === 'plato') {
+            if (tipoCat === 'plato' || catBtn.dataset.categoria === 'todas') {
+              catBtn.style.display = 'inline-block';
+            } else {
+              catBtn.style.display = 'none';
+            }
+          }
+          else if (filtroActual === 'bebida') {
+            if (tipoCat === 'bebida' || catBtn.dataset.categoria === 'todas') {
+              catBtn.style.display = 'inline-block';
+            } else {
+              catBtn.style.display = 'none';
+            }
+          }
+        });
+
+        // Resetear filtro de categoría
+        filtroCategoria = 'todas';
+        catBtns.forEach(b => b.classList.remove('activo'));
+        const btnTodas = document.querySelector('.cat-btn[data-categoria="todas"]');
+        if (btnTodas) btnTodas.classList.add('activo');
+
+        filtrarProductos();
+      });
+    });
+
+    // EVENTO DE LOS BOTONES DE CATEGORÍA
+    catBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        catBtns.forEach(b => b.classList.remove('activo'));
+        btn.classList.add('activo');
+        filtroCategoria = btn.dataset.categoria;
         filtrarProductos();
       });
     });

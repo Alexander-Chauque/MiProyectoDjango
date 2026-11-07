@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Cambiar contraseña{% endblock %}
+
+{% block content %}
+<div class="cuenta-pagina">
+  <header class="cuenta-encabezado">
+    <span class="material-symbols-outlined">key</span>
+    <div>
+      <h1>Cambiar contraseña</h1>
+      <p>Actualiza tu contraseña de acceso.</p>
+    </div>
+  </header>
+
+  <section class="cuenta-tarjeta">
+    <form method="POST" class="cuenta-formulario" novalidate>
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<p class="cuenta-error">{{ error }}</p>{% endfor %}
+
+      <div class="cuenta-campo">
+        <label for="{{ form.old_password.id_for_label }}">
+          <span class="material-symbols-outlined">lock</span> Contraseña actual
+        </label>
+        <div>
+          <div class="clave-campo">
+            <input type="password" name="old_password" id="{{ form.old_password.id_for_label }}" class="form-control" autocomplete="current-password" required autofocus>
+            <button type="button" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false"><span class="material-symbols-outlined">visibility_off</span></button>
+          </div>
+          {% for error in form.old_password.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+
+      <div class="cuenta-campo">
+        <label for="{{ form.new_password1.id_for_label }}">
+          <span class="material-symbols-outlined">lock</span> Nueva contraseña
+        </label>
+        <div>
+          <div class="clave-campo">
+            <input type="password" name="new_password1" id="{{ form.new_password1.id_for_label }}" class="form-control" autocomplete="new-password" required>
+            <button type="button" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false"><span class="material-symbols-outlined">visibility_off</span></button>
+          </div>
+          {% for error in form.new_password1.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+
+      <div class="cuenta-campo">
+        <label for="{{ form.new_password2.id_for_label }}">
+          <span class="material-symbols-outlined">lock</span> Confirmar nueva contraseña
+        </label>
+        <div>
+          <div class="clave-campo">
+            <input type="password" name="new_password2" id="{{ form.new_password2.id_for_label }}" class="form-control" autocomplete="new-password" required>
+            <button type="button" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false"><span class="material-symbols-outlined">visibility_off</span></button>
+          </div>
+          {% for error in form.new_password2.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+
+      <p class="cuenta-aviso">
+        <span class="material-symbols-outlined">info</span>
+        La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula, un número y un carácter especial.
+      </p>
+
+      <div class="cuenta-botones">
+        <a href="{% url 'empleados:mi_perfil' %}" class="cuenta-btn cuenta-btn-secundario">
+          <span class="material-symbols-outlined">close</span> Cancelar
+        </a>
+        <button type="submit" class="cuenta-btn cuenta-btn-primario">
+          <span class="material-symbols-outlined">save</span> Actualizar contraseña
+        </button>
+      </div>
+    </form>
+  </section>
+
+  {% include 'includes/paisaje_cuenta.html' %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.clave-ver').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      const campo = boton.previousElementSibling;
+      const mostrar = campo.type === 'password';
+      campo.type = mostrar ? 'text' : 'password';
+      boton.setAttribute('aria-pressed', String(mostrar));
+      boton.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+      boton.querySelector('span').textContent = mostrar ? 'visibility' : 'visibility_off';
+    });
+  });
+</script>
+{% endblock %}

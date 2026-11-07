@@ -1,0 +1,27 @@
+{% extends 'reportes/base_reportes.html' %}
+{% load static %}
+{% block extra_css_reportes %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block contenido_reporte %}
+  <!-- KPIs -->
+  <div class="grid-resumen-reportes">
+    <div class="tarjeta-reporte"><div class="icono-reporte bg-verde"><span class="material-symbols-outlined">payments</span></div><div class="info-reporte"><span>Ventas Totales</span><strong>${{ ventas_totales|floatformat:0 }}</strong></div></div>
+    <div class="tarjeta-reporte"><div class="icono-reporte bg-azul"><span class="material-symbols-outlined">receipt_long</span></div><div class="info-reporte"><span>Comandas</span><strong>{{ cantidad_comandas }}</strong></div></div>
+    <div class="tarjeta-reporte"><div class="icono-reporte bg-naranja"><span class="material-symbols-outlined">point_of_sale</span></div><div class="info-reporte"><span>Ticket Promedio</span><strong>${{ ticket_promedio|floatformat:0 }}</strong></div></div>
+  </div>
+  <!-- Gráfico -->
+  <div class="tarjeta-grafico">
+    <div class="titulo-grafico"><span class="material-symbols-outlined icono-naranja">trending_up</span><h3>Evolución de Ventas (Período {{ fecha_desde }} al {{ fecha_hasta }})</h3></div>
+    <div class="cuerpo-grafico"><canvas id="grafico"></canvas></div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+{{ labels|json_script:"labels-data" }}{{ data|json_script:"data-data" }}
+<script>
+  new Chart(document.getElementById('grafico').getContext('2d'), {
+    type: 'line', data: {
+      labels: JSON.parse(document.getElementById('labels-data').textContent),
+      datasets: [{ label: 'Ventas ($)', data: JSON.parse(document.getElementById('data-data').textContent), borderColor: '#F5A623', backgroundColor: 'rgba(245, 166, 35, 0.1)', fill: true, tension: 0.4 }]
+    }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+</script>
+{% endblock %}

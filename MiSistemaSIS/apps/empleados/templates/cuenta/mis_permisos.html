@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis permisos{% endblock %}
+
+{% block content %}
+<div class="cuenta-pagina">
+  <header class="cuenta-encabezado">
+    <span class="material-symbols-outlined">verified_user</span>
+    <div>
+      <h1>Mis permisos</h1>
+      <p>Consulta los módulos y acciones que tienes asignados.</p>
+    </div>
+  </header>
+
+  <section class="cuenta-tarjeta">
+    <div class="permisos-banner">
+      <span class="material-symbols-outlined">workspace_premium</span>
+      <div>
+        <strong>{{ cargo.nombre_cargo|default:"Sin cargo asignado" }}</strong>
+        {% if es_admin %}
+        <small>Acceso completo al sistema.</small>
+        {% elif cargo %}
+        <small>Nivel de acceso {{ nivel }}. Si necesitás otro permiso, pedíselo a un administrador.</small>
+        {% else %}
+        <small>Pedile a un administrador que te asigne un cargo.</small>
+        {% endif %}
+      </div>
+    </div>
+
+    <h2 class="permisos-titulo">Permisos por módulo</h2>
+    <ul class="permisos-lista">
+      {% for modulo in modulos %}
+      <li>
+        <span class="permisos-modulo">
+          <span class="material-symbols-outlined">{{ modulo.icono }}</span>
+          {{ modulo.nombre }}
+        </span>
+        <span class="permisos-acciones">
+          {% if modulo.con_acceso %}
+            {% for accion in modulo.acciones %}
+            {% if accion.permitida %}
+            <span class="permiso-chip permiso-si">
+              <span class="material-symbols-outlined">check</span> {{ accion.nombre }}
+            </span>
+            {% endif %}
+            {% endfor %}
+          {% else %}
+          <span class="permiso-chip permiso-no">Sin acceso</span>
+          {% endif %}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% include 'includes/paisaje_cuenta.html' %}
+</div>
+{% endblock %}

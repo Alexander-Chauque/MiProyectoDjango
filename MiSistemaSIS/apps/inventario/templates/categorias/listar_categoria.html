@@ -139,12 +139,15 @@
                 <a href="{% url 'inventario:editar_categoria' categoria.pk %}" class="btn-icon btn-editar" title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
-                <a href="{% url 'inventario:estado_categoria' categoria.pk %}"
-                  class="btn-icon {% if categoria.estado_categoria_plato %}btn-baja{% else %}btn-reactivar{% endif %}"
-                  title="{% if ctaegoria.estado_ctaegoria_plato %}Desactivar{% else %}Activar{% endif %}">
-                  <span class="material-symbols-outlined">{% if plato.estado_plato %}toggle_off{% else %} toggle_on{% endif %}</span>
-                </a>
-                <a href="{% url 'inventario:eliminar_categoria' categoria.pk}" class="btn-icon btn-clave" title="Eliminar">
+                <form method="POST" action="{% url 'inventario:estado_categoria' categoria.pk %}" style="display: contents;">
+                  {% csrf_token %}
+                  <button type="submit"
+                    class="btn-icon {% if categoria.estado_categoria_plato %}btn-baja{% else %}btn-reactivar{% endif %}"
+                    title="{% if categoria.estado_categoria_plato %}Desactivar{% else %}Activar{% endif %}">
+                    <span class="material-symbols-outlined">{% if categoria.estado_categoria_plato %}toggle_off{% else %}toggle_on{% endif %}</span>
+                  </button>
+                </form>
+                <a href="{% url 'inventario:eliminar_categoria' categoria.pk %}" class="btn-icon btn-clave" title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
                 </a>
               </div>

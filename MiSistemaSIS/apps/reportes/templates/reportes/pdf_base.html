@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body { font-family: Helvetica, Arial, sans-serif; color: #333; }
+        .header-pdf { text-align: center; border-bottom: 2px solid #F5A623; padding-bottom: 10px; margin-bottom: 20px; }
+        .header-pdf h1 { color: #F5A623; margin: 0; font-size: 24px; }
+        .header-pdf p { margin: 5px 0 0 0; font-size: 12px; color: #666; }
+        .filtros-pdf { text-align: right; font-size: 10px; color: #888; margin-bottom: 20px; }
+        
+        /* Estilos de tablas */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #FFF8E7; color: #E0951A; padding: 10px; text-align: left; font-size: 12px; border-bottom: 2px solid #F5A623; }
+        td { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 12px; }
+        .derecha { text-align: right; }
+        
+        /* Para las tarjetas KPI en el PDF */
+        .kpis { width: 100%; margin-bottom: 20px; }
+        .kpi-box { display: inline-block; width: 30%; background: #f9f9f9; padding: 10px; border: 1px solid #ddd; text-align: center; margin-right: 2%; }
+        .kpi-box strong { font-size: 18px; color: #F5A623; display: block; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <!-- Encabezado del PDF -->
+    <div class="header-pdf">
+        <h1>Los Carbones Grill</h1>
+        <p>Reporte: {{ nombre_reporte }} | Período: {{ fecha_desde }} al {{ fecha_hasta }}</p>
+    </div>
+    
+    <div class="filtros-pdf">
+        Generado el: {% now "d/m/Y H:i" %}
+    </div>
+
+    <!-- Aquí se inyecta el contenido de cada reporte -->
+    {% block contenido_pdf %}{% endblock %}
+    
+</body>
+</html>

@@ -29,8 +29,6 @@ class MesaForm(forms.ModelForm):
 
 # COMANDA
 class EmpleadoChoiceField(forms.ModelChoiceField):
-    """Campo que muestra solo el nombre del empleado"""
-
     def label_from_instance(self, obj):
         return f"{obj.nombre_empleado} {obj.apellido_empleado}"
 
@@ -116,10 +114,16 @@ class DetalleComandaForm(forms.ModelForm):
 
         return cleaned_data
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, comanda=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["plato"].queryset = Plato.objects.filter(estado_plato=True)
-        self.fields["bebida"].queryset = Bebida.objects.filter(disponible_bebida=True)
+        platos = Q(estado_plato=True)
+        bebidas = Q(disponible_bebida=True)
+        if comanda:
+            # Lo que la comanda ya tiene se conserva aunque ya no esté disponible
+            platos |= Q(pk__in=comanda.detalles.exclude(plato=None).values("plato"))
+            bebidas |= Q(pk__in=comanda.detalles.exclude(bebida=None).values("bebida"))
+        self.fields["plato"].queryset = Plato.objects.filter(platos)
+        self.fields["bebida"].queryset = Bebida.objects.filter(bebidas)
         self.fields["plato"].empty_label = "Seleccione un plato"
         self.fields["bebida"].empty_label = "Seleccione una bebida"
         self.fields["plato"].required = False

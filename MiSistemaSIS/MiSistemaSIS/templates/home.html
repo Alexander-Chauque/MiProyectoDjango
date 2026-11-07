@@ -10,7 +10,7 @@
   <div class="home-header">
         <div>
             <h1 class="titulo">
-                <span class="material-symbols-outlined">waving_hand</span>
+                <span class="material-symbols-outlined" style="color: #F5A623;">waving_hand</span>
                 ¡Bienvenido, {{ user.empleado.nombre_empleado|default:user.username }}!
             </h1>
             <p class="subtitulo">
@@ -146,7 +146,7 @@
 
         <!-- REPORTES -->
         {% if user.empleado.cargo.nivel_acceso >= 3 %}
-          <a href="{% url 'reportes:reportes_home' %}" class="modulo-card">
+          <a href="{% url 'reportes:ventas' %}" class="modulo-card">
               <div class="modulo-icon">
                   <span class="material-symbols-outlined">bar_chart</span>
               </div>

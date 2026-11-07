@@ -48,7 +48,7 @@
     {% csrf_token %}
 
     <div class="tarjeta-titulo">
-      <span class="material-symbols-outlined icono-naranja">edit</span>
+      <span class="material-symbols-outlined icono-naranja">nutrition</span>
       <h2>Datos del Ingrediente</h2>
     </div>
 
@@ -64,9 +64,9 @@
         <option value="">Seleccionar unidad</option>
         <option value="kg" {% if ingrediente.unidad_medida == 'kg' %}selected{% endif %}>Kilogramos (kg)</option>
         <option value="g" {% if ingrediente.unidad_medida == 'g' %}selected{% endif %}>Gramos (g)</option>
-        <option value="litro" {% if ingrediente.unidad_medida == 'litro' %}selected{% endif %}>Litros (L)</option>
+        <option value="l" {% if ingrediente.unidad_medida == 'l' %}selected{% endif %}>Litros (L)</option>
         <option value="ml" {% if ingrediente.unidad_medida == 'ml' %}selected{% endif %}>Mililitros (ml)</option>
-        <option value="unidad" {% if ingrediente.unidad_medida == 'unidad' %}selected{% endif %}>Unidades</option>
+        <option value="u" {% if ingrediente.unidad_medida == 'u' %}selected{% endif %}>Unidades</option>
       </select>
     </div>
 
@@ -75,7 +75,7 @@
       <div class="input-con-prefijo">
         <span>$</span>
         <input type="number" name="costo_unitario" step="0.01" min="0" placeholder="0.00"
-          value="{{ ingrediente.costo_unitario }}">
+          value="{{ ingrediente.costo_unitario|stringformat:".2f" }}">
       </div>
     </div>
 

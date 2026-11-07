@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.db import models
+from django.db.models import Sum
 from empleados.models import Empleado
 from inventario.models import Plato, Bebida
 from empleados.models import Empleado 
@@ -47,12 +50,12 @@ class Comanda(models.Model):
     total_comanda = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Total")
     
     # Relaciones
-    mesa = models.ForeignKey(Mesa,on_delete=models.CASCADE,
+    mesa = models.ForeignKey(Mesa,on_delete=models.PROTECT,
         db_column='mesa_id',
         related_name='comandas',
         verbose_name="Mesa")
     
-    empleado = models.ForeignKey(Empleado,on_delete=models.CASCADE,
+    empleado = models.ForeignKey(Empleado,on_delete=models.PROTECT,
         db_column='empleado_id',
         related_name='comandas',
         verbose_name="Mozo"
@@ -80,6 +83,59 @@ class Comanda(models.Model):
         self.total_comanda = total
         self.save()
         return total
+
+    @property
+    def total_pagado(self):
+        return self.pagos.aggregate(total=Sum('monto'))['total'] or Decimal('0')
+
+    @property
+    def saldo_pendiente(self):
+        return max(self.total_comanda - self.total_pagado, Decimal('0'))
+
+    @property
+    def esta_abierta(self):
+        """Solo se puede editar si sigue abierta. Con pagos, únicamente se puede agregar."""
+        return self.estado_comanda in ['pendiente', 'en_preparacion', 'entregado']
+
+    @property
+    def puede_modificarse(self):
+        """Solo se puede eliminar o anular si sigue abierta y no tiene pagos."""
+        return self.esta_abierta and not self.pagos.exists()
+
+
+class Pago(models.Model):
+    METODOS = [
+        ('efectivo', 'Efectivo'),
+        ('tarjeta', 'Tarjeta de Débito/Crédito'),
+        ('transferencia', 'Transferencia'),
+        ('mercadopago', 'Mercado Pago'),
+    ]
+
+    id_pago = models.AutoField(primary_key=True)
+    comanda = models.ForeignKey(Comanda, on_delete=models.PROTECT,
+        db_column='comanda_id',
+        related_name='pagos',
+        verbose_name="Comanda"
+    )
+    monto = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto")
+    metodo_pago = models.CharField(max_length=20, choices=METODOS, verbose_name="Método de Pago")
+    fecha_hora = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y Hora")
+    # db_constraint=False: id_empleado es bigint en la base, pero AutoField (int) en el modelo
+    empleado = models.ForeignKey(Empleado, on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='empleado_id',
+        db_constraint=False,
+        verbose_name="Cobrado por"
+    )
+
+    class Meta:
+        db_table = 'ventas_pago'
+        verbose_name = 'Pago'
+        verbose_name_plural = 'Pagos'
+        ordering = ['fecha_hora']
+
+    def __str__(self):
+        return f"Pago ${self.monto} - Comanda #{self.comanda_id}"
+
 
 class DetalleComanda(models.Model):
     id_detalle_com = models.AutoField(primary_key=True)

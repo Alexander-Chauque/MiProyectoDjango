@@ -14,7 +14,7 @@ class TipoBebidaForm(forms.ModelForm):
         
     def clean_nombre_tipo_bebida(self):
         nombre = self.cleaned_data.get('nombre_tipo_bebida')
-        if TipoBebida.objects.filter(nombre_tipo_bebida__iexact=nombre).exists():
+        if TipoBebida.objects.filter(nombre_tipo_bebida__iexact=nombre).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('Este tipo de bebida ya existe')
         return nombre.title()
 
@@ -33,7 +33,7 @@ class BebidaForm(forms.ModelForm):
 
     def clean_nombre_bebida(self):
         nombre = self.cleaned_data.get('nombre_bebida')
-        if Bebida.objects.filter(nombre_bebida__iexact=nombre).exists():
+        if Bebida.objects.filter(nombre_bebida__iexact=nombre).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('Esta bebida ya existe')
         return nombre.title()
 

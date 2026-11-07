@@ -43,11 +43,11 @@
   <form method="GET" class="filtros-reportes">
     <div class="grupo-filtro">
       <label>Desde</label>
-      <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control">
+      <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control" max="{% now 'Y-m-d' %}">
     </div>
     <div class="grupo-filtro">
       <label>Hasta</label>
-      <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control">
+      <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control" max="{% now 'Y-m-d' %}">
     </div>
     <button type="submit" class="btn-primario">
       <span class="material-symbols-outlined">filter_alt</span> Filtrar

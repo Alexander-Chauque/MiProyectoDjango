@@ -2,11 +2,6 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Sum
-from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib import messages
 from inventario.models import Plato, Bebida
 from ventas.models import Mesa, Comanda
 
@@ -52,25 +47,3 @@ def home(request):
     }
     
     return render(request, 'home.html', contexto)
-
-
-def password_reset_view(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        users = User.objects.filter(email=email)
-        
-        if users.exists():
-            user = users.first()
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            
-            reset_url = request.build_absolute_uri(f'/password-reset-confirm/{uid}/{token}/')
-            
-            return render(request, 'registration/password_reset_done.html', {
-                'reset_url': reset_url,
-                'email': email,
-            })
-        else:
-            messages.error(request, 'No existe una cuenta con ese correo.')
-    
-    return render(request, 'registration/password_reset_form.html')

@@ -7,6 +7,7 @@
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+<link rel="stylesheet" href="{% static 'css/selector_mesa.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -36,8 +37,20 @@
     </div>
   </div>
 
+  {% if tiene_pagos %}
+  <div class="alert" id="aviso-pagos" style="margin-bottom: 20px; border-left: 4px solid #F5A623; background-color: #FFF8E7; color: #3D3D3D; padding: 15px; border-radius: 8px;">
+    <span class="material-symbols-outlined" style="vertical-align: middle;">info</span>
+    Esta comanda ya tiene ${{ comanda.total_pagado|floatformat:2 }} abonados. Podés agregar productos o aumentar cantidades, pero no quitar ni reducir lo que ya tenía.
+  </div>
+  {% endif %}
+
   <form method="POST" id="form-comanda">
     {% csrf_token %}
+    <!-- Ya no se venden, pero siguen en esta comanda -->
+    {% for producto in productos_no_disponibles %}
+    <span class="producto-retenido" hidden data-tipo="{{ producto.tipo }}" data-id="{{ producto.id }}"
+      data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio|stringformat:".2f" }}"></span>
+    {% endfor %}
     <div class="layout-comanda">
       <div class="columna-izquierda">
         <!-- Datos del pedido -->
@@ -47,17 +60,14 @@
             <h3>Datos del pedido</h3>
           </div>
           <div class="cuerpo-tarjeta">
-            <div class="fila-doble">
-              <div class="grupo-campo">
-                <label>Mesa <span class="req">*</span></label>
-                <div class="select-con-icono">
-                  <span class="material-symbols-outlined">table_restaurant</span>
-                  {{ form.mesa }}
-                </div>
-                <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
-                {{ form.mesa.errors }}
-              </div>
+            <div class="grupo-campo">
+              <label>Mesa <span class="req">*</span></label>
+              {% include "comandas/_selector_mesa.html" %}
+              <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
+              {{ form.mesa.errors }}
+            </div>
 
+            <div class="fila-doble">
               <div class="grupo-campo">
                 <label>Mozo</label>
                 <div class="mozo-info">
@@ -97,11 +107,30 @@
             <button type="button" class="tab-btn" data-filtro="bebida"><span
                 class="material-symbols-outlined">local_drink</span> Bebidas</button>
           </div>
+
+          <!-- Filtros de Categorías (Ocultos al inicio) -->
+          <div class="tabs-categorias" id="tabs-categorias">
+            <button type="button" class="cat-btn activo" data-categoria="todas" style="display: none;">Todas las categorías</button>
+
+            {% for categoria in categorias %}
+              <button type="button" class="cat-btn" data-tipo="plato" data-categoria="{{ categoria.nombre_categoria_plato|lower }}" style="display: none;">
+                {{ categoria.nombre_categoria_plato }}
+              </button>
+            {% endfor %}
+
+            {% for tipo in tipos_bebida %}
+              <button type="button" class="cat-btn" data-tipo="bebida" data-categoria="{{ tipo.nombre_tipo_bebida|lower }}" style="display: none;">
+                {{ tipo.nombre_tipo_bebida }}
+              </button>
+            {% endfor %}
+          </div>
+
           <div class="grilla-productos" id="lista-productos">
 
             <!-- PLATOS -->
             {% for plato in platos %}
             <div class="producto-card" data-id="{{ plato.id_plato }}" data-tipo="plato"
+              data-categoria="{{ plato.categoria.nombre_categoria_plato|lower }}"
               data-nombre="{{ plato.nombre_plato }}" data-precio="{{ plato.precio_plato }}">
               <div class="prod-info">
                 <strong>{{ plato.nombre_plato }}</strong>
@@ -115,6 +144,7 @@
             <!--BEBIDAS -->
             {% for bebida in bebidas %}
             <div class="producto-card" data-id="{{ bebida.id_bebida }}" data-tipo="bebida"
+              data-categoria="{{ bebida.id_tipo_bebida.nombre_tipo_bebida|lower }}"
               data-nombre="{{ bebida.nombre_bebida }}" data-precio="{{ bebida.precio_bebida }}">
               <div class="prod-info">
                 <strong>{{ bebida.nombre_bebida }}</strong>
@@ -185,12 +215,21 @@
     const formsetTbody = document.getElementById('formset-tbody');
     const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
     const infoProductos = {};
+    // Con pagos registrados, lo que ya tenía la comanda no se puede quitar ni reducir
+    const tienePagos = {{ tiene_pagos|yesno:"true,false" }};
 
     // 1. Llenamos diccionario de productos
     document.querySelectorAll('.producto-card').forEach(card => {
       infoProductos[`${card.dataset.tipo}_${card.dataset.id}`] = {
         nombre: card.dataset.nombre,
         precio: parseFloat(card.dataset.precio)
+      };
+    });
+    document.querySelectorAll('.producto-retenido').forEach(el => {
+      infoProductos[`${el.dataset.tipo}_${el.dataset.id}`] = {
+        nombre: el.dataset.nombre,
+        precio: parseFloat(el.dataset.precio),
+        noDisponible: true
       };
     });
 
@@ -207,7 +246,7 @@
         const cant = cantPlato ? (parseInt(cantPlato.value) || 1) : 1;
         const info = infoProductos[key];
         if (info) {
-          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant };
+          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null };
         }
       }
 
@@ -217,7 +256,7 @@
         const cant = cantBebida ? (parseInt(cantBebida.value) || 1) : 1;
         const info = infoProductos[key];
         if (info) {
-          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant };
+          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null };
         }
       }
     });
@@ -241,13 +280,13 @@
         const div = document.createElement('div');
         div.className = 'item-carrito';
         div.innerHTML = `
-                <div class="item-datos"><strong>${item.nombre}</strong><span>$${item.precio.toFixed(2)}</span></div>
+                <div class="item-datos"><strong>${item.nombre}</strong>${item.maximo ? '<small style="color: #DC2626; font-weight: 600;">No disponible</small>' : ''}<span>$${item.precio.toFixed(2)}</span></div>
                 <div class="item-controles">
-                    <button type="button" class="btn-cant btn-restar" data-key="${item.key}">-</button>
+                    <button type="button" class="btn-cant btn-restar" data-key="${item.key}" ${item.cantidad <= (item.minimo || 1) ? 'disabled' : ''}>-</button>
                     <input type="number" value="${item.cantidad}" readonly>
-                    <button type="button" class="btn-cant btn-sumar" data-key="${item.key}">+</button>
+                    <button type="button" class="btn-cant btn-sumar" data-key="${item.key}" ${item.maximo && item.cantidad >= item.maximo ? 'disabled' : ''}>+</button>
                     <span class="subtotal">$${subtotal.toFixed(2)}</span>
-                    <button type="button" class="btn-eliminar" data-key="${item.key}"><span class="material-symbols-outlined">delete</span></button>
+                    ${item.minimo ? '' : `<button type="button" class="btn-eliminar" data-key="${item.key}"><span class="material-symbols-outlined">delete</span></button>`}
                 </div>`;
         carritoContainer.appendChild(div);
       });
@@ -320,15 +359,18 @@
     // Buscador
     const buscador = document.getElementById('buscador-productos');
     const tabBtns = document.querySelectorAll('.tab-btn');
+    const catBtns = document.querySelectorAll('.cat-btn');
     const productosCards = document.querySelectorAll('.producto-card');
     let filtroActual = 'todos';
+    let filtroCategoria = 'todas';
 
     function filtrarProductos() {
       const texto = buscador.value.toLowerCase();
       productosCards.forEach(card => {
         const coincideTexto = card.dataset.nombre.toLowerCase().includes(texto);
         const coincideTipo = (filtroActual === 'todos' || card.dataset.tipo === filtroActual);
-        card.style.display = (coincideTexto && coincideTipo) ? 'flex' : 'none';
+        const coincideCategoria = (filtroCategoria === 'todas' || card.dataset.categoria === filtroCategoria);
+        card.style.display = (coincideTexto && coincideTipo && coincideCategoria) ? 'flex' : 'none';
       });
     }
     if (buscador) buscador.addEventListener('input', filtrarProductos);
@@ -337,6 +379,26 @@
         tabBtns.forEach(b => b.classList.remove('activo'));
         btn.classList.add('activo');
         filtroActual = btn.dataset.filtro;
+
+        // Mostrar solo las categorías de la pestaña elegida
+        catBtns.forEach(catBtn => {
+          const visible = filtroActual !== 'todos' &&
+            (catBtn.dataset.categoria === 'todas' || catBtn.dataset.tipo === filtroActual);
+          catBtn.style.display = visible ? 'inline-block' : 'none';
+        });
+
+        // Resetear filtro de categoría
+        filtroCategoria = 'todas';
+        catBtns.forEach(b => b.classList.toggle('activo', b.dataset.categoria === 'todas'));
+
+        filtrarProductos();
+      });
+    });
+    catBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        catBtns.forEach(b => b.classList.remove('activo'));
+        btn.classList.add('activo');
+        filtroCategoria = btn.dataset.categoria;
         filtrarProductos();
       });
     });

@@ -21,7 +21,7 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'inventario:listar_platos' %}" class="breadcrumb-item">Platos</a>
     <span class="breadcrumb-separator">></span>
-    <a href="{% url 'inventario:listar_categorias' %}" class="breadcrumb-item">Ctaegorías</a>
+    <a href="{% url 'inventario:listar_categorias' %}" class="breadcrumb-item">Categorías</a>
     <span class="breadcrumb-separator">></span>
     <span class="breadcrumb-item active">Crear Categoría</span>
   </nav>
@@ -31,7 +31,7 @@
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
-        <span class="material-symbols-outlined">category</span>
+        <span class="material-symbols-outlined">add</span>
       </div>
       <div class="page-header-texto">
         <h1>Crear Categoría</h1>
@@ -42,7 +42,7 @@
   <form method="POST" class="tarjeta-formulario">
     {% csrf_token %}
     <div class="tarjeta-titulo">
-      <span class="material-symbols-outlined icono-naranja">add_circle</span>
+      <span class="material-symbols-outlined icono-naranja">category</span>
       <h2>Datos de la Categoría</h2>
     </div>
     <div class="grupo-campo">

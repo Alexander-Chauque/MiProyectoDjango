@@ -78,7 +78,7 @@
       <div class="grupo-campo relative">
         <label>Descripción (opcional)</label>
         <textarea name="descripcion" id="descripcion-plato" class="form-control" rows="3" maxlength="250"
-          placeholder="Ej. Descripción breve del plato...">{{ request.POST.descripcion_plato }}</textarea>
+          placeholder="Ej. Descripción breve del plato...">{{ request.POST.descripcion }}</textarea>
         <span class="contador-caracteres" id="contador-desc">0/250</span>
       </div>
     </div>
@@ -99,10 +99,9 @@
 
       <div class="grilla-ingredientes" id="lista-ingredientes">
         {% for ingrediente in ingredientes %}
-        {% if ingrediente.estado_ingrediente == 'Disponible' or not ingrediente.estado_ingrediente %}
         <label class="ingrediente-item" data-nombre="{{ ingrediente.nombre_ingrediente|lower }}">
           <input type="checkbox" name="ingredientes" value="{{ ingrediente.id_ingrediente }}" class="check-ingrediente"
-            {% if ingrediente.id_ingrediente|stringformat:"s" in request.POST.getlist.ingredientes %}checked{% endif %}>
+            {% if ingrediente.id_ingrediente in ingredientes_seleccionados %}checked{% endif %}>
 
           <div class="ingrediente-info">
             <span class="material-symbols-outlined icono-ingrediente">grocery</span>
@@ -112,7 +111,6 @@
             </div>
           </div>
         </label>
-        {% endif %}
         {% empty %}
         <p class="text-muted">No hay ingredientes cargados.</p>
         {% endfor %}

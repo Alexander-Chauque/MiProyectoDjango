@@ -144,19 +144,27 @@
             <td>
               
               <div class="acciones-tabla">
+                {% if puede_crear_comanda and mesa.estado_mesa and not mesa.comanda_abierta %}
+                <a href="{% url 'ventas:comanda_crear' %}?mesa={{ mesa.id_mesa }}" class="btn-icon btn-reactivar" title="Nueva comanda" aria-label="Nueva comanda en la mesa {{ mesa.numero_mesa }}">
+                  <span class="material-symbols-outlined">add</span>
+                </a>
+                {% endif %}
                 <a href="{% url 'ventas:mesa_ver_comandas' mesa.id_mesa %}" class="btn-icon btn-clave" title="Ver Comandas">
                   <span class="material-symbols-outlined">receipt_long</span>
                 </a>
                 <a href="{% url 'ventas:editar_mesa' mesa.pk %}" class="btn-icon btn-editar" title="Editar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
-                <a href="{% url 'ventas:estado_mesa' mesa.pk %}"
-                  class="btn-icon {% if mesa.estado_mesa %}btn-baja{% else %}btn-reactivar{% endif %}"
-                  title="{% if mesa.estado_mesa %}Ocupar{% else %}Liberar{% endif %}">
-                  <span class="material-symbols-outlined">
-                    {% if mesa.estado_mesa %}toggle_off{% else %}toggle_on{% endif %}
-                  </span>
-                </a>
+                <form method="POST" action="{% url 'ventas:estado_mesa' mesa.pk %}" style="display: contents;">
+                  {% csrf_token %}
+                  <button type="submit"
+                    class="btn-icon {% if mesa.estado_mesa %}btn-baja{% else %}btn-reactivar{% endif %}"
+                    title="{% if mesa.estado_mesa %}Ocupar{% else %}Liberar{% endif %}">
+                    <span class="material-symbols-outlined">
+                      {% if mesa.estado_mesa %}toggle_off{% else %}toggle_on{% endif %}
+                    </span>
+                  </button>
+                </form>
               </div>
             </td>
           </tr>

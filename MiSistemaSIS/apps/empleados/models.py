@@ -11,6 +11,7 @@ class Cargo(models.Model):
     nombre_cargo = models.CharField(max_length=100, unique=True)
     descripcion_cargo = models.TextField(blank=True)
     nivel_acceso = models.BigIntegerField(default=1)
+    sueldo_cargo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
     def __str__(self):
         return self.nombre_cargo
 
@@ -24,7 +25,7 @@ class Empleado(models.Model):
     id_empleado = models.AutoField(primary_key=True)
     nombre_empleado = models.CharField(max_length=100)
     apellido_empleado = models.CharField ( max_length=100)
-    dni = models.CharField(max_length=8, unique=True)
+    dni = models.CharField(max_length=10, unique=True)
     telefono = models.CharField(max_length=20, blank=True, null= True)
     correo = models.EmailField(max_length=80, blank=True, unique=True)
     user_auto = models.CharField(max_length=100, unique=True, blank=True)
@@ -38,11 +39,33 @@ class Empleado(models.Model):
     debe_cambiar_contrasena = models.BooleanField(default=False)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, null=True, blank=True)
+    cargo = models.ForeignKey(Cargo, on_delete=models.PROTECT, null=True, blank=True)
 
 
     def __str__(self):
         return f"{self.nombre_empleado} - {self.apellido_empleado} - {self.user_auto}"
+      
+
+    def save(self, *args, **kwargs):
+        if self.nombre_empleado:
+            self.nombre_empleado = self.nombre_empleado.title()
+        if self.apellido_empleado:
+            self.apellido_empleado = self.apellido_empleado.title()
+        
+        if not self.pk:
+            self.user_auto = self.generate_user_auto()
+        else:
+            original = Empleado.objects.get(pk=self.pk)
+            if (original.nombre_empleado != self.nombre_empleado or 
+                original.apellido_empleado != self.apellido_empleado):
+                
+                self.user_auto = self.generate_user_auto()
+                if self.user:
+                    self.user.username = self.user_auto
+                    self.user.first_name = self.nombre_empleado
+                    self.user.last_name = self.apellido_empleado
+                    self.user.save()
+        super().save(*args, **kwargs)
 
     def generate_user_auto(self):
         if self.nombre_empleado and self.apellido_empleado:
@@ -56,9 +79,16 @@ class Empleado(models.Model):
             # Verificar si ya existe y agregar número si es necesario
             user_auto = base
             contador = 1
-            while Empleado.objects.filter(user_auto=user_auto).exists():
+            qs = Empleado.objects.filter(user_auto=user_auto)
+            if self.pk:
+              qs = qs.exclude(pk=self.pk)
+              
+            while qs.exists():
                 user_auto = f"{base}{contador}"
                 contador += 1
+                qs = Empleado.objects.filter(user_auto=user_auto)
+                if self.pk:
+                  qs = qs.exclude(pk=self.pk)
             
             return user_auto
         return None
@@ -105,6 +135,7 @@ class TipoPermiso(models.Model):
         ('caja', 'Caja'),
         ('gastos', 'Gastos'),
         ('reportes', 'Reportes'),
+        ('auditoria', 'Auditoría'),
     ])
     accion = models.CharField( max_length=50, choices=[
         ('leer', 'Leer'), ('escribir', 'Escribir'), ('modificar', 'Modificar'), ('eliminar', 'Eliminar')
@@ -131,19 +162,22 @@ class PermisoXCargo(models.Model):
 
 #Tipo asistencia
 class TipoAsistencia(models.Model):
-    id_tipo_asistencia = models.AutoField(primary_key=True)
-    nombre_tipo_asis = models.CharField(max_length=50, unique=True)
+  TIPOS =[
+    ('completo', 'Turno Completo'),
+    ('medio', 'Turno Medio'),
+  ]
+  id_tipo_asistencia = models.AutoField(primary_key=True)
+  nombre_tipo_asis = models.CharField(max_length=50, choices=TIPOS, unique=True)
+  desc_tipo_asistencia = models.TextField(blank=True)
 
-    def __str__(self):
-        return self.nombre_tipo_asis
+  def __str__(self):
+    return self.get_nombre_tipo_asis_display()
 #Asistencia
 class Asistencia(models.Model):
     id_asistencia = models.AutoField(primary_key=True)
     id_empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE, db_column='id_empleado')
     id_tipo_asistencia = models.ForeignKey(TipoAsistencia, on_delete=models.CASCADE, db_column='id_tipo_asistencia')
     fecha_asistencia = models.DateField()
-    hora_entrada = models.TimeField(blank=True, null=True)
-    hora_salida = models.TimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.id_empleado} - {self.fecha_asistencia}"

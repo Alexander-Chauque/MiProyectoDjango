@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi perfil{% endblock %}
+
+{% block content %}
+<div class="cuenta-pagina">
+  <header class="cuenta-encabezado">
+    <span class="material-symbols-outlined">person</span>
+    <div>
+      <h1>Mi perfil</h1>
+      <p>Consulta y administra tu información personal.</p>
+    </div>
+  </header>
+
+  <section class="cuenta-tarjeta">
+    <div class="perfil-cabecera">
+      <span class="user-avatar perfil-avatar">
+        {{ user.empleado.nombre_empleado|first|default:user.username|first }}{{ user.empleado.apellido_empleado|first }}
+      </span>
+      <div>
+        <h2>{{ empleado.get_full_name|default:user.username }}</h2>
+        <span class="cuenta-etiqueta">
+          <span class="material-symbols-outlined">workspace_premium</span>
+          {{ empleado.cargo.nombre_cargo|default:"Usuario" }}
+        </span>
+      </div>
+    </div>
+
+    {% if form %}
+    <form method="POST" action="{% url 'empleados:mi_perfil' %}" class="cuenta-formulario" novalidate>
+      {% csrf_token %}
+      <div class="cuenta-campo">
+        <label for="{{ form.correo.id_for_label }}">
+          <span class="material-symbols-outlined">mail</span> Correo electrónico
+        </label>
+        <div>
+          {{ form.correo }}
+          {% for error in form.correo.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="cuenta-campo">
+        <label for="{{ form.telefono.id_for_label }}">
+          <span class="material-symbols-outlined">call</span> Teléfono
+        </label>
+        <div>
+          {{ form.telefono }}
+          {% for error in form.telefono.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="cuenta-botones">
+        <a href="{% url 'empleados:mi_perfil' %}" class="cuenta-btn cuenta-btn-secundario">
+          <span class="material-symbols-outlined">close</span> Cancelar
+        </a>
+        <button type="submit" class="cuenta-btn cuenta-btn-primario">
+          <span class="material-symbols-outlined">save</span> Guardar cambios
+        </button>
+      </div>
+    </form>
+    {% else %}
+    <dl class="perfil-datos">
+      <div>
+        <dt><span class="material-symbols-outlined">person</span> Usuario</dt>
+        <dd>{{ user.username }}</dd>
+      </div>
+      <div>
+        <dt><span class="material-symbols-outlined">mail</span> Correo electrónico</dt>
+        <dd>{{ empleado.correo|default:user.email|default:"Sin cargar" }}</dd>
+      </div>
+      {% if empleado %}
+      <div>
+        <dt><span class="material-symbols-outlined">badge</span> Nombre completo</dt>
+        <dd>{{ empleado.get_full_name }}</dd>
+      </div>
+      <div>
+        <dt><span class="material-symbols-outlined">call</span> Teléfono</dt>
+        <dd>{{ empleado.telefono|default:"Sin cargar" }}</dd>
+      </div>
+      {% endif %}
+    </dl>
+    {% if empleado %}
+    <div class="cuenta-botones">
+      <a href="?editar=1" class="cuenta-btn cuenta-btn-secundario">
+        <span class="material-symbols-outlined">edit</span> Editar datos
+      </a>
+    </div>
+    {% else %}
+    <p class="cuenta-aviso">
+      <span class="material-symbols-outlined">info</span>
+      Tu usuario no tiene un empleado asociado, así que estos datos no se pueden editar desde acá.
+    </p>
+    {% endif %}
+    {% endif %}
+  </section>
+
+  {% include 'includes/paisaje_cuenta.html' %}
+</div>
+{% endblock %}

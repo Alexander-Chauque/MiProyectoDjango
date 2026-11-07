@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 import sys
+from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,13 +29,18 @@ SECRET_KEY = 'django-insecure-s05l#qdx8^oyqa0(ou)_)lttn+5w)_-h%+u!@8g*h))t7jdbyb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+# HOSTS_EXTRA está en .env: es la IP de esta PC, para que el teléfono pueda conectarse
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"] + [
+    host for host in os.getenv("HOSTS_EXTRA", "").split(",") if host
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'jazzmin',
+    'corsheaders',
+    "rest_framework",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,6 +59,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -139,14 +146,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [BASE_DIR / 'static',]
+
+# Archivos que suben los usuarios, como las fotos de ingredientes
+MEDIA_URL = '/media/'  # Dirección con la que se pide la foto
+MEDIA_ROOT = BASE_DIR / 'media'  # Carpeta donde se guarda
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
@@ -166,3 +172,42 @@ LOGOUT_REDIRECT_URL = '/login/'
 # ==========================================
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'Los Cardones <noreply@loscalderones.com>'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    # Web en React (Vite)
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# Debe ser el mismo proyecto de Firebase que usa la app móvil
+FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")
+
+REST_FRAMEWORK = {
+    # Cómo se identifica quien llama a la API
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "empleados.autenticacion.FirebaseAuthentication",  # App móvil: "Bearer <token>"
+        "empleados.autenticacion.JWTEmpleadoAuthentication",  # Web en React: "JWT <token>"
+    ],
+    # Intentos de login permitidos por dirección IP
+    "DEFAULT_THROTTLE_RATES": {"login": "10/min"},
+    # Por defecto, toda la API exige haber iniciado sesión
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    # La API responde solo JSON, sin la página de prueba de Django REST Framework
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
+    # Distinto de "Bearer", que es el token de Firebase de la app móvil
+    "AUTH_HEADER_TYPES": ("JWT",),
+    # Al cambiar la contraseña, los tokens anteriores dejan de servir
+    "CHECK_REVOKE_TOKEN": True,
+}

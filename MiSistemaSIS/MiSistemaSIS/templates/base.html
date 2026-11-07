@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Antes de pintar la página, para que no parpadee en claro
+      try {
+        if (localStorage.getItem("tema") === "oscuro") {
+          document.documentElement.setAttribute("data-tema", "oscuro");
+        }
+      } catch (e) {}
+    </script>
     <title>Los Cardones - Sistema Restaurante</title>
     {% load static %}
     <link
@@ -21,7 +29,11 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/usuario.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/tema_oscuro.css' %}" />
+    <link rel="stylesheet" href="{% static 'vendor/flatpickr/flatpickr.min.css' %}" />
     {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/calendario.css' %}" />
   </head>
   <body>
     <aside class="sidebar" id="sidebar">
@@ -77,7 +89,7 @@
             <a href="{% url 'empleados:empleado_listar' %}">Listado</a>
             <a href="{% url 'empleados:listar_cargo' %}">Cargos</a>
             <a href="{% url 'empleados:listar_permiso' %}">Permisos</a>
-            <a href="{% url 'empleados:asistencia_listar' %}">Asistencia</a>
+            <a href="{% url 'empleados:listar_asistencias' %}">Asistencia</a>
           </div>
         </div>
 
@@ -89,7 +101,7 @@
           <span class="material-symbols-outlined">receipt_long</span> Comandas
         </a>
 
-        <a href="{% url 'reportes:reportes_home' %}" class="sidebar-item">
+        <a href="{% url 'reportes:ventas' %}" class="sidebar-item">
           <span class="material-symbols-outlined">bar_chart</span> Reportes
         </a>
 
@@ -116,22 +128,52 @@
 
         <div class="navbar-user">
           {% if user.is_authenticated %}
-          <div class="user-dropdown">
-            <div class="user-avatar">
-              {{ user.empleado.nombre_empleado|first|default:user.username|first }}{{ user.empleado.apellido_empleado|first }}
+          <div class="menu-usuario">
+            <button type="button" class="user-dropdown" id="btn-menu-usuario"
+              aria-haspopup="true" aria-expanded="false" aria-controls="panel-usuario">
+              <span class="user-avatar">
+                {{ user.empleado.nombre_empleado|first|default:user.username|first }}{{ user.empleado.apellido_empleado|first }}
+              </span>
+              <span class="user-cargo"
+                >{{ user.empleado.cargo.nombre_cargo|default:"Usuario" }}</span
+              >
+              <span class="material-symbols-outlined dropdown-arrow"
+                >expand_more</span
+              >
+            </button>
+
+            <div class="panel-usuario" id="panel-usuario" hidden>
+              <div class="panel-usuario-cabecera">
+                <span class="user-avatar panel-usuario-avatar">
+                  {{ user.empleado.nombre_empleado|first|default:user.username|first }}{{ user.empleado.apellido_empleado|first }}
+                </span>
+                <div>
+                  <strong>{{ user.empleado.get_full_name|default:user.username }}</strong>
+                  <small>{{ user.username }} · {{ user.empleado.cargo.nombre_cargo|default:"Usuario" }}</small>
+                </div>
+              </div>
+              <a href="{% url 'empleados:mi_perfil' %}" class="panel-usuario-item">
+                <span class="material-symbols-outlined">person</span> Mi perfil
+              </a>
+              <a href="{% url 'empleados:cambiar_contrasena' %}" class="panel-usuario-item">
+                <span class="material-symbols-outlined">key</span> Cambiar contraseña
+              </a>
+              <a href="{% url 'empleados:mis_permisos' %}" class="panel-usuario-item">
+                <span class="material-symbols-outlined">verified_user</span> Mis permisos
+              </a>
+              <button type="button" class="panel-usuario-item" id="btn-tema" role="switch" aria-checked="false">
+                <span class="material-symbols-outlined">dark_mode</span> Modo oscuro
+                <span class="interruptor" aria-hidden="true"></span>
+              </button>
+              <hr class="panel-usuario-separador" />
+              <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="panel-usuario-item panel-usuario-salir">
+                  <span class="material-symbols-outlined">power_settings_new</span> Cerrar sesión
+                </button>
+              </form>
             </div>
-            <span class="user-cargo"
-              >{{ user.empleado.cargo.nombre_cargo|default:"Usuario" }}</span
-            >
-            <span class="material-symbols-outlined dropdown-arrow"
-              >expand_more</span
-            >
           </div>
-          <div class="separador"></div>
-          <a href="{% url 'logout' %}" class="logout">
-            <span class="material-symbols-outlined">logout</span>
-            Cerrar sesión
-          </a>
           {% endif %}
         </div>
       </header>
@@ -187,6 +229,58 @@
         submenu.classList.toggle("abierto");
       }
 
+      // Gráficos de reportes en modo oscuro
+      if (window.Chart && document.documentElement.getAttribute("data-tema") === "oscuro") {
+        Chart.defaults.color = "#D4D4D4";
+        Chart.defaults.borderColor = "#404040";
+      }
+
+      // Menú del usuario
+      (function () {
+        const boton = document.getElementById("btn-menu-usuario");
+        if (!boton) return;
+        const panel = document.getElementById("panel-usuario");
+        const raiz = document.documentElement;
+        const botonTema = document.getElementById("btn-tema");
+
+        function abrirMenu(abrir) {
+          panel.hidden = !abrir;
+          boton.setAttribute("aria-expanded", String(abrir));
+        }
+        boton.addEventListener("click", function (e) {
+          e.stopPropagation();
+          abrirMenu(panel.hidden);
+        });
+        panel.addEventListener("click", function (e) {
+          e.stopPropagation();
+        });
+        document.addEventListener("click", function () {
+          abrirMenu(false);
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && !panel.hidden) {
+            abrirMenu(false);
+            boton.focus();
+          }
+        });
+
+        botonTema.setAttribute("aria-checked", String(raiz.getAttribute("data-tema") === "oscuro"));
+        botonTema.addEventListener("click", function () {
+          const oscuro = raiz.getAttribute("data-tema") !== "oscuro";
+          if (oscuro) {
+            raiz.setAttribute("data-tema", "oscuro");
+          } else {
+            raiz.removeAttribute("data-tema");
+          }
+          botonTema.setAttribute("aria-checked", String(oscuro));
+          try {
+            localStorage.setItem("tema", oscuro ? "oscuro" : "claro");
+          } catch (e) {}
+          // Los gráficos toman sus colores al dibujarse
+          if (window.Chart) location.reload();
+        });
+      })();
+
       document.addEventListener("DOMContentLoaded", function () {
         setTimeout(function () {
           document.querySelectorAll(".alert").forEach(function (alert) {
@@ -200,6 +294,9 @@
       });
     </script>
 
+    <script src="{% static 'vendor/flatpickr/flatpickr.min.js' %}"></script>
+    <script src="{% static 'vendor/flatpickr/es.js' %}"></script>
+    <script src="{% static 'js/filtros_fecha.js' %}"></script>
     {% block extra_js %}{% endblock %}
   </body>
 </html>

@@ -1,0 +1,17 @@
+{% extends 'reportes/base_reportes.html' %}
+{% block contenido_reporte %}
+<div class="grid-top-productos">
+  <div class="tarjeta-top">
+    <div class="titulo-top"><span class="material-symbols-outlined icono-naranja">restaurant</span><h3>Top 5 Platos</h3></div>
+    <table class="tabla-top"><thead><tr><th>#</th><th>Plato</th><th class="derecha">Vendidos</th></tr></thead>
+      <tbody>{% for n, c in top_platos %}<tr><td class="numero-top">{{ forloop.counter }}</td><td>{{ n }}</td><td class="derecha"><strong>{{ c }}</strong></td></tr>{% empty %}<tr><td colspan="3" class="sin-datos">Sin ventas</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <div class="tarjeta-top">
+    <div class="titulo-top"><span class="material-symbols-outlined icono-naranja">local_drink</span><h3>Top 5 Bebidas</h3></div>
+    <table class="tabla-top"><thead><tr><th>#</th><th>Bebida</th><th class="derecha">Vendidos</th></tr></thead>
+      <tbody>{% for n, c in top_bebidas %}<tr><td class="numero-top">{{ forloop.counter }}</td><td>{{ n }}</td><td class="derecha"><strong>{{ c }}</strong></td></tr>{% empty %}<tr><td colspan="3" class="sin-datos">Sin ventas</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

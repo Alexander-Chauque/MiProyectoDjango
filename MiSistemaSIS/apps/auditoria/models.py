@@ -10,6 +10,7 @@ class LogAuditoria(models.Model):
         ("CREAR", "Crear"),
         ("MODIFICAR", "Modificar"),
         ("ANULAR", "Anular"),
+        ("ELIMINAR", "Eliminar"),
     )
 
     id_log = models.AutoField(primary_key=True)
