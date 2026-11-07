@@ -442,7 +442,7 @@ def cargo_editar(request, pk):
                 empleado=request.user.empleado,
             )
             messages.success(request, "Cargo actualizado exitosamente")
-            return redirect("empleados:listar_cargos")
+            return redirect("empleados:listar_cargo")
     else:
         form = CargoForm(instance=cargo)  # Cargamos los datos actuales
 

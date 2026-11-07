@@ -777,42 +777,80 @@ def arqueo_caja(request, pk):
 @login_required
 @permiso_requerido('caja', 'modificar')
 def cerrar_caja(request, pk):
+
     caja_actual = get_object_or_404(caja, pk=pk)
 
-    if request.method != 'POST':
+    if caja_actual.estado_caja != 'abierto':
+        messages.error(request, 'Esta caja ya está cerrada.')
         return redirect('finanzas:detalle_caja', pk=pk)
 
-    try:
-        empleado = request.user.empleado
-    except Exception:
-        messages.error(request, 'No tienes un empleado asociado.')
-        return redirect('finanzas:detalle_caja', pk=pk)
-
-    observaciones = request.POST.get(
-        'observaciones_cierre', ''
-    ).strip()
-
-    if len(observaciones) > 1000:
-        messages.error(
+    if request.method == 'GET':
+        return render(
             request,
-            'Las observaciones de cierre no pueden superar los 1000 caracteres.'
+            'CAJA/cerrar_caja.html',
+            {
+                'caja': caja_actual,
+            }
         )
-        return redirect('finanzas:detalle_caja', pk=pk)
 
-    try:
-        with transaction.atomic():
-            caja_actual.cerrar_caja(
-                empleado,
-                observaciones_cierre=observaciones
+    if request.method == 'POST':
+
+        try:
+            empleado = request.user.empleado
+        except Exception:
+            messages.error(
+                request,
+                'No tienes un empleado asociado.'
+            )
+            return redirect('finanzas:detalle_caja', pk=pk)
+
+        observaciones = request.POST.get(
+            'observaciones_cierre', ''
+        ).strip()
+
+        if len(observaciones) > 1000:
+            messages.error(
+                request,
+                'Las observaciones de cierre no pueden superar los 1000 caracteres.'
+            )
+            return render(
+                request,
+                'CAJA/cerrar_caja.html',
+                {
+                    'caja': caja_actual,
+                    'observaciones_cierre': observaciones,
+                }
             )
 
-        messages.success(request, 'La caja se cerró correctamente.')
+        try:
+            with transaction.atomic():
+                caja_actual = caja.objects.select_for_update().get(
+                    pk=pk
+                )
 
-    except ValueError as error:
-        messages.error(request, str(error))
+                caja_actual.cerrar_caja(
+                    empleado,
+                    observaciones_cierre=observaciones
+                )
 
-    return redirect('finanzas:detalle_caja', pk=pk)
+            messages.success(
+                request,
+                'La caja se cerró correctamente.'
+            )
 
+            return redirect('finanzas:detalle_caja', pk=pk)
+
+        except ValueError as error:
+            messages.error(request, str(error))
+
+            return render(
+                request,
+                'CAJA/cerrar_caja.html',
+                {
+                    'caja': caja_actual,
+                    'observaciones_cierre': observaciones,
+                }
+            )
 #FUNCIONES DE GASTOS
 @login_required
 @permiso_requerido('caja', 'leer')
@@ -960,12 +998,24 @@ def crear_gasto(request):
                                 'No hay una caja abierta para registrar el gasto.'
                             )
                         else:
-                            gasto.objects.create(
-                                descripcion_gasto=descripcion,
-                                monto_gasto=monto,
-                                caja_gasto=caja_actual,
-                                cat_gasto=categoria,
-                                empleado_gasto=empleado
+                            #VALIDAR QUE EL MONTO NO SUPERE EL SALDO DISPONIBLE DE LA CAJA
+                            saldo_disponible=(caja_actual.calcular_saldo_esperado())
+                            if monto > saldo_disponible:
+                                messages.error(
+                                    request,
+                                    f'El monto del gasto ${monto} supera el saldo disponible de la caja ${saldo_disponible}.'
+                                )
+                                return render(
+                                            request,'GASTOS/crear_gasto.html',
+                                            {'categorias': categorias,'caja_abierta': caja_actual,}
+                                        )
+                            else:
+                                gasto.objects.create(
+                                    descripcion_gasto=descripcion,
+                                    monto_gasto=monto,
+                                    caja_gasto=caja_actual,
+                                    cat_gasto=categoria,
+                                    empleado_gasto=empleado
                             )
 
                             messages.success(
@@ -1069,14 +1119,24 @@ def editar_gasto(request, pk):
         ):
             messages.error(request, 'Seleccioná una categoría válida.')
         else:
-            with transaction.atomic():
-                gasto_actual.descripcion_gasto = descripcion
-                gasto_actual.monto_gasto = monto
-                gasto_actual.caja_gasto = caja_actual
-                gasto_actual.cat_gasto = categoria
-                gasto_actual.save()
-            messages.success(request, 'El gasto se actualizó correctamente.')
-            return redirect('finanzas:listar_gastos')
+            #VALIDAR QUE EL MONTO NO SUPERE EL SALDO DISPONIBLE DE LA CAJA
+            saldo_disponible=(caja_actual.calcular_saldo_esperado())
+            if gasto_actual.caja_gasto_id == caja_actual.pk:
+                saldo_disponible += gasto_actual.monto_gasto
+            if monto > saldo_disponible:
+                messages.error(request,f'El monto del gasto ${monto} supera el saldo disponible de la caja ${saldo_disponible}.')
+                return render(
+                            request,'GASTOS/editar_gasto.html',
+                            {'gasto': gasto_actual,'cajas': cajas_abiertas,'categorias': categorias,})
+            else:
+                with transaction.atomic():
+                    gasto_actual.descripcion_gasto = descripcion
+                    gasto_actual.monto_gasto = monto
+                    gasto_actual.caja_gasto = caja_actual
+                    gasto_actual.cat_gasto = categoria
+                    gasto_actual.save()
+                messages.success(request, 'El gasto se actualizó correctamente.')
+                return redirect('finanzas:listar_gastos')
     return render(request, 'GASTOS/editar_gasto.html', {
         'gasto': gasto_actual,
         'cajas': cajas_abiertas,
