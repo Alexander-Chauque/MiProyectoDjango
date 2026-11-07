@@ -1,157 +1,324 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.db.models.functions import (
-    TruncDate,
-)  # <-- IMPORTANTE: Agregado para el gráfico
-from datetime import date, timedelta, datetime
+from core.fechas import limitar_rango
+from empleados.decorators import permiso_requerido
+from django.db.models import Sum, Count, F, DecimalField
+from django.db.models.functions import Coalesce
 from django.utils import timezone
-from datetime import datetime, time
-from ventas.models import Comanda, DetalleComanda
-from empleados.models import Empleado
+from datetime import date, datetime, time
 import csv
 from django.http import HttpResponse
-@login_required
-def reportes_home(request):
-    hoy = date.today()
-
-    fecha_desde_str = request.GET.get(
-        "fecha_desde", hoy.replace(day=1).strftime("%Y-%m-%d")
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from ventas.models import Comanda, DetalleComanda, Pago
+from empleados.models import Empleado
+from inventario.models import CategoriaPlato
+# --- FUNCIÓN AUXILIAR PARA FECHAS ---
+def obtener_rango_fechas(request):
+    hoy = timezone.localdate()
+    f_desde_str, f_hasta_str = limitar_rango(
+        request.GET.get("fecha_desde", hoy.replace(day=1).strftime("%Y-%m-%d")),
+        request.GET.get("fecha_hasta", hoy.strftime("%Y-%m-%d")),
     )
-    fecha_hasta_str = request.GET.get("fecha_hasta", hoy.strftime("%Y-%m-%d"))
 
     try:
-        fecha_desde = datetime.strptime(fecha_desde_str, "%Y-%m-%d").date()
-        fecha_hasta = datetime.strptime(fecha_hasta_str, "%Y-%m-%d").date()
+        f_desde = datetime.strptime(f_desde_str, "%Y-%m-%d").date()
+        f_hasta = datetime.strptime(f_hasta_str, "%Y-%m-%d").date()
     except ValueError:
-        fecha_desde = hoy.replace(day=1)
-        fecha_hasta = hoy
+        f_desde, f_hasta = hoy.replace(day=1), hoy
+        f_desde_str, f_hasta_str = f_desde.strftime("%Y-%m-%d"), f_hasta.strftime("%Y-%m-%d")
 
-    # Convertimos a fechas con hora local (00:00:00 a 23:59:59)
-    inicio = timezone.make_aware(datetime.combine(fecha_desde, time.min))
-    fin = timezone.make_aware(datetime.combine(fecha_hasta, time.max))
+    inicio = timezone.make_aware(datetime.combine(f_desde, time.min))
+    fin = timezone.make_aware(datetime.combine(f_hasta, time.max))
+    return inicio, fin, f_desde_str, f_hasta_str
 
-    # Filtramos por rango de tiempo exacto
-    comandas_pagadas = Comanda.objects.filter(
+
+def obtener_comandas(request):
+    inicio, fin, f_desde_str, f_hasta_str = obtener_rango_fechas(request)
+    comandas = Comanda.objects.filter(
         estado_comanda__iexact="pagado", fecha_hora__range=[inicio, fin]
     )
+    return comandas, f_desde_str, f_hasta_str
 
-    # KPIs
-    ventas_totales = (
-        comandas_pagadas.aggregate(total=Sum("total_comanda"))["total"] or 0
-    )
-    cantidad_comandas = comandas_pagadas.count()
-    ticket_promedio = (
-        (ventas_totales / cantidad_comandas) if cantidad_comandas > 0 else 0
-    )
 
-    # Top 5 Platos
-    top_platos_qs = (
-        DetalleComanda.objects.filter(
-            comanda__in=comandas_pagadas, plato__isnull=False, cant_plato__gt=0
-        )
-        .values("plato__nombre_plato")
-        .annotate(total_vendidos=Sum("cant_plato"))
-        .order_by("-total_vendidos")[:5]
+def obtener_totales_metodos(request):
+    """Devuelve [(nombre del método, total cobrado)] del período, de mayor a menor."""
+    inicio, fin, f_desde_str, f_hasta_str = obtener_rango_fechas(request)
+    nombres = dict(Pago.METODOS)
+    pagos = (
+        Pago.objects.filter(fecha_hora__range=[inicio, fin])
+        .values("metodo_pago")
+        .annotate(total=Sum("monto"))
     )
-    top_platos = [
-        (item["plato__nombre_plato"], item["total_vendidos"]) for item in top_platos_qs
-    ]
+    totales = [(nombres.get(p["metodo_pago"], p["metodo_pago"]), p["total"]) for p in pagos]
 
-    # Top 5 Bebidas
-    top_bebidas_qs = (
-        DetalleComanda.objects.filter(
-            comanda__in=comandas_pagadas, bebida__isnull=False, cant_bebida__gt=0
-        )
-        .values("bebida__nombre_bebida")
-        .annotate(total_vendidos=Sum("cant_bebida"))
-        .order_by("-total_vendidos")[:5]
-    )
-    top_bebidas = [
-        (item["bebida__nombre_bebida"], item["total_vendidos"])
-        for item in top_bebidas_qs
-    ]
+    # Comandas cobradas antes de existir la tabla Pago: no tienen método guardado
+    sin_registro = Comanda.objects.filter(
+        estado_comanda__iexact="pagado",
+        fecha_hora__range=[inicio, fin],
+        pagos__isnull=True,
+    ).aggregate(total=Sum("total_comanda"))["total"]
+    if sin_registro:
+        totales.append(("Sin método registrado", sin_registro))
+
+    totales.sort(key=lambda fila: fila[1], reverse=True)
+    return totales, f_desde_str, f_hasta_str
+
+
+# --- REPORTE DE VENTAS GENERALES (KPIs y Gráfico) ---
+@login_required
+@permiso_requerido("reportes", "leer")
+def reporte_ventas(request):
+    comandas, f_desde, f_hasta = obtener_comandas(request)
+
+    ventas_totales = comandas.aggregate(total=Sum("total_comanda"))["total"] or 0
+    cant_comandas = comandas.count()
+    ticket = (ventas_totales / cant_comandas) if cant_comandas > 0 else 0
 
     # Gráfico
-    ventas_por_dia_dict = {}
-    
-    for comanda in comandas_pagadas:
-        # Convertimos la fecha a la zona horaria local y sacamos solo el día
-        fecha_local = timezone.localtime(comanda.fecha_hora).date()
-        
-        # Sumamos el total al día correspondiente
-        if fecha_local in ventas_por_dia_dict:
-            ventas_por_dia_dict[fecha_local] += float(comanda.total_comanda)
-        else:
-            ventas_por_dia_dict[fecha_local] = float(comanda.total_comanda)
-
-    # Ordenamos por fecha
-    fechas_ordenadas = sorted(ventas_por_dia_dict.keys())
-    
-    # Creamos las listas para el gráfico
-    labels_semana = [f.strftime('%d/%m') for f in fechas_ordenadas]
-    ventas_semana = [ventas_por_dia_dict[f] for f in fechas_ordenadas]
-    # Extras
-    comandas_activas = Comanda.objects.exclude(
-        estado_comanda__in=["pagado", "anulado", "cancelado"]
-    ).count()
-    total_empleados = Empleado.objects.filter(estado=True).count()
+    ventas_dia = {}
+    for c in comandas:
+        dia = timezone.localtime(c.fecha_hora).date()
+        ventas_dia[dia] = ventas_dia.get(dia, 0) + float(c.total_comanda)
+    fechas = sorted(ventas_dia.keys())
+    labels = [f.strftime("%d/%m") for f in fechas]
+    data = [ventas_dia[f] for f in fechas]
 
     return render(
         request,
-        "reportes_home.html",
+        "reportes/ventas.html",
         {
             "ventas_totales": ventas_totales,
-            "cantidad_comandas": cantidad_comandas,
-            "ticket_promedio": ticket_promedio,
-            "comandas_activas": comandas_activas,
-            "top_platos": top_platos,
-            "top_bebidas": top_bebidas,
-            "ventas_semana": ventas_semana,
-            "labels_semana": labels_semana,
-            "total_empleados": total_empleados,
-            "fecha_desde": fecha_desde_str,
-            "fecha_hasta": fecha_hasta_str,
+            "cantidad_comandas": cant_comandas,
+            "ticket_promedio": ticket,
+            "labels": labels,
+            "data": data,
+            "fecha_desde": f_desde,
+            "fecha_hasta": f_hasta,
+            "tab": "ventas",
+        },
+    )
+
+# --- REPORTE TOP 5 (Platos y Bebidas) ---
+@login_required
+@permiso_requerido("reportes", "leer")
+def reporte_top(request):
+    comandas, f_desde, f_hasta = obtener_comandas(request)
+
+    top_platos = (
+        DetalleComanda.objects.filter(
+            comanda__in=comandas, plato__isnull=False, cant_plato__gt=0
+        )
+        .values("plato__nombre_plato")
+        .annotate(total=Sum("cant_plato"))
+        .order_by("-total")[:5]
+    )
+
+    top_bebidas = (
+        DetalleComanda.objects.filter(
+            comanda__in=comandas, bebida__isnull=False, cant_bebida__gt=0
+        )
+        .values("bebida__nombre_bebida")
+        .annotate(total=Sum("cant_bebida"))
+        .order_by("-total")[:5]
+    )
+
+    return render(
+        request,
+        "reportes/top.html",
+        {
+            "top_platos": [(i["plato__nombre_plato"], i["total"]) for i in top_platos],
+            "top_bebidas": [
+                (i["bebida__nombre_bebida"], i["total"]) for i in top_bebidas
+            ],
+            "fecha_desde": f_desde,
+            "fecha_hasta": f_hasta,
+            "tab": "top",
         },
     )
 
 
+# --- REPORTE POR CATEGORÍA (Táctico) ---
 @login_required
-def exportar_reporte_csv(request):
-    fecha_desde_str = request.GET.get("fecha_desde")
-    fecha_hasta_str = request.GET.get("fecha_hasta")
+@permiso_requerido("reportes", "leer")
+def reporte_categorias(request):
+    comandas, f_desde, f_hasta = obtener_comandas(request)
 
-    comandas = Comanda.objects.filter(estado_comanda__iexact="pagado").order_by(
-        "-fecha_hora"
+    categorias = (
+        DetalleComanda.objects.filter(
+            comanda__in=comandas, plato__isnull=False, cant_plato__gt=0
+        )
+        .values("plato__categoria__nombre_categoria_plato")
+        .annotate(
+            ingresos=Sum(
+                F("cant_plato") * F("plato__precio_plato"), output_field=DecimalField()
+            )
+        )
+        .order_by("-ingresos")
     )
 
-    if fecha_desde_str and fecha_hasta_str:
-        try:
-            fecha_desde = datetime.strptime(fecha_desde_str, "%Y-%m-%d").date()
-            fecha_hasta = datetime.strptime(fecha_hasta_str, "%Y-%m-%d").date()
-            comandas = comandas.filter(
-                fecha_hora__date__range=[fecha_desde, fecha_hasta]
-            )
-        except ValueError:
-            pass
+    return render(
+        request,
+        "reportes/categorias.html",
+        {
+            "categorias": categorias,
+            "fecha_desde": f_desde,
+            "fecha_hasta": f_hasta,
+            "tab": "categorias",
+        },
+    )
+# # --- REPORTE DE MOZOS (Táctico) ---
+@login_required
+@permiso_requerido("reportes", "leer")
+def reporte_mozos(request):
+    comandas, f_desde, f_hasta = obtener_comandas(request)
+
+    mozos = (
+        comandas.values("empleado__nombre_empleado", "empleado__apellido_empleado")
+        .annotate(total=Sum("total_comanda"), cantidad=Count("id_comanda"))
+        .order_by("-total")
+    )
+
+    lista_mozos = [
+        {
+            "nombre": f"{m['empleado__nombre_empleado']} {m['empleado__apellido_empleado']}",
+            "total": m["total"],
+            "cantidad": m["cantidad"],
+        }
+        for m in mozos
+    ]
+    
+    labels_mozos = [m['nombre'] for m in lista_mozos]
+    data_mozos = [m['total'] for m in lista_mozos]
+
+    return render(
+        request,
+        "reportes/mozos.html",
+        {
+            "lista_mozos": lista_mozos,
+            'labels_mozos': labels_mozos,
+            'data_mozos': data_mozos,    
+            "fecha_desde": f_desde,
+            "fecha_hasta": f_hasta,
+            "tab": "mozos",
+        },
+    )
+
+
+# --- REPORTE DE MÉTODOS DE PAGO---
+@login_required
+@permiso_requerido("reportes", "leer")
+def reporte_metodos(request):
+    totales, f_desde, f_hasta = obtener_totales_metodos(request)
+    labels_metodos = [nombre for nombre, _ in totales]
+    data_metodos = [float(total) for _, total in totales]
+
+    return render(
+        request,
+        "reportes/metodos.html",
+        {
+            "labels_metodos": labels_metodos,
+            "data_metodos": data_metodos,
+            "fecha_desde": f_desde,
+            "fecha_hasta": f_hasta,
+            "tab": "metodos",
+        },
+    )
+
+# --- EXPORTACIÓN A CSV ---
+@login_required
+@permiso_requerido("reportes", "leer")
+def exportar_csv(request):
+    tipo = request.GET.get("tipo", "ventas")
+    comandas, f_desde, f_hasta = obtener_comandas(request)
 
     response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="reporte_ventas.csv"'
-
+    response["Content-Disposition"] = (
+        f'attachment; filename="reporte_{tipo}_{f_desde}_{f_hasta}.csv"'
+    )
     writer = csv.writer(response)
-    writer.writerow(["ID Comanda", "Fecha", "Mesa", "Mozo", "Total"])
 
-    for comanda in comandas:
-        mozo = comanda.empleado.get_full_name() if comanda.empleado else "Sin asignar"
-        mesa = comanda.mesa.numero_mesa if comanda.mesa else "N/A"
-        writer.writerow(
-            [
-                comanda.id_comanda,
-                comanda.fecha_hora.strftime("%d/%m/%Y %H:%M"),
-                mesa,
-                mozo,
-                comanda.total_comanda,
-            ]
-        )
+    if tipo == "ventas":
+        writer.writerow(["ID Comanda", "Fecha", "Mesa", "Mozo", "Total"])
+        for c in comandas:
+            mozo = c.empleado.get_full_name() if c.empleado else "N/A"
+            writer.writerow(
+                [
+                    c.id_comanda,
+                    c.fecha_hora.strftime("%d/%m/%Y %H:%M"),
+                    c.mesa.numero_mesa,
+                    mozo,
+                    c.total_comanda,
+                ]
+            )
 
+    elif tipo == "mozos":
+        writer.writerow(["Mozo", "Cant. Comandas", "Total Vendido"])
+        mozos = comandas.values(
+            "empleado__nombre_empleado", "empleado__apellido_empleado"
+        ).annotate(total=Sum("total_comanda"), cantidad=Count("id_comanda"))
+        for m in mozos:
+            writer.writerow(
+                [
+                    f"{m['empleado__nombre_empleado']} {m['empleado__apellido_empleado']}",
+                    m["cantidad"],
+                    m["total"],
+                ]
+            )
+
+    elif tipo == "metodos":
+        writer.writerow(["Método de Pago", "Total Recaudado"])
+        totales, _, _ = obtener_totales_metodos(request)
+        writer.writerows(totales)
+
+    # (Puedes agregar más tipos aquí si quieres)
+
+    return response
+
+
+@login_required
+@permiso_requerido("reportes", "leer")
+def exportar_pdf_ventas(request):
+    # 1. Obtenemos los mismos datos que usás en la vista HTML
+    comandas, f_desde, f_hasta = obtener_comandas(request)
+
+    ventas_totales = comandas.aggregate(total=Sum("total_comanda"))["total"] or 0
+    cant_comandas = comandas.count()
+    ticket = (ventas_totales / cant_comandas) if cant_comandas > 0 else 0
+
+    # Datos para la tabla del PDF
+    ventas_dia = {}
+    for c in comandas:
+        dia = timezone.localtime(c.fecha_hora).date()
+        ventas_dia[dia] = ventas_dia.get(dia, 0) + float(c.total_comanda)
+    fechas = sorted(ventas_dia.keys())
+    labels = [f.strftime("%d/%m/%Y") for f in fechas]
+    data = [ventas_dia[f] for f in fechas]
+
+    # Unimos las listas para el PDF
+    zip_datos = zip(labels, data)
+
+    # 2. Cargamos la plantilla HTML del PDF
+    template = get_template("reportes/pdf_ventas.html")
+    context = {
+        "nombre_reporte": "Ventas Generales",
+        "fecha_desde": f_desde,
+        "fecha_hasta": f_hasta,
+        "ventas_totales": ventas_totales,
+        "cantidad_comandas": cant_comandas,
+        "ticket_promedio": ticket,
+        "zip_labels_valores": zip_datos,
+    }
+    html = template.render(context)
+
+    # 3. Creamos el PDF
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="Reporte_Ventas_{f_desde}_{f_hasta}.pdf"'
+    )
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse("Error al generar PDF", status=500)
     return response

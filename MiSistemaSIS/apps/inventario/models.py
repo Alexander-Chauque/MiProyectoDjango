@@ -1,5 +1,17 @@
+import os
+import uuid
+
 from django.db import models
 from empleados.models import Empleado
+
+
+def ruta_imagen_ingrediente(instancia, nombre_original):
+    """Guarda la foto con un nombre al azar, para que dos fotos nunca se pisen."""
+    extension = os.path.splitext(nombre_original)[1].lower()
+    if extension not in (".jpg", ".jpeg", ".png", ".webp"):
+        extension = ".jpg"
+    return f"ingredientes/{uuid.uuid4().hex}{extension}"
+
 
 # Create your models here.
 #Categoria Plato
@@ -24,6 +36,8 @@ class Ingrediente(models.Model):
         ("kg", 'Kilogramo'), ('g', 'Gramos'), ('l', 'Litros'), ('ml', 'mililitros'), ('u', 'Unidades'),
     ])
     costo_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    descripcion_ingrediente = models.TextField(blank=True, default="")
+    imagen_ingrediente = models.ImageField(upload_to=ruta_imagen_ingrediente, blank=True, null=True)
     estado_ingrediente = models.BooleanField(default=True)
 
     class Meta:

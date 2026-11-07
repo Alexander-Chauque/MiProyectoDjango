@@ -1,33 +1,93 @@
-{% extends 'base_empleados.html' %}
+{% extends 'base.html' %}
+
+{% block title %}Restablecer contraseña{% endblock %}
 
 {% block content %}
-<div class="contenedor">
-    <h1 class="titulo">Restablecer Contraseña</h1>
-    <p><strong>Usuario:</strong> {{ empleado.user_auto }}</p>
-
-    <div class="card">
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label class="form-label">Nueva Contraseña</label>
-                    {{ form.nueva_contrasena }}
-                    {{ form.nueva_contrasena.errors }}
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Confirmar Contraseña</label>
-                    {{ form.confirmar_contrasena }}
-                    {{ form.confirmar_contrasena.errors }}
-                </div>
-
-                <div class="derecha_boton">
-                    <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">Cancelar</a>
-                    <button type="submit" class="btn">Restablecer</button>
-                </div>
-            </form>
-        </div>
+<div class="cuenta-pagina">
+  <header class="cuenta-encabezado">
+    <span class="material-symbols-outlined">key</span>
+    <div>
+      <h1>Restablecer contraseña</h1>
+      <p>Define una contraseña temporal para este empleado.</p>
     </div>
+  </header>
+
+  <section class="cuenta-tarjeta">
+    <div class="perfil-cabecera">
+      <span class="user-avatar perfil-avatar">
+        {{ empleado.nombre_empleado|first }}{{ empleado.apellido_empleado|first }}
+      </span>
+      <div>
+        <h2>{{ empleado.get_full_name }}</h2>
+        <span class="cuenta-etiqueta">
+          <span class="material-symbols-outlined">person</span>
+          {{ empleado.user_auto }}
+        </span>
+      </div>
+    </div>
+
+    <form method="POST" class="cuenta-formulario" novalidate>
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<p class="cuenta-error">{{ error }}</p>{% endfor %}
+
+      <div class="cuenta-campo">
+        <label for="{{ form.nueva_contrasena.id_for_label }}">
+          <span class="material-symbols-outlined">lock</span> Nueva contraseña
+        </label>
+        <div>
+          <div class="clave-campo">
+            <input type="password" name="nueva_contrasena" id="{{ form.nueva_contrasena.id_for_label }}" class="form-control" autocomplete="new-password" required autofocus>
+            <button type="button" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false"><span class="material-symbols-outlined">visibility_off</span></button>
+          </div>
+          {% for error in form.nueva_contrasena.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+
+      <div class="cuenta-campo">
+        <label for="{{ form.confirmar_contrasena.id_for_label }}">
+          <span class="material-symbols-outlined">lock</span> Confirmar contraseña
+        </label>
+        <div>
+          <div class="clave-campo">
+            <input type="password" name="confirmar_contrasena" id="{{ form.confirmar_contrasena.id_for_label }}" class="form-control" autocomplete="new-password" required>
+            <button type="button" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false"><span class="material-symbols-outlined">visibility_off</span></button>
+          </div>
+          {% for error in form.confirmar_contrasena.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+
+      <p class="cuenta-aviso">
+        <span class="material-symbols-outlined">info</span>
+        La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula, un número y un carácter especial. El empleado deberá cambiarla la próxima vez que inicie sesión.
+      </p>
+
+      <div class="cuenta-botones">
+        <a href="{% url 'empleados:empleado_listar' %}" class="cuenta-btn cuenta-btn-secundario">
+          <span class="material-symbols-outlined">close</span> Cancelar
+        </a>
+        <button type="submit" class="cuenta-btn cuenta-btn-primario">
+          <span class="material-symbols-outlined">save</span> Restablecer contraseña
+        </button>
+      </div>
+    </form>
+  </section>
+
+  {% include 'includes/paisaje_cuenta.html' %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Muestra u oculta la contraseña, igual que en Cambiar contraseña
+  document.querySelectorAll('.clave-ver').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      const campo = boton.previousElementSibling;
+      const mostrar = campo.type === 'password';
+      campo.type = mostrar ? 'text' : 'password';
+      boton.setAttribute('aria-pressed', String(mostrar));
+      boton.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+      boton.querySelector('span').textContent = mostrar ? 'visibility' : 'visibility_off';
+    });
+  });
+</script>
 {% endblock %}

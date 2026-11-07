@@ -1,0 +1,116 @@
+{% extends 'reportes/base_reportes.html' %}
+{% load static %}
+
+{% block extra_css_reportes %}
+<!-- Cargamos Chart.js para el gráfico -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block contenido_reporte %}
+
+<!-- 1. GRÁFICO DE BARRAS -->
+<div class="tarjeta-grafico" style="margin-bottom: 25px;">
+  <div class="titulo-grafico">
+    <span class="material-symbols-outlined icono-naranja">bar_chart</span>
+    <h3>Ventas Totales por Mozo ($)</h3>
+  </div>
+  <div class="cuerpo-grafico" style="height: 350px;">
+    <canvas id="graficoMozos"></canvas>
+  </div>
+</div>
+
+<!-- 2. TABLA DETALLE -->
+<div class="tarjeta-top" style="margin-top: 20px;">
+  <div class="titulo-top">
+    <span class="material-symbols-outlined icono-naranja">groups</span>
+    <h3>Detalle de Rendimiento</h3>
+  </div>
+  
+  <table class="tabla-top">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Empleado</th>
+        <th class="derecha">Comandas Atendidas</th>
+        <th class="derecha">Total Vendido</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mozo in lista_mozos %}
+      <tr>
+        <td class="numero-top">{{ forloop.counter }}</td>
+        <td>{{ mozo.nombre }}</td>
+        <td class="derecha">{{ mozo.cantidad }}</td>
+        <td class="derecha"><strong>${{ mozo.total|floatformat:0 }}</strong></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="sin-datos">No hay ventas registradas en este período.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Pasamos los datos de Python a JavaScript de forma segura -->
+{{ labels_mozos|json_script:"labels-mozos" }}
+{{ data_mozos|json_script:"data-mozos" }}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const labels = JSON.parse(document.getElementById('labels-mozos').textContent);
+    const data = JSON.parse(document.getElementById('data-mozos').textContent);
+
+    // Si no hay datos, no dibujamos nada
+    if (labels.length === 0) return;
+
+    new Chart(document.getElementById('graficoMozos').getContext('2d'), {
+      type: 'bar', // <-- Tipo de gráfico: BARRAS
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Total Vendido ($)',
+          data: data,
+          backgroundColor: 'rgba(245, 166, 35, 0.8)', // Naranja de la marca
+          borderColor: '#F5A623',
+          borderWidth: 1,
+          borderRadius: 6, // Bordes redondeados en las barras
+          barPercentage: 0.6 // Ancho de las barras
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }, // Ocultamos la leyenda porque el título ya lo dice
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                // Formateamos el tooltip para que muestre el $
+                return ' $' + context.parsed.y.toLocaleString('es-AR');
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#F3F4F6' },
+            ticks: {
+              callback: function(value) { 
+                return '$' + value.toLocaleString('es-AR'); 
+              }
+            }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

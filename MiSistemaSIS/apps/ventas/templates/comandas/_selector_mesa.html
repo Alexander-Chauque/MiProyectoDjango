@@ -1,0 +1,111 @@
+{% comment %}
+  Elige la mesa buscando por número o tocándola en la grilla.
+  El desplegable sigue siendo el campo que se envía: esto solo lo completa.
+  Sin JavaScript, la grilla no aparece y se usa el desplegable.
+{% endcomment %}
+<div class="selector-mesa" data-selector-mesa data-campo="{{ form.mesa.id_for_label }}">
+  <div class="select-con-icono" data-mesa-desplegable>
+    <span class="material-symbols-outlined">table_restaurant</span>
+    {{ form.mesa }}
+  </div>
+
+  <div data-mesa-panel hidden>
+    <div class="input-buscar">
+      <span class="material-symbols-outlined">search</span>
+      <input type="text" inputmode="numeric" autocomplete="off" maxlength="6"
+        placeholder="Buscar por número de mesa" aria-label="Buscar por número de mesa" data-mesa-buscar />
+    </div>
+
+    <p class="selector-mesa-elegida" data-mesa-elegida aria-live="polite"></p>
+
+    <div class="selector-mesa-grilla">
+      {% regroup form.fields.mesa.queryset|dictsort:"ubicacion" by get_ubicacion_display as grupos_mesa %}
+      {% for grupo in grupos_mesa %}
+      <div data-mesa-grupo>
+        <h4 class="selector-mesa-grupo">{{ grupo.grouper }}</h4>
+        <div class="selector-mesa-botones">
+          {% for mesa in grupo.list %}
+          <button type="button" class="boton-mesa" data-mesa-id="{{ mesa.pk }}" data-mesa-numero="{{ mesa.numero_mesa }}"
+            data-mesa-ubicacion="{{ grupo.grouper }}" aria-pressed="false">{{ mesa.numero_mesa }}</button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+      <p class="selector-mesa-vacio" data-mesa-vacio hidden>No hay mesas disponibles con ese número.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const raiz = document.querySelector("[data-selector-mesa]");
+    const campo = document.getElementById(raiz.dataset.campo);
+    const buscador = raiz.querySelector("[data-mesa-buscar]");
+    const elegida = raiz.querySelector("[data-mesa-elegida]");
+    const vacio = raiz.querySelector("[data-mesa-vacio]");
+    const botones = Array.from(raiz.querySelectorAll(".boton-mesa"));
+    const grupos = Array.from(raiz.querySelectorAll("[data-mesa-grupo]"));
+
+    // Oculta el desplegable. Sin esto, "required" en un campo oculto impediría enviar el formulario
+    // sin mostrar ningún mensaje. Django sigue validando que haya una mesa.
+    campo.removeAttribute("required");
+    raiz.querySelector("[data-mesa-desplegable]").hidden = true;
+    raiz.querySelector("[data-mesa-panel]").hidden = false;
+
+    function mostrarElegida() {
+      const actual = botones.find(function (boton) {
+        return boton.dataset.mesaId === campo.value;
+      });
+      botones.forEach(function (boton) {
+        boton.setAttribute("aria-pressed", String(boton === actual));
+      });
+      elegida.textContent = actual
+        ? "Mesa elegida: " + actual.dataset.mesaNumero + " · " + actual.dataset.mesaUbicacion
+        : "Todavía no elegiste una mesa.";
+    }
+
+    function elegir(boton) {
+      campo.value = boton.dataset.mesaId;
+      mostrarElegida();
+    }
+
+    // Deja solo las mesas cuyo número empieza con lo escrito
+    function visibles() {
+      const texto = buscador.value.trim();
+      return botones.filter(function (boton) {
+        return boton.dataset.mesaNumero.startsWith(texto);
+      });
+    }
+
+    function filtrar() {
+      const lista = visibles();
+      botones.forEach(function (boton) {
+        boton.hidden = !lista.includes(boton);
+      });
+      grupos.forEach(function (grupo) {
+        grupo.hidden = !grupo.querySelector(".boton-mesa:not([hidden])");
+      });
+      vacio.hidden = lista.length > 0;
+    }
+
+    botones.forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        elegir(boton);
+      });
+    });
+    buscador.addEventListener("input", filtrar);
+
+    // Enter elige la mesa escrita, en lugar de enviar la comanda
+    buscador.addEventListener("keydown", function (evento) {
+      if (evento.key !== "Enter") return;
+      evento.preventDefault();
+      const lista = visibles();
+      const exacta = lista.find(function (boton) {
+        return boton.dataset.mesaNumero === buscador.value.trim();
+      });
+      if (exacta || lista.length === 1) elegir(exacta || lista[0]);
+    });
+
+    mostrarElegida();
+  })();
+</script>

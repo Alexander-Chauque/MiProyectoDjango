@@ -1,0 +1,41 @@
+{% load static %}<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Antes de pintar la página, para que no parpadee en claro
+      try {
+        if (localStorage.getItem("tema") === "oscuro") {
+          document.documentElement.setAttribute("data-tema", "oscuro");
+        }
+      } catch (e) {}
+    </script>
+    <title>{% block title %}Recuperar contraseña{% endblock %} - Los Cardones</title>
+    <link rel="icon" type="image/png" href="{% static 'img/favicon/favicon.png' %}" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/usuario.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/tema_oscuro.css' %}" />
+  </head>
+  <body>
+    <!-- Sin menú lateral: quien recupera su contraseña todavía no inició sesión -->
+    <div class="contenido-principal">
+      <header class="topbar">
+        <div class="topbar-left">
+          <a href="{% url 'login' %}">
+            <img src="{% static 'img/logo/logo.png' %}" alt="Los Cardones" class="logo-topbar" />
+          </a>
+        </div>
+      </header>
+      <main class="contenido">
+        <div class="cuenta-pagina">
+          {% block content %}{% endblock %}
+          {% include 'includes/paisaje_cuenta.html' %}
+        </div>
+      </main>
+    </div>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

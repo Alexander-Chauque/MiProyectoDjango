@@ -35,6 +35,13 @@ body {
   user-select: none;
 }
 
+.error-mensaje {
+  color: #DC2626;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
 /* =========================================
    2. LAYOUT PRINCIPAL Y SIDEBAR
    ========================================= */

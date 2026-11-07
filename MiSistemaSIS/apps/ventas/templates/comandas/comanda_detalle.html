@@ -61,9 +61,16 @@
       {% endwith %}
     </div>
 
+    {% if comanda.esta_abierta %}
     <a href="{% url 'ventas:comanda_editar' comanda.id_comanda %}" class="btn-icon btn-editar" title="Editar comanda">
       <span class="material-symbols-outlined">edit</span>
     </a>
+    {% else %}
+    <span class="btn-icon" style="background-color: #F3F4F6; color: #A0AEC0; cursor: not-allowed;"
+      title="No se puede editar: la comanda está cerrada">
+      <span class="material-symbols-outlined">edit_off</span>
+    </span>
+    {% endif %}
   </div>
 
   <!-- Información General -->

@@ -1,212 +1,337 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Asistencia del personal{% endblock %}
+{% block title %}Asistencias{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-<link rel="stylesheet" href="{% static 'css/asistencia63- .css' %}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+
 {% endblock %}
 
 {% block content %}
 <div class="contenedor">
 
-  <!-- Header -->
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:empleados_home' %}" class="breadcrumb-item">Empleados</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Asistencias</span>
+  </nav>
+
+  <!-- HEADER -->
   <div class="page-header">
     <div class="page-header-info">
-      <div class="page-header-icono">
-        <span class="material-symbols-outlined">calendar_month</span>
+      <div class="page-header-icono" style="background-color: #FFF8E7;">
+        <span class="material-symbols-outlined" style="color: #F5A623;">fact_check</span>
       </div>
       <div class="page-header-texto">
-        <h1>Asistencia del personal</h1>
-        <p>Consultá y controlá los registros de entrada y salida.</p>
+        <h1>Asistencias</h1>
+        <p>Registro de presentismo y turnos del personal.</p>
       </div>
     </div>
     <div class="page-header-acciones">
-      <a href="{% url 'empleados:asistencia_crear' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Registrar asistencia
+      <a href="{% url 'empleados:listar_tipos_asistencia' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">schedule</span> Tipos de Turno
       </a>
+      <button onclick="abrirModalRegistro()" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Registrar Asistencia
+      </button>
     </div>
   </div>
 
-  <!-- Tarjetas de Resumen -->
-  <div class="grid-resumen-asistencia">
-    <div class="tarjeta-resumen">
-      <div class="icono-resumen bg-verde"><span class="material-symbols-outlined">person_check</span></div>
-      <div class="info-resumen">
-        <span>Presentes</span>
-        <strong>{{ presentes }}</strong>
-        <small>Hoy, {{ hoy|date:"d/m/Y" }}</small>
+  <div class="listado-layout">
+    <!-- FILTROS -->
+    <form method="GET" class="filtros-panel">
+      <div class="filtros-header">
+        <span class="material-symbols-outlined">filter_alt</span>
+        <h3>Filtros</h3>
       </div>
-    </div>
-    <div class="tarjeta-resumen">
-      <div class="icono-resumen bg-rojo"><span class="material-symbols-outlined">person_remove</span></div>
-      <div class="info-resumen">
-        <span>Ausentes</span>
-        <strong>{{ ausentes }}</strong>
-        <small>Hoy, {{ hoy|date:"d/m/Y" }}</small>
+
+      <div class="filtro-grupo">
+        <label>Buscar Empleado</label>
+        <div class="input-buscar">
+          <span class="material-symbols-outlined">search</span>
+          <input name="buscar" type="text" value="{{ buscar }}" placeholder="Nombre o apellido...">
+        </div>
       </div>
-    </div>
-    <div class="tarjeta-resumen">
-      <div class="icono-resumen bg-naranja"><span class="material-symbols-outlined">schedule</span></div>
-      <div class="info-resumen">
-        <span>Tardanzas</span>
-        <strong>{{ tardanzas }}</strong>
-        <small>Hoy, {{ hoy|date:"d/m/Y" }}</small>
+
+      <div class="filtro-grupo">
+        <label>Desde</label>
+        <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="filtro-select" max="{{ hoy_iso}}">
       </div>
-    </div>
-    <div class="tarjeta-resumen">
-      <div class="icono-resumen bg-gris"><span class="material-symbols-outlined">groups</span></div>
-      <div class="info-resumen">
-        <span>Total empleados</span>
-        <strong>{{ total_empleados }}</strong>
-        <small>Activos</small>
+      
+      <div class="filtro-grupo">
+        <label>Hasta</label>
+        <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="filtro-select" max="{{ hoy_iso }}">
       </div>
-    </div>
-  </div>
 
-  <!-- Barra de Filtros -->
-  <form method="GET" class="filtros-asistencia">
-    <div class="input-buscar">
-      <span class="material-symbols-outlined">search</span>
-      <input type="text" name="buscar" value="{{ buscar }}" placeholder="Buscar por nombre, apellido o DNI...">
-    </div>
+      <div class="filtro-grupo">
+        <label>Tipo de Turno</label>
+        <select name="tipo_asistencia" class="filtro-select">
+          <option value="">Todos</option>
+          {% for t in tipos %}
+            <option value="{{ t.id_tipo_asistencia }}" {% if t.id_tipo_asistencia|stringformat:"s" == tipo_seleccionado %}selected{% endif %}>
+              {{ t.nombre_tipo_asis }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
-    <input type="date" name="fecha" value="{{ fecha_filtro }}" class="form-control-filtro">
+      <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
 
-    <select name="tipo" class="form-control-filtro">
-      <option value="">Todos los estados</option>
-      {% for tipo in tipos_asistencia %}
-      <option value="{{ tipo.id_tipo_asistencia }}" {% if tipo_filtro == tipo.id_tipo_asistencia|stringformat:"s" %}selected{% endif %}>
-        {{ tipo.nombre_tipo_asis }}
-      </option>
-      {% endfor %}
-    </select>
+      <button type="submit" class="btn-aplicar">
+        <span class="material-symbols-outlined">filter_alt</span> Aplicar filtros
+      </button>
+      <a href="{% url 'empleados:listar_asistencias' %}" class="btn-limpiar">
+        <span class="material-symbols-outlined">refresh</span> Limpiar filtros
+      </a>
+    </form>
 
-    <button type="submit" class="btn-secundario">
-      <span class="material-symbols-outlined">filter_alt</span> Filtrar
-    </button>
-    <a href="{% url 'empleados:asistencia_listar' %}" class="btn-secundario">
-      <span class="material-symbols-outlined">refresh</span> Limpiar
-    </a>
-  </form>
+    <!-- TABLA -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
 
-  <!-- Tabla -->
-  <div class="tabla-panel">
-    <table class="tabla">
-      <thead>
-        <tr>
-          <th>EMPLEADO</th>
-          <th>CARGO</th>
-          <th>FECHA</th>
-          <th>ENTRADA</th>
-          <th>SALIDA</th>
-          <th>ESTADO</th>
-          <th>ACCIONES</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for asistencia in asistencias %}
-        <tr>
-          <td><strong>{{ asistencia.id_empleado.nombre_empleado }} {{ asistencia.id_empleado.apellido_empleado }}</strong></td>
-          <td>{{ asistencia.id_empleado.cargo.nombre_cargo }}</td>
-          <td>{{ asistencia.fecha_asistencia|date:"d/m/Y" }}</td>
-          <td>{{ asistencia.hora_entrada|time:"H:i"|default:"-" }}</td>
-          <td>{{ asistencia.hora_salida|time:"H:i"|default:"-" }}</td>
-          <td>
-            {% with tipo=asistencia.id_tipo_asistencia.nombre_tipo_asis|lower %}
-            {% if tipo == 'presente' %}
-            <span class="badge badge-presente">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
-            {% elif tipo == 'ausente' %}
-            <span class="badge badge-ausente">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
-            {% elif tipo == 'tardanza' %}
-            <span class="badge badge-tardanza">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
-            {% else %}
-            <span class="badge" style="background-color: #E2E8F0; color: #4A5568;">{{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}</span>
-            {% endif %}
-            {% endwith %}
-          </td>
-          <td>
-            <div class="acciones-tabla">
-              <a href="{% url 'empleados:asistencia_editar' asistencia.pk %}" class="btn-icon btn-editar"
-                title="Editar">
-                <span class="material-symbols-outlined">edit</span>
-              </a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" class="sin-resultados">No se encontraron registros de asistencia.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>FECHA</th>
+            <th>EMPLEADO</th>
+            <th>TURNO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for asistencia in asistencias %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ asistencia.fecha_asistencia|date:"d/m/Y" }}</td>
+            <td><strong>{{ asistencia.id_empleado.nombre_empleado }} {{ asistencia.id_empleado.apellido_empleado }}</strong></td>
+            <td>
+              <span class="badge {% if 'completo' in asistencia.id_tipo_asistencia.nombre_tipo_asis|lower %}badge-activo{% else %}badge-inactivo{% endif %}">
+                {{ asistencia.id_tipo_asistencia.nombre_tipo_asis }}
+              </span>
+            </td>
+            <td>
+              <div class="acciones-tabla">
+                <a href="#" class="btn-icon btn-editar" title="Editar Turno" 
+                  onclick="event.preventDefault(); abrirModalEditar('{{ asistencia.id_asistencia }}', '{{ asistencia.id_empleado.nombre_empleado }} {{ asistencia.id_empleado.apellido_empleado }}', '{{ asistencia.fecha_asistencia|date:"d/m/Y" }}', '{{ asistencia.id_tipo_asistencia_id }}');">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <a href="#" class="btn-icon btn-baja" title="Anular" 
+                  onclick="event.preventDefault(); abrirModalAnular('{{ asistencia.id_asistencia }}', '{{ asistencia.id_empleado.nombre_empleado }} {{ asistencia.id_empleado.apellido_empleado }}', '{{ asistencia.fecha_asistencia|date:"d/m/Y" }}');">
+                  <span class="material-symbols-outlined">delete</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="sin-resultados">No hay asistencias registradas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-    <!-- Paginación -->
-    <div class="paginacion">
-      <span class="paginacion-info">
-        Mostrando {{ asistencias.start_index }} a {{ asistencias.end_index }} de {{ asistencias.paginator.count }}
-        registros
-      </span>
-      <div class="paginacion-botones">
-        {% if asistencias.has_previous %}
-        <a href="?page={{ asistencias.previous_page_number }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
-          class="paginacion-btn">
-          <span class="material-symbols-outlined">chevron_left</span>
-        </a>
-        {% endif %}
-
-        {% for num in asistencias.paginator.page_range %}
-        {% if asistencias.number == num %}
-        <a href="?page={{ num }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
-          class="paginacion-btn pagina-activa">{{ num }}</a>
-        {% elif num > asistencias.number|add:'-3' and num < asistencias.number|add:'3' %} <a
-          href="?page={{ num }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
-          class="paginacion-btn">{{ num }}</a>
+      <!-- PAGINACIÓN -->
+      <div class="paginacion">
+        <span class="paginacion-info">
+          Mostrando {{ asistencias.start_index }} a {{ asistencias.end_index }} de {{ asistencias.paginator.count }} asistencias
+        </span>
+        <div class="paginacion-botones">
+          {% if asistencias.has_previous %}
+          <a href="?page={{ asistencias.previous_page_number }}&buscar={{ buscar }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}&tipo_asistencia={{ tipo_seleccionado }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </a>
           {% endif %}
+
+          {% for num in asistencias.paginator.page_range %}
+            {% if asistencias.number == num %}
+            <a href="?page={{ num }}&buscar={{ buscar }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}&tipo_asistencia={{ tipo_seleccionado }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
+            {% elif num > asistencias.number|add:'-3' and num < asistencias.number|add:'3' %}
+            <a href="?page={{ num }}&buscar={{ buscar }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}&tipo_asistencia={{ tipo_seleccionado }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+            {% endif %}
           {% endfor %}
 
           {% if asistencias.has_next %}
-          <a href="?page={{ asistencias.next_page_number }}&buscar={{ buscar }}&fecha={{ fecha_filtro }}&tipo={{ tipo_filtro }}"
-            class="paginacion-btn">
+          <a href="?page={{ asistencias.next_page_number }}&buscar={{ buscar }}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}&tipo_asistencia={{ tipo_seleccionado }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
             <span class="material-symbols-outlined">chevron_right</span>
           </a>
           {% endif %}
+        </div>
       </div>
-    </div>
+    </main>
   </div>
 </div>
+<div id="modalRegistro" class="modal-overlay">
+  <div class="modal-contenido">
+    <div class="modal-header">
+      <div class="modal-icono-alerta" style="background-color: #FFF8E7; color: #F5A623;">
+        <span class="material-symbols-outlined">person_add</span>
+      </div>
+      <div>
+        <h3>Registrar Asistencia</h3>
+        <p class="text-gris">Asigná el turno al empleado.</p>
+      </div>
+      <button type="button" class="btn-cerrar-modal" onclick="cerrarModales()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="grupo-campo">
+          <label>Empleado <span class="req">*</span></label>
+          <select name="empleado" class="form-control" required>
+            <option value="">Seleccione un empleado</option>
+            {% for e in empleados_activos %}
+              <option value="{{ e.id_empleado }}">{{ e.nombre_empleado }} {{ e.apellido_empleado }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="grupo-campo">
+          <label>Fecha</label>
+          <input type="text" class="form-control" value="{{ hoy }}" readonly>
+        </div>
+        <div class="grupo-campo">
+          <label>Tipo de Turno <span class="req">*</span></label>
+          <select name="tipo_asistencia" class="form-control" required>
+            <option value="">Seleccione el turno</option>
+            {% for t in tipos %}
+              <option value="{{ t.id_tipo_asistencia }}">{{ t.nombre_tipo_asis }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModales()">Cancelar</button>
+        <button type="submit" class="btn-primario"><span class="material-symbols-outlined">save</span> Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="modalEditar" class="modal-overlay">
+  <div class="modal-contenido">
+    <div class="modal-header">
+      <div class="modal-icono-alerta" style="background-color: #FEF3C7; color: #D97706;">
+        <span class="material-symbols-outlined">edit</span>
+      </div>
+      <div>
+        <h3>Editar Turno</h3>
+        <p class="text-gris">Corregí el turno asignado.</p>
+      </div>
+      <button type="button" class="btn-cerrar-modal" onclick="cerrarModales()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <form id="formEditar" method="POST" action="">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="grupo-campo">
+          <label>Empleado</label>
+          <input type="text" id="editar-empleado" class="form-control" readonly>
+        </div>
+        <div class="grupo-campo">
+          <label>Fecha</label>
+          <input type="text" id="editar-fecha" class="form-control" readonly>
+        </div>
+        <div class="grupo-campo">
+          <label>Tipo de Turno <span class="req">*</span></label>
+          <select name="tipo_asistencia" id="editar-turno" class="form-control" required>
+            {% for t in tipos %}
+              <option value="{{ t.id_tipo_asistencia }}">{{ t.nombre_tipo_asis }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModales()">Cancelar</button>
+        <button type="submit" class="btn-primario"><span class="material-symbols-outlined">save</span> Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modalAnular" class="modal-overlay">
+  <div class="modal-contenido" style="text-align: center;">
+    <div class="modal-header" style="justify-content: center;">
+      <div class="modal-icono-alerta" style="background: #FEE2E2; color: #DC2626;">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+    </div>
+    <h3>¿Anular Asistencia?</h3>
+    <p class="text-gris" id="anular-empleado"></p>
+    <p class="text-gris" id="anular-fecha"></p>
+    <form id="formAnular" method="POST" action="">
+      {% csrf_token %}
+      <div class="modal-footer" style="justify-content: center;">
+        <button type="button" class="btn-secundario" onclick="cerrarModales()">Cancelar</button>
+        <button type="submit" class="btn-peligro"><span class="material-symbols-outlined">delete</span> Sí, Anular</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+  // --- FUNCIONES GLOBALES DE MODALES ---
+  function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
+  
+  function abrirModalEditar(id, nombre, fecha, turno) {
+    document.getElementById('editar-empleado').value = nombre;
+    document.getElementById('editar-fecha').value = fecha;
+    document.getElementById('editar-turno').value = turno;
+    const url = "{% url 'empleados:editar_asistencia' 0 %}".replace('0', id);
+    document.getElementById('formEditar').action = url;
+    document.getElementById('modalEditar').style.display = 'flex';
+  }
 
-    const formFiltros = document.querySelector('.filtros-asistencia');
-    const selectTipo = document.querySelector('select[name="tipo"]');
-    const inputFecha = document.querySelector('input[name="fecha"]');
-    const inputBuscar = document.querySelector('input[name="buscar"]');
-    function aplicarFiltros() {
-      const url = new URL(window.location.href);
-      url.searchParams.set('page', 1);
-      formFiltros.submit();
-    }
+  function abrirModalAnular(id, nombre, fecha) {
+    document.getElementById('anular-empleado').textContent = 'Empleado: ' + nombre;
+    document.getElementById('anular-fecha').textContent = 'Fecha: ' + fecha;
+    const url = "{% url 'empleados:anular_asistencia' 0 %}".replace('0', id);
+    document.getElementById('formAnular').action = url;
+    document.getElementById('modalAnular').style.display = 'flex';
+  }
 
-    if (selectTipo) {
-      selectTipo.addEventListener('change', aplicarFiltros);
-    }
+  function cerrarModales() {
+    document.getElementById('modalRegistro').style.display = 'none';
+    document.getElementById('modalEditar').style.display = 'none';
+    document.getElementById('modalAnular').style.display = 'none';
+  }
 
-    if (inputFecha) {
-      inputFecha.addEventListener('change', aplicarFiltros);
-    }
-    let timeoutId;
-    if (inputBuscar) {
-      inputBuscar.addEventListener('input', function () {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          aplicarFiltros();
-        }, 600);
-      });
-    }
+  window.onclick = function(event) {
+    if (event.target.classList.contains('modal-overlay')) { cerrarModales(); }
+  }
+
+  function cambiarPorPagina(valor) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('por_pagina', valor);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const modales = document.querySelectorAll('.modal-overlay');
+    modales.forEach(modal =>{
+      modal.style.display='none';
+    });
   });
 </script>
 {% endblock %}

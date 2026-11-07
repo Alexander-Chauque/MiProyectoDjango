@@ -86,8 +86,8 @@
     function imprimirYCambiarEstado() {
         // Abrir el diálogo de impresión
         window.print();
-        
-        // Enviar una petición al servidor para cambiar el estado
+        {% if comanda.estado_comanda == 'pendiente' %}
+        // Enviar una petición al servidor para pasarla a cocina
         fetch("{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}", {
             method: 'POST',
             headers: {
@@ -102,6 +102,7 @@
         .catch(error => {
             console.error('Error:', error);
         });
+        {% endif %}
     }
     </script>
 </body>

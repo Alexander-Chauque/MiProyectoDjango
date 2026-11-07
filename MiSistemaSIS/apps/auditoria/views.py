@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from empleados.decorators import permiso_requerido
 from django.db.models import Q
 from django.core.paginator import Paginator
 from datetime import datetime
 from .models import LogAuditoria
+from core.fechas import limitar_rango
 from empleados.models import Empleado
 import csv
 from django.http import HttpResponse
@@ -11,6 +13,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 
 @login_required
+@permiso_requerido("auditoria", "leer")
 def log_auditoria_listar(request):
     logs = LogAuditoria.objects.all().select_related("empleado").order_by("-fecha_hora")
 
@@ -18,8 +21,9 @@ def log_auditoria_listar(request):
     tabla = request.GET.get("tabla", "")
     accion = request.GET.get("accion", "")
     usuario = request.GET.get("usuario", "")
-    fecha_desde = request.GET.get("fecha_desde", "")
-    fecha_hasta = request.GET.get("fecha_hasta", "")
+    fecha_desde, fecha_hasta = limitar_rango(
+        request.GET.get("fecha_desde", ""), request.GET.get("fecha_hasta", "")
+    )
     detalle = request.GET.get("detalle", "")
 
     if tabla:
@@ -81,6 +85,7 @@ def log_auditoria_listar(request):
 
 
 @login_required
+@permiso_requerido("auditoria", "leer")
 def exportar_auditoria_csv(request):
     logs = LogAuditoria.objects.all().select_related("empleado").order_by("-fecha_hora")
 
@@ -88,8 +93,9 @@ def exportar_auditoria_csv(request):
     tabla = request.GET.get("tabla", "")
     accion = request.GET.get("accion", "")
     usuario = request.GET.get("usuario", "")
-    fecha_desde = request.GET.get("fecha_desde", "")
-    fecha_hasta = request.GET.get("fecha_hasta", "")
+    fecha_desde, fecha_hasta = limitar_rango(
+        request.GET.get("fecha_desde", ""), request.GET.get("fecha_hasta", "")
+    )
     detalle = request.GET.get("detalle", "")
 
     if tabla:

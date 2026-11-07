@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tipos de Turno{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/empleados.css' %}">
+<link rel="stylesheet" href="{% static 'css/asistencia.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+
+  <!-- BREADCRUMB -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:empleados_home' %}" class="breadcrumb-item">Empleados</a>
+    <span class="breadcrumb-separator">></span>
+    <a href="{% url 'empleados:listar_asistencias' %}" class="breadcrumb-item">Asistencias</a>
+    <span class="breadcrumb-separator">></span>
+    <span class="breadcrumb-item active">Tipos de Turno</span>
+  </nav>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono" style="background-color: #FFF8E7;">
+        <span class="material-symbols-outlined" style="color: #F5A623;">schedule</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Tipos de Turno</h1>
+        <p>Gestioná los turnos disponibles (Completo / Medio).</p>
+      </div>
+    </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'empleados:listar_asistencias' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">arrow_back</span> Volver a Asistencias
+      </a>
+      <a href="{% url 'empleados:crear_tipo_asistencia' %}" class="btn-primario">
+        <span class="material-symbols-outlined">add</span> Nuevo Turno
+      </a>
+    </div>
+  </div>
+
+  <!-- LAYOUT DE 2 COLUMNAS -->
+  <div class="listado-layout">
+    
+    <!-- PANEL DE FILTROS -->
+    <form method="GET" class="filtros-panel">
+      <div class="filtros-header">
+        <span class="material-symbols-outlined">filter_alt</span>
+        <h3>Filtros</h3>
+      </div>
+
+      <div class="filtro-grupo">
+        <label>Buscar Turno</label>
+        <div class="input-buscar">
+          <span class="material-symbols-outlined">search</span>
+          <input name="buscar" type="text" value="{{ buscar }}" placeholder="Ej: Turno Completo...">
+        </div>
+      </div>
+
+      <input type="hidden" name="por_pagina" value="{{ por_pagina }}">
+
+      <button type="submit" class="btn-aplicar">
+        <span class="material-symbols-outlined">filter_alt</span> Aplicar filtros
+      </button>
+      <a href="{% url 'empleados:listar_tipos_asistencia' %}" class="btn-limpiar">
+        <span class="material-symbols-outlined">refresh</span> Limpiar filtros
+      </a>
+    </form>
+
+    <!-- PANEL DE LA TABLA -->
+    <main class="tabla-panel">
+      <div class="tabla-header">
+        <h3>Resultados</h3>
+        <div class="mostrar">
+          <label>Mostrar</label>
+          <select id="por-pagina" onchange="cambiarPorPagina(this.value)">
+            <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10 registros</option>
+            <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25 registros</option>
+            <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50 registros</option>
+            <option value="100" {% if por_pagina == 100 %}selected{% endif %}>100 registros</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>NOMBRE DEL TURNO</th>
+            <th>DESCRIPCÓN</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tipo in tipos %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+              <span class="badge-categoria">
+                {{ tipo.nombre_tipo_asis }}
+              </span>
+            </td>
+            <td>
+              {% if tipo.desc_tipo_asis %}
+                {{ tipo.desc_tipo_asis }}
+              {% else %}
+                <span class="text-gris" style="font-style: italic;">Sin descripción</span>
+              {% endif %}
+            </td>
+            <td>
+
+              <div class="acciones-tabla">
+                <a href="{% url 'empleados:editar_tipo_asistencia' tipo.id_tipo_asistencia %}" class="btn-icon btn-editar" title="Modificar">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <a href="#" class="btn-icon btn-baja" title="Eliminar" 
+                  data-url="{% url 'empleados:eliminar_tipo_asistencia' tipo.pk %}"
+                  data-nombre="{{ tipo.nombre_tipo_asis }}" 
+                  onclick="event.preventDefault(); abrirModalEliminarTurno(this);">
+                  <span class="material-symbols-outlined">delete</span>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="sin-resultados">No hay turnos registrados.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- PAGINACIÓN -->
+      <div class="paginacion">
+        <span class="paginacion-info">
+          Mostrando {{ tipos.start_index }} a {{ tipos.end_index }} de {{ tipos.paginator.count }} turnos
+        </span>
+        <div class="paginacion-botones">
+          {% if tipos.has_previous %}
+          <a href="?page={{ tipos.previous_page_number }}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </a>
+          {% endif %}
+
+          {% for num in tipos.paginator.page_range %}
+            {% if tipos.number == num %}
+            <a href="?page={{ num }}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
+            {% elif num > tipos.number|add:'-3' and num < tipos.number|add:'3' %}
+            <a href="?page={{ num }}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+
+          {% if tipos.has_next %}
+          <a href="?page={{ tipos.next_page_number }}&buscar={{ buscar }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL PARA ELIMINAR TURNO -->
+<div class="modal-overlay" id="modal-turno">
+  <div class="modal-contenido">
+    
+    <div class="modal-header">
+      <div class="modal-icono-alerta" id="modal-icono-caja-turno" style="background-color: #FEE2E2; color: #DC2626;">
+        <span class="material-symbols-outlined" id="modal-icono-turno">delete</span>
+      </div>
+      <div>
+        <h3 id="modal-titulo-turno">¿Eliminar Turno?</h3>
+        <p class="text-gris" id="modal-subtitulo-turno">Confirmá la acción a realizar.</p>
+      </div>
+      <button type="button" class="btn-cerrar-modal" onclick="cerrarModalTurno()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="form-eliminar-turno" method="POST" action="">
+      {% csrf_token %}
+      
+      <div class="modal-body">
+        
+        <div class="tarjeta-resumen">
+          <div class="resumen-datos">
+            <span class="text-gris">Turno a eliminar:</span>
+            <strong id="nombre-turno-modal"></strong>
+          </div>
+        </div>
+
+        <div class="grupo-campo">
+          <label>Motivo de la eliminación <span class="req">*</span></label>
+          <textarea name="motivo_cambio" id="motivo-turno" class="form-control" rows="3" maxlength="250" placeholder="Ej.: turno unificado, ya no se utiliza, etc." required></textarea>
+          <div class="contador-caracteres-contenedor">
+            <span class="text-gris">Registrá el motivo para dejar constancia en el historial.</span>
+            <span class="text-gris" id="contador-motivo-turno">0/250</span>
+          </div>
+        </div>
+
+        <div class="modal-alerta-info">
+          <span class="material-symbols-outlined">info</span>
+          <div>
+            <strong>Importante</strong>
+            <ul id="lista-importante-turno">
+              <li>Si el turno tiene asistencias registradas, el sistema no permitirá eliminarlo.</li>
+              <li>Esta acción quedará registrada en el historial de auditoría.</li>
+              <li><strong>Esta acción no se puede deshacer.</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalTurno()">Cancelar</button>
+        <button type="submit" class="btn-peligro" id="btn-confirmar-eliminar-turno">
+          <span class="material-symbols-outlined">delete</span> Sí, Eliminar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function cambiarPorPagina(valor) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('por_pagina', valor);
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+  }
+
+  function abrirModalEliminarTurno(elemento) {
+    const url = elemento.getAttribute('data-url');
+    const nombre = elemento.getAttribute('data-nombre');
+    window.abrirModalTurno(url, nombre);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modal-turno');
+    const form = document.getElementById('form-eliminar-turno');
+    const nombreTurno = document.getElementById('nombre-turno-modal');
+    const motivoInput = document.getElementById('motivo-turno');
+    const contadorMotivo = document.getElementById('contador-motivo-turno');
+
+    if (motivoInput) {
+      motivoInput.addEventListener('input', function() {
+        contadorMotivo.textContent = `${this.value.length}/250`;
+      });
+    }
+
+    window.abrirModalTurno = function (url, nombre) {
+      form.action = url;
+      nombreTurno.textContent = nombre;
+      if (motivoInput) {
+        motivoInput.value = '';
+        contadorMotivo.textContent = '0/250';
+      }
+      modal.style.display = 'flex';
+    };
+
+    window.cerrarModalTurno = function () {
+      modal.style.display = 'none';
+    };
+  });
+
+  window.onclick = function(event) {
+    const modal = document.getElementById('modal-turno');
+    if (event.target == modal) {
+      window.cerrarModalTurno();
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    const modales = document.querySelectorAll('.modal-overlay');
+    modales.forEach(modal =>{
+      modal.style.display='none';
+    });
+  });
+</script>
+{% endblock %}
