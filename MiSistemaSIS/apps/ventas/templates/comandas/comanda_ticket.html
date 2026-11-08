@@ -3,107 +3,103 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Ticket Cocina #{{ comanda.id_comanda }} - Los Cardones</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tickets de la comanda #{{ comanda.id_comanda }} - Los Cardones</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/comprobante.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/ticket.css' %}">
 </head>
 <body>
-    <div class="comprobante ticket-cocina">
-        <div class="comprobante-header">
-            <h1>LOS CARDONES</h1>
-            <p>TICKET DE COCINA</p>
-        </div>
-        
-        <div class="comprobante-titulo">
-            <h2>COMANDA #{{ comanda.id_comanda }}</h2>
-        </div>
-        
-        <div class="comprobante-datos">
-            <div class="datos-fila">
-                <div class="datos-columna">
-                    <p><strong>Fecha:</strong> {{ comanda.fecha_hora|date:"d/m/Y H:i" }}</p>
-                    <p><strong>Mesa:</strong> Mesa {{ comanda.mesa.numero_mesa }}</p>
-                    <p><strong>Mozo:</strong> {{ comanda.empleado.get_full_name }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <table class="comprobante-tabla">
-            <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
-                    <th class="centrado">Cant.</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for detalle in detalles %}
-                    {% if detalle.plato %}
-                    <tr>
-                        <td><span class="badge-tipo">PLATO</span></td>
-                        <td>{{ detalle.plato.nombre_plato }}</td>
-                        <td class="centrado"><strong>{{ detalle.cant_plato }}</strong></td>
-                    </tr>
-                    {% endif %}
-                    {% if detalle.bebida %}
-                    <tr>
-                        <td><span class="badge-tipo">BEBIDA</span></td>
-                        <td>{{ detalle.bebida.nombre_bebida }}</td>
-                        <td class="centrado"><strong>{{ detalle.cant_bebida }}</strong></td>
-                    </tr>
-                    {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
-        
-        {% if comanda.observaciones_comanda %}
-        <div class="comprobante-pie">
-            <p><strong>OBSERVACIONES:</strong></p>
-            <p>{{ comanda.observaciones_comanda }}</p>
-        </div>
-        {% endif %}
-        
-        <div class="comprobante-pie">
-            <p class="gracias">¡A PREPARAR!</p>
-        </div>
-    </div>
+    <main class="tickets">
+        {% for ticket in tickets %}
+        <div class="ticket-columna">
+            <section class="ticket">
+                <img class="ticket-logo" src="{% static 'img/ticket/logo.png' %}" alt="Los Cardones">
 
-    <div class="comprobante-acciones no-print">
-        <button onclick="window.print()" class="btn-imprimir">
-            Imprimir Ticket
+                <div class="ticket-banda">
+                    <img src="{% static 'img/ticket/' %}{{ ticket.icono }}.svg" alt="">
+                    <span>{{ ticket.titulo }}</span>
+                </div>
+
+                <div class="ticket-datos">
+                    <div class="ticket-dato">
+                        <span><strong>Comanda N.º:</strong> {{ comanda.id_comanda|stringformat:"06d" }}</span>
+                        <span><strong>Mesa:</strong> {{ comanda.mesa.numero_mesa|stringformat:"02d" }}</span>
+                    </div>
+                    <div class="ticket-dato">
+                        <span><strong>Fecha:</strong> {{ comanda.fecha_hora|date:"d/m/Y" }}</span>
+                        <span><strong>Hora:</strong> {{ comanda.fecha_hora|date:"H:i" }}</span>
+                    </div>
+                    <div class="ticket-dato">
+                        <span><strong>Mozo:</strong> {{ comanda.empleado.get_full_name }}</span>
+                    </div>
+                </div>
+
+                {% if anulada %}<div class="ticket-anulada">COMANDA ANULADA: NO PREPARAR</div>{% endif %}
+
+                <div class="ticket-corte"></div>
+
+                <table class="ticket-tabla">
+                    <thead>
+                        <tr><th>Cant.</th><th>Descripción</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in ticket.productos %}
+                        <tr>
+                            <td class="ticket-cantidad">{{ producto.cantidad }}</td>
+                            <td>{{ producto.nombre }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="ticket-corte"></div>
+
+                {% if comanda.observaciones_comanda %}
+                <div class="ticket-observaciones">
+                    <strong>Observaciones:</strong>
+                    <p>{{ comanda.observaciones_comanda }}</p>
+                </div>
+                {% endif %}
+
+                <img class="ticket-paisaje" src="{% static 'img/ticket/paisaje.svg' %}" alt="">
+            </section>
+
+            <button type="button" class="ticket-boton no-print" data-imprimir>
+                Imprimir ticket de {{ ticket.destino|lower }}
+            </button>
+        </div>
+        {% empty %}
+        <p class="tickets-vacio">Esta comanda no tiene productos para preparar.</p>
+        {% endfor %}
+    </main>
+
+    <div class="tickets-acciones no-print">
+        {% if tickets|length > 1 %}
+        <button type="button" class="ticket-boton" data-imprimir-todos>
+            Imprimir los {{ tickets|length }} tickets
         </button>
-        <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-volver">
-            Volver al Detalle
-        </a>
-        <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver">
-            Volver al Listado
-        </a>
+        {% endif %}
+        <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="ticket-volver">Volver al detalle</a>
+        <a href="{% url 'ventas:comanda_listar' %}" class="ticket-volver">Volver al listado</a>
     </div>
 
     <script>
-    function imprimirYCambiarEstado() {
-        // Abrir el diálogo de impresión
-        window.print();
-        {% if comanda.estado_comanda == 'pendiente' %}
-        // Enviar una petición al servidor para pasarla a cocina
-        fetch("{% url 'ventas:comanda_cambiar_estado' comanda.id_comanda %}", {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'estado=en_preparacion'
-        })
-        .then(response => {
-            console.log('Estado actualizado');
-        })
-        .catch(error => {
-            console.error('Error:', error);
+    // Para imprimir uno solo, se ocultan los demás mientras dura la impresión
+    document.querySelectorAll("[data-imprimir]").forEach((boton) => {
+        boton.addEventListener("click", () => {
+            const columna = boton.closest(".ticket-columna");
+            columna.classList.add("ticket-elegido");
+            document.body.classList.add("imprimir-uno");
+            window.print();
         });
-        {% endif %}
-    }
+    });
+    window.addEventListener("afterprint", () => {
+        document.body.classList.remove("imprimir-uno");
+        document.querySelectorAll(".ticket-elegido").forEach((c) => c.classList.remove("ticket-elegido"));
+    });
+    document.querySelector("[data-imprimir-todos]")?.addEventListener("click", () => window.print());
     </script>
 </body>
 </html>

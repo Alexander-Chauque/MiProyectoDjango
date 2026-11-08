@@ -28,9 +28,9 @@ class Migration(migrations.Migration):
                 ('estado_caja', models.CharField(choices=[('abierto', 'Abierto'), ('cerrado', 'Cerrado')], default='abierto', max_length=10)),
                 ('saldo_final', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
                 ('fecha_arqueo', models.DateTimeField(blank=True, null=True)),
-                ('empleado_apertura', models.ForeignKey(db_column='empleado_apertura_id', on_delete=django.db.models.deletion.CASCADE, related_name='caja_apertura', to='empleados.empleado', verbose_name='cajero')),
-                ('empleado_arqueamiento', models.ForeignKey(blank=True, db_column='empleado_arqueo_id', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='caja_arqueo', to='empleados.empleado', verbose_name='cajero')),
-                ('empleado_cierre', models.ForeignKey(blank=True, db_column='empleado_cierre_id', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='caja_cierre', to='empleados.empleado', verbose_name='cajero')),
+                ('empleado_apertura', models.ForeignKey(db_column='empleado_apertura_id', db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='caja_apertura', to='empleados.empleado', verbose_name='cajero')),
+                ('empleado_arqueamiento', models.ForeignKey(blank=True, db_column='empleado_arqueo_id', db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='caja_arqueo', to='empleados.empleado', verbose_name='cajero')),
+                ('empleado_cierre', models.ForeignKey(blank=True, db_column='empleado_cierre_id', db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='caja_cierre', to='empleados.empleado', verbose_name='cajero')),
             ],
             options={
                 'verbose_name': 'Caja',
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                 ('fecha_hora_gasto', models.DateTimeField(auto_now_add=True)),
                 ('caja_gasto', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='gastos', to='finanzas.caja')),
                 ('cat_gasto', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='gastos', to='finanzas.categoria_gasto')),
-                ('empleado_gasto', models.ForeignKey(db_column='empleado_id', on_delete=django.db.models.deletion.PROTECT, related_name='gastos', to='empleados.empleado', verbose_name='cajero')),
+                ('empleado_gasto', models.ForeignKey(db_column='empleado_id', db_constraint=False, on_delete=django.db.models.deletion.PROTECT, related_name='gastos', to='empleados.empleado', verbose_name='cajero')),
             ],
             options={
                 'verbose_name': 'Gasto',

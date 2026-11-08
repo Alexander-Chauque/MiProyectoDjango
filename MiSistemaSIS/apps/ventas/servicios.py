@@ -242,8 +242,9 @@ def cambiar_estado_mesa(id_mesa, empleado):
     if not mesa.estado_mesa:
         abiertas = mesa.comandas.filter(estado_comanda__in=ESTADOS_ABIERTOS)
         if abiertas.exists():
-            ids = ", ".join(f"#{c.id_comanda}" for c in abiertas)
-            raise ValueError(f"No se puede liberar la mesa {mesa.numero_mesa}: tiene comandas abiertas ({ids}).")
+            # El mismo texto que muestra la web de Django
+            ids = ",".join(f"#{c.id_comanda}" for c in abiertas)
+            raise ValueError(f"No se puede liberar la Mesa {mesa.numero_mesa} porque tiene comandas activas: {ids}")
 
     anterior = mesa.estado_texto
     mesa.estado_mesa = not mesa.estado_mesa

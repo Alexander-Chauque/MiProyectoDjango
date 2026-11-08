@@ -137,21 +137,21 @@
         </thead>
         <tbody>
           {% for detalle in detalles %}
-          {% if detalle.plato %}
+          {% if detalle.tiene_plato %}
           <tr>
             <td><span class="badge-tipo badge-plato">Plato</span></td>
-            <td>{{ detalle.plato.nombre_plato }}</td>
+            <td>{{ detalle.nombre_del_plato }}</td>
             <td style="text-align: center;">{{ detalle.cant_plato }}</td>
-            <td style="text-align: right;">$ {{ detalle.plato.precio_plato|floatformat:0 }}</td>
+            <td style="text-align: right;">$ {{ detalle.precio_del_plato|floatformat:0 }}</td>
             <td style="text-align: right; font-weight: 600;">$ {{ detalle.subtotal_plato|floatformat:0 }}</td>
           </tr>
           {% endif %}
-          {% if detalle.bebida %}
+          {% if detalle.tiene_bebida %}
           <tr>
             <td><span class="badge-tipo badge-bebida">Bebida</span></td>
-            <td>{{ detalle.bebida.nombre_bebida }}</td>
+            <td>{{ detalle.nombre_de_la_bebida }}</td>
             <td style="text-align: center;">{{ detalle.cant_bebida }}</td>
-            <td style="text-align: right;">$ {{ detalle.bebida.precio_bebida|floatformat:0 }}</td>
+            <td style="text-align: right;">$ {{ detalle.precio_de_la_bebida|floatformat:0 }}</td>
             <td style="text-align: right; font-weight: 600;">$ {{ detalle.subtotal_bebida|floatformat:0 }}</td>
           </tr>
           {% endif %}

@@ -3,7 +3,7 @@
 <div class="tarjeta-top" style="margin-top: 20px;">
   <div class="titulo-top"><span class="material-symbols-outlined icono-naranja">category</span><h3>Ingresos por Categoría</h3></div>
   <table class="tabla-top"><thead><tr><th>Categoría</th><th class="derecha">Ingresos ($)</th></tr></thead>
-    <tbody>{% for cat in categorias %}<tr><td>{{ cat.plato__categoria__nombre_categoria_plato }}</td><td class="derecha"><strong>${{ cat.ingresos|floatformat:0 }}</strong></td></tr>{% empty %}<tr><td colspan="2" class="sin-datos">Sin datos</td></tr>{% endfor %}</tbody>
+    <tbody>{% for cat in categorias %}<tr><td>{{ cat.categoria_nombre }}</td><td class="derecha"><strong>${{ cat.ingresos|floatformat:0 }}</strong></td></tr>{% empty %}<tr><td colspan="2" class="sin-datos">Sin datos</td></tr>{% endfor %}</tbody>
   </table>
 </div>
 {% endblock %}

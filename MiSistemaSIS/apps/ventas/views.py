@@ -781,18 +781,48 @@ def comanda_comprobante(request, pk):
     )
 
 
+_ESTACIONES_TICKET = (
+    {"clave": "cocina", "titulo": "PLATOS", "destino": "Cocina", "icono": "bandeja"},
+    {"clave": "bar", "titulo": "BEBIDAS", "destino": "Bar", "icono": "vaso-blanco"},
+    {"clave": "parrilla", "titulo": "PARRILLA", "destino": "Parrilla", "icono": "parrilla"},
+)
+
+
+def _tickets_de_comanda(detalles):
+    """Bebidas al bar, platos de la categoría Parrilla a la parrilla, y el resto a la cocina.
+
+    Solo devuelve los tickets que tienen algo para preparar.
+    """
+    productos = {estacion["clave"]: [] for estacion in _ESTACIONES_TICKET}
+    for detalle in detalles:
+        # Si el producto ya se eliminó del inventario, se usan los datos guardados en la línea
+        if detalle.tiene_plato:
+            categoria = (detalle.categoria_del_plato or "").strip().lower()
+            estacion = "parrilla" if categoria == "parrilla" else "cocina"
+            productos[estacion].append({"nombre": detalle.nombre_del_plato, "cantidad": detalle.cant_plato})
+        # Un mismo detalle puede traer un plato y una bebida
+        if detalle.tiene_bebida:
+            productos["bar"].append({"nombre": detalle.nombre_de_la_bebida, "cantidad": detalle.cant_bebida})
+    return [
+        {**estacion, "productos": productos[estacion["clave"]]}
+        for estacion in _ESTACIONES_TICKET
+        if productos[estacion["clave"]]
+    ]
+
+
 @login_required
 @permiso_requerido("comandas", "leer")
 def comanda_ticket(request, pk):
-    comanda = get_object_or_404(Comanda, id_comanda=pk)
-    detalles = comanda.detalles.all().select_related("plato", "bebida")
+    comanda = get_object_or_404(Comanda.objects.select_related("mesa", "empleado"), id_comanda=pk)
+    detalles = comanda.detalles.all().select_related("plato__categoria", "bebida")
 
     return render(
         request,
         "comandas/comanda_ticket.html",
         {
             "comanda": comanda,
-            "detalles": detalles,
+            "tickets": _tickets_de_comanda(detalles),
+            "anulada": comanda.estado_comanda in ("anulado", "cancelado"),
         },
     )
 

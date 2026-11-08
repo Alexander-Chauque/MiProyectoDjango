@@ -32,10 +32,14 @@ class LoginSerializer(TokenObtainPairSerializer):
         empleado = Empleado.objects.filter(user=self.user, estado=True).first()
         if not empleado:
             raise AuthenticationFailed(MENSAJE_DATOS_INCORRECTOS)
-        # Evita que el cambio obligatorio de la web de Django se saltee entrando por acá
+        # No entrega tokens hasta que cambie la contraseña temporal en /api/token/cambiar-clave/.
+        # "codigo" le indica a la web que muestre el formulario de cambio.
         if empleado.debe_cambiar_contrasena:
             raise AuthenticationFailed(
-                "Tenés que cambiar tu contraseña en el sistema de Django antes de continuar."
+                {
+                    "detail": "Tenés que cambiar tu contraseña temporal antes de continuar.",
+                    "codigo": "debe_cambiar_contrasena",
+                }
             )
         return respuesta
 

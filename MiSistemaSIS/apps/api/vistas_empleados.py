@@ -86,11 +86,11 @@ def _datos_desde_pedido(request, empleado=None):
             datos[campo] = "" if valor is None else str(valor).strip()
 
     if not datos.get("correo"):
-        raise ValidationError({"correo": ["Ingresá el correo: la app lo usa para reconocer al empleado."]})
+        raise ValidationError({"correo": ["Ingresá el correo del empleado."]})
     if not datos.get("cargo"):
         raise ValidationError({"cargo": ["Seleccioná un cargo."]})
 
-    # La app une la cuenta de Firebase con el empleado por correo, sin distinguir mayúsculas.
+    # El correo no se puede repetir, sin distinguir mayúsculas.
     repetidos = Empleado.objects.filter(correo__iexact=datos["correo"])
     if empleado:
         repetidos = repetidos.exclude(pk=empleado.pk)
@@ -213,13 +213,16 @@ class EmpleadoEstadoView(APIView):
             raise ValidationError({"detail": "No podés darte de baja a vos mismo."})
         _exigir_nivel(request, empleado)
 
+        # Motivo opcional, como el que pide el modal de la web de Django
+        motivo = str(request.data.get("motivo") or "").strip()[:250]
+        detalle = f" Motivo: {motivo}" if motivo else ""
         with transaction.atomic():
             if es_baja:
                 empleado.dar_baja()
-                _auditar(request, "Empleado", "MODIFICAR", empleado.pk, "Estado: Activo", "Estado: Dado de baja.")
+                _auditar(request, "Empleado", "MODIFICAR", empleado.pk, "Estado: Activo", f"Estado: Dado de baja.{detalle}")
             else:
                 empleado.reactivar()
-                _auditar(request, "Empleado", "MODIFICAR", empleado.pk, "Estado: Inactivo", "Estado: Reactivado.")
+                _auditar(request, "Empleado", "MODIFICAR", empleado.pk, "Estado: Inactivo", f"Estado: Reactivado.{detalle}")
         return _responder(request, empleado)
 
 

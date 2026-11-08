@@ -46,21 +46,21 @@
             </thead>
             <tbody>
                 {% for detalle in detalles %}
-                    {% if detalle.plato %}
+                    {% if detalle.tiene_plato %}
                     <tr>
                         <td><span class="badge-tipo">Plato</span></td>
-                        <td>{{ detalle.plato.nombre_plato }}</td>
+                        <td>{{ detalle.nombre_del_plato }}</td>
                         <td class="centrado">{{ detalle.cant_plato }}</td>
-                        <td class="derecha">${{ detalle.plato.precio_plato|floatformat:0 }}</td>
+                        <td class="derecha">${{ detalle.precio_del_plato|floatformat:0 }}</td>
                         <td class="derecha"><strong>${{ detalle.subtotal_plato|floatformat:0 }}</strong></td>
                     </tr>
                     {% endif %}
-                    {% if detalle.bebida %}
+                    {% if detalle.tiene_bebida %}
                     <tr>
                         <td><span class="badge-tipo">Bebida</span></td>
-                        <td>{{ detalle.bebida.nombre_bebida }}</td>
+                        <td>{{ detalle.nombre_de_la_bebida }}</td>
                         <td class="centrado">{{ detalle.cant_bebida }}</td>
-                        <td class="derecha">${{ detalle.bebida.precio_bebida|floatformat:0 }}</td>
+                        <td class="derecha">${{ detalle.precio_de_la_bebida|floatformat:0 }}</td>
                         <td class="derecha"><strong>${{ detalle.subtotal_bebida|floatformat:0 }}</strong></td>
                     </tr>
                     {% endif %}

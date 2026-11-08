@@ -3,11 +3,10 @@
 Las migraciones actuales del proyecto fallan al crear la base de pruebas en MySQL,
 así que estas pruebas se ejecutan con ajustes que usan SQLite y omiten las migraciones.
 """
-from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from empleados.models import Cargo, Empleado
@@ -70,6 +69,7 @@ class LoginWebTests(TestCase):
         respuesta = self._login()
         self.assertEqual(respuesta.status_code, 401)
         self.assertIn("cambiar tu contraseña", str(respuesta.data["detail"]))
+        self.assertEqual(respuesta.data["codigo"], "debe_cambiar_contrasena")
 
     def test_token_permite_usar_la_api(self):
         token = self._login().data["access"]
@@ -138,22 +138,3 @@ class LoginWebTests(TestCase):
             HTTP_ACCESS_CONTROL_REQUEST_HEADERS="authorization,content-type",
         )
         self.assertEqual(respuesta["Access-Control-Allow-Origin"], "http://localhost:5173")
-
-    def test_app_movil_sigue_entrando_con_firebase(self):
-        cliente = APIClient()
-        cliente.credentials(HTTP_AUTHORIZATION="Bearer token-de-firebase")
-        with patch("empleados.autenticacion.id_token.verify_firebase_token") as verificar, override_settings(
-            FIREBASE_PROJECT_ID="proyecto"
-        ):
-            verificar.return_value = {
-                "iss": "https://securetoken.google.com/proyecto",
-                "email": "ana@prueba.com",
-                "email_verified": True,
-            }
-            self.assertEqual(cliente.get("/api/yo/").status_code, 200)
-
-    def test_token_de_la_web_no_pasa_por_firebase(self):
-        token = self._login().data["access"]
-        with patch("empleados.autenticacion.id_token.verify_firebase_token") as verificar:
-            self.assertEqual(self._con_token(token).get("/api/yo/").status_code, 200)
-            verificar.assert_not_called()

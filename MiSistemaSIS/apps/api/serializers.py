@@ -7,6 +7,7 @@ from django.db.models import Q
 from rest_framework import serializers
 
 from inventario.models import Bebida, DetallePlato, Ingrediente, Plato
+from inventario.servicios import eliminable_desde
 from ventas.models import Comanda, Mesa
 
 TAMANIO_MAXIMO_IMAGEN = 5 * 1024 * 1024  # 5 MB
@@ -23,6 +24,12 @@ class IngredienteSerializer(serializers.ModelSerializer):
     imagen_ingrediente = serializers.ImageField(required=False, allow_null=True)
     # La app envía true cuando la persona toca "Quitar foto"
     quitar_imagen = serializers.BooleanField(write_only=True, required=False, default=False)
+    fecha_desactivacion = serializers.DateTimeField(read_only=True)
+    eliminable_desde = serializers.SerializerMethodField()
+
+    def get_eliminable_desde(self, producto):
+        desde = eliminable_desde(producto)
+        return desde.isoformat() if desde else None
 
     class Meta:
         model = Ingrediente
@@ -36,6 +43,8 @@ class IngredienteSerializer(serializers.ModelSerializer):
             "imagen_ingrediente",
             "quitar_imagen",
             "estado_ingrediente",
+            "fecha_desactivacion",
+            "eliminable_desde",
         ]
         # El estado cambia solo por /estado/, porque también afecta a los platos
         read_only_fields = ["id_ingrediente", "estado_ingrediente"]
@@ -98,6 +107,12 @@ class PlatoSerializer(serializers.ModelSerializer):
         child=serializers.IntegerField(), write_only=True, required=False
     )
     ingredientes = serializers.SerializerMethodField()
+    fecha_desactivacion = serializers.DateTimeField(read_only=True)
+    eliminable_desde = serializers.SerializerMethodField()
+
+    def get_eliminable_desde(self, producto):
+        desde = eliminable_desde(producto)
+        return desde.isoformat() if desde else None
 
     class Meta:
         model = Plato
@@ -111,6 +126,8 @@ class PlatoSerializer(serializers.ModelSerializer):
             "estado_plato",
             "ingredientes_ids",
             "ingredientes",
+            "fecha_desactivacion",
+            "eliminable_desde",
         ]
         read_only_fields = ["id_plato", "estado_plato"]
         # Quita el validador automático de nombre único: se revisa abajo, sin importar mayúsculas
@@ -195,6 +212,12 @@ class BebidaSerializer(serializers.ModelSerializer):
     precio_bebida = serializers.DecimalField(
         max_digits=10, decimal_places=2, min_value=Decimal("0.01")
     )
+    fecha_desactivacion = serializers.DateTimeField(read_only=True)
+    eliminable_desde = serializers.SerializerMethodField()
+
+    def get_eliminable_desde(self, producto):
+        desde = eliminable_desde(producto)
+        return desde.isoformat() if desde else None
 
     class Meta:
         model = Bebida
@@ -206,6 +229,8 @@ class BebidaSerializer(serializers.ModelSerializer):
             "tipo_nombre",
             "descripcion_bebida",
             "disponible_bebida",
+            "fecha_desactivacion",
+            "eliminable_desde",
         ]
         read_only_fields = ["id_bebida", "disponible_bebida"]
         extra_kwargs = {"nombre_bebida": {"validators": []}}
@@ -228,6 +253,20 @@ class MesaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mesa
         fields = ["id_mesa", "numero_mesa", "ubicacion", "ubicacion_nombre", "estado_mesa", "comanda_abierta"]
+        # El estado cambia solo por /estado/, que revisa las comandas abiertas
+        read_only_fields = ["id_mesa", "estado_mesa"]
+        # El número repetido se revisa abajo, con un mensaje propio
+        extra_kwargs = {"numero_mesa": {"validators": []}}
+
+    def validate_numero_mesa(self, numero):
+        if numero < 1:
+            raise serializers.ValidationError("El número de mesa debe ser mayor a 0.")
+        repetidas = Mesa.objects.filter(numero_mesa=numero)
+        if self.instance:
+            repetidas = repetidas.exclude(pk=self.instance.pk)
+        if repetidas.exists():
+            raise serializers.ValidationError("Este número de mesa ya existe.")
+        return numero
 
     def get_comanda_abierta(self, mesa):
         comanda = (
@@ -287,27 +326,30 @@ class ComandaDetalleSerializer(ComandaSerializer):
 
     def get_items(self, comanda):
         items = []
-        for detalle in comanda.detalles.select_related("plato", "bebida"):
-            if detalle.plato:
+        for detalle in comanda.detalles.select_related("plato__categoria", "bebida"):
+            if detalle.tiene_plato:
                 items.append(
                     {
                         "tipo": "plato",
+                        # None si el plato ya se eliminó del inventario
                         "id": detalle.plato_id,
-                        "nombre": detalle.plato.nombre_plato,
-                        "precio": str(detalle.plato.precio_plato),
+                        "nombre": detalle.nombre_del_plato,
+                        "precio": str(detalle.precio_del_plato),
                         "cantidad": detalle.cant_plato,
-                        "disponible": detalle.plato.estado_plato,
+                        "disponible": bool(detalle.plato and detalle.plato.estado_plato),
+                        # Los tickets mandan la categoría Parrilla a la parrilla y el resto a la cocina
+                        "categoria": detalle.categoria_del_plato,
                     }
                 )
-            if detalle.bebida:
+            if detalle.tiene_bebida:
                 items.append(
                     {
                         "tipo": "bebida",
                         "id": detalle.bebida_id,
-                        "nombre": detalle.bebida.nombre_bebida,
-                        "precio": str(detalle.bebida.precio_bebida),
+                        "nombre": detalle.nombre_de_la_bebida,
+                        "precio": str(detalle.precio_de_la_bebida),
                         "cantidad": detalle.cant_bebida,
-                        "disponible": detalle.bebida.disponible_bebida,
+                        "disponible": bool(detalle.bebida and detalle.bebida.disponible_bebida),
                     }
                 )
         return items

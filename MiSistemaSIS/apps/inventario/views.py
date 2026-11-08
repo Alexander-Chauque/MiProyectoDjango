@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from .models import Plato, CategoriaPlato, Ingrediente, DetallePlato, TipoBebida, Bebida
 from .forms import TipoBebidaForm, BebidaForm
+from . import servicios
 from .servicios import cambiar_estado_ingrediente
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
@@ -255,10 +256,16 @@ def editar_plato(request, pk):
 @permiso_requerido("platos", "eliminar")
 def eliminar_plato(request, pk):
     plato = get_object_or_404(Plato, pk=pk)
+    # Solo se elimina si está no disponible hace 2 meses
+    try:
+        servicios.validar_eliminar_plato(plato)
+    except ValueError as error:
+        messages.error(request, str(error))
+        return redirect("inventario:listar_platos")
 
     if request.method == "POST":
         nombre = plato.nombre_plato
-        plato.delete()
+        servicios.eliminar_plato(plato)
         messages.success(request, f'Plato "{nombre}" eliminado exitosamente')
         return redirect("inventario:listar_platos")
 
@@ -433,10 +440,15 @@ def editar_ingrediente(request, pk):
 @permiso_requerido("ingredientes", "eliminar")
 def eliminar_ingrediente(request, pk):
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
+    try:
+        servicios.validar_eliminar_ingrediente(ingrediente)
+    except ValueError as error:
+        messages.error(request, str(error))
+        return redirect("inventario:listar_ingredientes")
 
     if request.method == "POST":
         nombre = ingrediente.nombre_ingrediente
-        ingrediente.delete()
+        servicios.eliminar_ingrediente(ingrediente)
         messages.success(request, f'Ingrediente "{nombre}" eliminado')
         return redirect("inventario:listar_ingredientes")
     else:
@@ -852,9 +864,14 @@ def bebida_editar(request, pk):
 @permiso_requerido("bebidas", "eliminar")
 def bebida_eliminar(request, pk):
     bebida = get_object_or_404(Bebida, pk=pk)
+    try:
+        servicios.validar_eliminar_bebida(bebida)
+    except ValueError as error:
+        messages.error(request, str(error))
+        return redirect("inventario:listar_bebida")
     if request.method == "POST":
         nombre = bebida.nombre_bebida
-        bebida.delete()
+        servicios.eliminar_bebida(bebida)
         messages.success(request, f'Bebida "{nombre}" eliminada')
         return redirect("inventario:listar_bebida")
     return render(request, "bebidas/eliminar_bebida.html", {"bebida": bebida})

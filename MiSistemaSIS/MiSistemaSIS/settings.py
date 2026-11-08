@@ -28,8 +28,6 @@ SECRET_KEY = 'django-insecure-s05l#qdx8^oyqa0(ou)_)lttn+5w)_-h%+u!@8g*h))t7jdbyb
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-# HOSTS_EXTRA está en .env: es la IP de esta PC, para que el teléfono pueda conectarse
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"] + [
     host for host in os.getenv("HOSTS_EXTRA", "").split(",") if host
 ]
@@ -148,8 +146,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static',]
 
 # Archivos que suben los usuarios, como las fotos de ingredientes
-MEDIA_URL = '/media/'  # Dirección con la que se pide la foto
-MEDIA_ROOT = BASE_DIR / 'media'  # Carpeta donde se guarda
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media' 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
@@ -180,20 +178,17 @@ CORS_ALLOWED_ORIGINS = [
     # Web en React (Vite)
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+] + [
+    f"http://{host}:5173" for host in ALLOWED_HOSTS[2:]
 ]
-
-# Debe ser el mismo proyecto de Firebase que usa la app móvil
-FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")
 
 REST_FRAMEWORK = {
     # Cómo se identifica quien llama a la API
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "empleados.autenticacion.FirebaseAuthentication",  # App móvil: "Bearer <token>"
         "empleados.autenticacion.JWTEmpleadoAuthentication",  # Web en React: "JWT <token>"
     ],
     # Intentos de login permitidos por dirección IP
     "DEFAULT_THROTTLE_RATES": {"login": "10/min"},
-    # Por defecto, toda la API exige haber iniciado sesión
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
@@ -206,7 +201,7 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(hours=12),
-    # Distinto de "Bearer", que es el token de Firebase de la app móvil
+    # La web envía "Authorization: JWT <token>"
     "AUTH_HEADER_TYPES": ("JWT",),
     # Al cambiar la contraseña, los tokens anteriores dejan de servir
     "CHECK_REVOKE_TOKEN": True,
