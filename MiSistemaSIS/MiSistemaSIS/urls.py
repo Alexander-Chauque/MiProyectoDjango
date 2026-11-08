@@ -35,7 +35,7 @@ urlpatterns = [
     path('ventas/', include('ventas.urls')),
     path("reportes/", include("reportes.urls")),
     path("auditoria/", include("auditoria.urls")),
-    path("api/", include("api.urls")),  # API que usa la app móvil
+    path("api/", include("api.urls")),  # API que usa la web en React
     path("login/", login_view, name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
     path(

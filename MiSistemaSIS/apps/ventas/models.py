@@ -27,7 +27,7 @@ class Mesa(models.Model):
     @property
     def estado_texto(self):
         return "Disponible" if self.estado_mesa == True else "Ocupada"
-    
+
     def __str__(self):
         estado = "Disponible" if self.estado_mesa == True else "Ocupada"
         return f"Mesa {self.numero_mesa} - ({estado}) - Ubicación: {self.get_ubicacion_display()}"
@@ -42,19 +42,19 @@ class Comanda(models.Model):
         ('pagado', 'Pagado'),
         ('cancelado', 'Cancelado'),
     ]
-    
+
     id_comanda = models.AutoField(primary_key=True)
     fecha_hora = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y Hora")
     estado_comanda = models.CharField(max_length=20, choices=ESTADOS, default='pendiente', verbose_name="Estado")
     observaciones_comanda = models.TextField(blank=True, verbose_name="Observaciones")
     total_comanda = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Total")
-    
+
     # Relaciones
     mesa = models.ForeignKey(Mesa,on_delete=models.PROTECT,
         db_column='mesa_id',
         related_name='comandas',
         verbose_name="Mesa")
-    
+
     empleado = models.ForeignKey(Empleado,on_delete=models.PROTECT,
         db_column='empleado_id',
         related_name='comandas',
@@ -75,7 +75,7 @@ class Comanda(models.Model):
 
     def __str__(self):
         return f"Comanda #{self.id_comanda} - Mesa {self.mesa.numero_mesa}"
-    
+
     def calcular_total(self):
         total = 0
         for detalle in self.detalles.all():
@@ -145,7 +145,7 @@ class DetalleComanda(models.Model):
         related_name='detalles',
         verbose_name="Comanda"
     )
-    
+
     # Relaciones opcionales (puede ser plato o bebida)
     plato = models.ForeignKey(Plato, on_delete=models.SET_NULL, null=True, blank=True,
         db_column='plato_id',
@@ -160,41 +160,72 @@ class DetalleComanda(models.Model):
     )
 
     cant_bebida= models.IntegerField(default=1, verbose_name="Cantidad Bebida")
-    
+
+    # Copia del producto, guardada justo antes de eliminarlo del inventario:
+    # así los comprobantes, tickets y reportes viejos siguen mostrando qué se vendió.
+    nombre_plato_guardado = models.CharField(max_length=100, blank=True, default="")
+    precio_plato_guardado = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    categoria_plato_guardada = models.CharField(max_length=100, blank=True, default="")
+    nombre_bebida_guardado = models.CharField(max_length=50, blank=True, default="")
+    precio_bebida_guardado = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
     class Meta:
         db_table = 'ventas_detallecomanda'
         verbose_name = 'Detalle de Comanda'
         verbose_name_plural = 'Detalles de Comandas'
 
+    # Datos del producto: del inventario si todavía existe, o de la copia si ya se eliminó
+    @property
+    def tiene_plato(self):
+        return bool(self.plato_id or self.nombre_plato_guardado)
+
+    @property
+    def tiene_bebida(self):
+        return bool(self.bebida_id or self.nombre_bebida_guardado)
+
+    @property
+    def nombre_del_plato(self):
+        return self.plato.nombre_plato if self.plato else self.nombre_plato_guardado
+
+    @property
+    def precio_del_plato(self):
+        return self.plato.precio_plato if self.plato else (self.precio_plato_guardado or 0)
+
+    @property
+    def categoria_del_plato(self):
+        return self.plato.categoria.nombre_categoria_plato if self.plato else self.categoria_plato_guardada
+
+    @property
+    def nombre_de_la_bebida(self):
+        return self.bebida.nombre_bebida if self.bebida else self.nombre_bebida_guardado
+
+    @property
+    def precio_de_la_bebida(self):
+        return self.bebida.precio_bebida if self.bebida else (self.precio_bebida_guardado or 0)
+
     @property
     def subtotal_plato(self):
         """Calcula solo el subtotal del plato"""
-        if self.plato and self.cant_plato:
-            return self.plato.precio_plato * self.cant_plato
+        if self.tiene_plato and self.cant_plato:
+            return self.precio_del_plato * self.cant_plato
         return 0
 
     @property
     def subtotal_bebida(self):
         """Calcula solo el subtotal de la bebida"""
-        if self.bebida and self.cant_bebida:
-            return self.bebida.precio_bebida * self.cant_bebida
+        if self.tiene_bebida and self.cant_bebida:
+            return self.precio_de_la_bebida * self.cant_bebida
         return 0
 
     @property
     def subtotal(self):
-            """Calcula el subtotal sumando platos Y bebidas"""
-            total = 0
-            # Sumar plato
-            if self.plato and self.cant_plato:
-                total += self.plato.precio_plato * self.cant_plato
-            # Sumar bebida
-            if self.bebida and self.cant_bebida:
-                total += self.bebida.precio_bebida * self.cant_bebida
-            return total
-    
+        """Calcula el subtotal sumando platos Y bebidas"""
+        return self.subtotal_plato + self.subtotal_bebida
+
     def __str__(self):
-        if self.plato:
-            return f"{self.cant_plato}x {self.plato.nombre_plato}"
-        elif self.bebida:
-            return f"{self.cant_bebida}x {self.bebida.nombre_bebida}"
+        if self.tiene_plato:
+            return f"{self.cant_plato}x {self.nombre_del_plato}"
+        elif self.tiene_bebida:
+            return f"{self.cant_bebida}x {self.nombre_de_la_bebida}"
+        return "Línea sin producto"
         return "Detalle vacío"

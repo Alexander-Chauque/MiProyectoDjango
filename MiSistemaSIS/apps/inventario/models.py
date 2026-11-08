@@ -2,6 +2,7 @@ import os
 import uuid
 
 from django.db import models
+from django.utils import timezone
 from empleados.models import Empleado
 
 
@@ -15,6 +16,18 @@ def ruta_imagen_ingrediente(instancia, nombre_original):
 
 # Create your models here.
 #Categoria Plato
+def anotar_desactivacion(producto, activo):
+    """Anota cuándo se desactivó el producto (y la borra al reactivarlo).
+
+    En MySQL lo hace un trigger (migración inventario 0006), que además manda sobre este valor;
+    esto cubre las otras bases, como el SQLite de las pruebas.
+    """
+    if activo:
+        producto.fecha_desactivacion = None
+    elif producto.fecha_desactivacion is None:
+        producto.fecha_desactivacion = timezone.now()
+
+
 class CategoriaPlato(models.Model):
     id_categoria_plato = models.AutoField(primary_key=True)
     nombre_categoria_plato = models.CharField(max_length=100, unique=True)
@@ -39,12 +52,16 @@ class Ingrediente(models.Model):
     descripcion_ingrediente = models.TextField(blank=True, default="")
     imagen_ingrediente = models.ImageField(upload_to=ruta_imagen_ingrediente, blank=True, null=True)
     estado_ingrediente = models.BooleanField(default=True)
+    # La completa un trigger de MySQL al marcarlo como no disponible y la borra al reactivarlo.
+    # Se puede eliminar recién 2 meses después (ver inventario/servicios.py).
+    fecha_desactivacion = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         unique_together = ['nombre_ingrediente','unidad_medida']
     def save(self, *args, **kwargs):
             if self.nombre_ingrediente:
                 self.nombre_ingrediente=self.nombre_ingrediente.title()
+            anotar_desactivacion(self, self.estado_ingrediente)
             super().save(*args, **kwargs)
 
 
@@ -61,6 +78,9 @@ class Plato(models.Model):
     ingredientes = models.ManyToManyField(Ingrediente, through='DetallePlato')
     descripcion_plato = models.TextField(default="", blank=True)
     estado_plato = models.BooleanField(default=True)
+    # La completa un trigger de MySQL al marcarlo como no disponible y la borra al reactivarlo.
+    # Se puede eliminar recién 2 meses después (ver inventario/servicios.py).
+    fecha_desactivacion = models.DateTimeField(null=True, blank=True, editable=False)
 
     def save(self, *args, **kwargs):
         if self.nombre_plato:
@@ -73,6 +93,7 @@ class Plato(models.Model):
                 else:
                     palabras_corregidas.append(palabra.capitalize())
             self.nombre_plato = ' '.join(palabras_corregidas)
+        anotar_desactivacion(self, self.estado_plato)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -110,6 +131,9 @@ class Bebida(models.Model):
     precio_bebida = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion_bebida = models.TextField(blank=True)
     disponible_bebida = models.BooleanField(default=True)
+    # La completa un trigger de MySQL al marcarlo como no disponible y la borra al reactivarlo.
+    # Se puede eliminar recién 2 meses después (ver inventario/servicios.py).
+    fecha_desactivacion = models.DateTimeField(null=True, blank=True, editable=False)
 
     class Meta:
         db_table='inventario_bebida'
@@ -117,6 +141,7 @@ class Bebida(models.Model):
     def save(self, *args, **kwargs):
             if self.nombre_bebida:
                 self.nombre_bebida=self.nombre_bebida.title()
+            anotar_desactivacion(self, self.disponible_bebida)
             super().save(*args, **kwargs)
     def __str__(self):
         return f'{self.nombre_bebida} - ${self.precio_bebida}'

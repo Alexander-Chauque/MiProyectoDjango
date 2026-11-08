@@ -59,6 +59,8 @@ class caja(models.Model):
         Empleado,
         on_delete=models.CASCADE,
         db_column='empleado_apertura_id',
+        # id_empleado es bigint en la base, pero AutoField (int) en el modelo
+        db_constraint=False,
         related_name='caja_apertura',
         verbose_name="cajero"
     )
@@ -73,6 +75,8 @@ class caja(models.Model):
         Empleado,
         on_delete=models.CASCADE,
         db_column='empleado_cierre_id',
+        # id_empleado es bigint en la base, pero AutoField (int) en el modelo
+        db_constraint=False,
         related_name='caja_cierre',
         verbose_name="cajero",
         null=True,
@@ -125,6 +129,8 @@ class caja(models.Model):
         Empleado,
         on_delete=models.CASCADE,
         db_column='empleado_arqueo_id',
+        # id_empleado es bigint en la base, pero AutoField (int) en el modelo
+        db_constraint=False,
         related_name='caja_arqueo',
         verbose_name="cajero",
         null=True,
@@ -210,6 +216,8 @@ class gasto(models.Model):
     fecha_hora_gasto = models.DateTimeField(auto_now_add=True)
     empleado_gasto = models.ForeignKey(Empleado,on_delete=models.PROTECT,
         db_column='empleado_id',
+        # id_empleado es bigint en la base, pero AutoField (int) en el modelo
+        db_constraint=False,
         related_name='gastos',
         verbose_name="cajero"
     )
@@ -253,6 +261,8 @@ class Venta(models.Model):
     caja_venta = models.ForeignKey(caja, on_delete=models.PROTECT, related_name='ventas', verbose_name="Caja Asociada")
     empleado_venta = models.ForeignKey(Empleado,on_delete=models.CASCADE,
                 db_column='empleado_venta_id',
+                # id_empleado es bigint en la base, pero AutoField (int) en el modelo
+                db_constraint=False,
                 related_name='caja_ventas',
                 verbose_name="cajero",
                 null=True, blank=True

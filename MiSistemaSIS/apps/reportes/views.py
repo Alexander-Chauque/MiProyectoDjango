@@ -13,6 +13,7 @@ from xhtml2pdf import pisa
 from ventas.models import Comanda, DetalleComanda, Pago
 from empleados.models import Empleado
 from inventario.models import CategoriaPlato
+from .productos import CATEGORIA_PLATO, CON_BEBIDA, CON_PLATO, NOMBRE_BEBIDA, NOMBRE_PLATO, PRECIO_PLATO
 # --- FUNCIÓN AUXILIAR PARA FECHAS ---
 def obtener_rango_fechas(request):
     hoy = timezone.localdate()
@@ -106,19 +107,17 @@ def reporte_top(request):
     comandas, f_desde, f_hasta = obtener_comandas(request)
 
     top_platos = (
-        DetalleComanda.objects.filter(
-            comanda__in=comandas, plato__isnull=False, cant_plato__gt=0
-        )
-        .values("plato__nombre_plato")
+        DetalleComanda.objects.filter(CON_PLATO, comanda__in=comandas, cant_plato__gt=0)
+        .annotate(nombre=NOMBRE_PLATO)
+        .values("nombre")
         .annotate(total=Sum("cant_plato"))
         .order_by("-total")[:5]
     )
 
     top_bebidas = (
-        DetalleComanda.objects.filter(
-            comanda__in=comandas, bebida__isnull=False, cant_bebida__gt=0
-        )
-        .values("bebida__nombre_bebida")
+        DetalleComanda.objects.filter(CON_BEBIDA, comanda__in=comandas, cant_bebida__gt=0)
+        .annotate(nombre=NOMBRE_BEBIDA)
+        .values("nombre")
         .annotate(total=Sum("cant_bebida"))
         .order_by("-total")[:5]
     )
@@ -127,10 +126,8 @@ def reporte_top(request):
         request,
         "reportes/top.html",
         {
-            "top_platos": [(i["plato__nombre_plato"], i["total"]) for i in top_platos],
-            "top_bebidas": [
-                (i["bebida__nombre_bebida"], i["total"]) for i in top_bebidas
-            ],
+            "top_platos": [(i["nombre"], i["total"]) for i in top_platos],
+            "top_bebidas": [(i["nombre"], i["total"]) for i in top_bebidas],
             "fecha_desde": f_desde,
             "fecha_hasta": f_hasta,
             "tab": "top",
@@ -145,13 +142,12 @@ def reporte_categorias(request):
     comandas, f_desde, f_hasta = obtener_comandas(request)
 
     categorias = (
-        DetalleComanda.objects.filter(
-            comanda__in=comandas, plato__isnull=False, cant_plato__gt=0
-        )
-        .values("plato__categoria__nombre_categoria_plato")
+        DetalleComanda.objects.filter(CON_PLATO, comanda__in=comandas, cant_plato__gt=0)
+        .annotate(categoria_nombre=CATEGORIA_PLATO)
+        .values("categoria_nombre")
         .annotate(
             ingresos=Sum(
-                F("cant_plato") * F("plato__precio_plato"), output_field=DecimalField()
+                F("cant_plato") * PRECIO_PLATO, output_field=DecimalField()
             )
         )
         .order_by("-ingresos")

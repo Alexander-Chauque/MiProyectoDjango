@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('vuelto', models.DecimalField(decimal_places=2, default=0, max_digits=10, verbose_name='Vuelto')),
                 ('caja_venta', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='ventas', to='finanzas.caja', verbose_name='Caja Asociada')),
                 ('comanda', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ventas', to='ventas.comanda', verbose_name='Comanda')),
-                ('empleado_venta', models.ForeignKey(blank=True, db_column='empleado_venta_id', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='caja_ventas', to='empleados.empleado', verbose_name='cajero')),
+                ('empleado_venta', models.ForeignKey(blank=True, db_column='empleado_venta_id', db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='caja_ventas', to='empleados.empleado', verbose_name='cajero')),
                 ('metodo_pago_venta', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='finanzas.metodo_pago', verbose_name='Método de Pago')),
             ],
             options={

@@ -53,6 +53,8 @@ def _permiso_a_dict(permiso):
         "modulo_nombre": NOMBRE_MODULO.get(permiso.modulo, permiso.modulo),
         "accion": permiso.accion,
         "accion_nombre": NOMBRE_ACCION.get(permiso.accion, permiso.accion),
+        # Así se llama el campo en el modelo (sin la "n")
+        "descripcion": permiso.descripcio_permiso or "",
     }
 
 
@@ -138,7 +140,7 @@ class CargoDetalleView(APIView):
         _exigir_nivel(request, cargo.nivel_acceso)
         if cargo.empleado_set.exists():
             raise ValidationError(
-                {"detail": f'No se puede eliminar "{cargo.nombre_cargo}" porque tiene empleados asignados.'}
+                {"detail": f'No se puede eliminar el cargo "{cargo.nombre_cargo}" porque tiene empleados asignados.'}
             )
         anterior = _describir(cargo)
         identificador = cargo.pk

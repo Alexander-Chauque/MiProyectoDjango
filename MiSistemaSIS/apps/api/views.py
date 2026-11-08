@@ -1,5 +1,6 @@
-"""Vistas de la API que usa la app móvil. Responden JSON, no páginas HTML."""
+"""Vistas de la API que usa la web en React. Responden JSON, no páginas HTML."""
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
@@ -9,8 +10,8 @@ from rest_framework.views import APIView
 from auditoria.models import LogAuditoria
 from empleados.decorators import nivel_de, tiene_permiso
 from empleados.models import TipoPermiso
-from inventario.models import Bebida, CategoriaPlato, Ingrediente, Plato, TipoBebida
-from inventario.servicios import cambiar_estado_ingrediente
+from inventario.models import Bebida, CategoriaPlato, Ingrediente, Plato
+from inventario.servicios import cambiar_estado_ingrediente, eliminar_bebida, eliminar_ingrediente, eliminar_plato
 from ventas.models import Comanda, Mesa
 from ventas.servicios import (
     ESTADOS_ABIERTOS,
@@ -30,6 +31,7 @@ from .serializers import (
     MesaSerializer,
     PlatoSerializer,
 )
+from .utilidades import filtrar_entre_fechas, rango_pedido, responder_paginado
 
 
 def _auditar(request, tabla, accion, registro_id, anterior, actual):
@@ -53,7 +55,7 @@ def _ejecutar(funcion, *args):
 
 
 class YoView(APIView):
-    """GET /api/yo/: quién es el usuario y qué puede hacer. La app lo usa para mostrar u ocultar botones."""
+    """GET /api/yo/: quién es el usuario y qué puede hacer. La web lo usa para mostrar u ocultar botones."""
 
     def get(self, request):
         empleado = request.user.empleado
@@ -121,15 +123,23 @@ class IngredienteListaView(generics.ListCreateAPIView):
             _auditar(self.request, "Ingrediente", "CREAR", ingrediente.pk, "", _descripcion_ingrediente(ingrediente))
 
 
-class IngredienteDetalleView(generics.RetrieveUpdateAPIView):
-    """GET /api/ingredientes/5/ devuelve uno. PATCH /api/ingredientes/5/ lo edita."""
+class IngredienteDetalleView(generics.RetrieveUpdateDestroyAPIView):
+    """GET /api/ingredientes/5/ devuelve uno, PATCH lo edita y DELETE lo elimina.
+
+    Solo se elimina si está no disponible hace 2 meses y ningún plato disponible lo usa.
+    """
 
     queryset = Ingrediente.objects.all()
     serializer_class = IngredienteSerializer
     permission_classes = [PermisoDeModulo]
     modulo = "ingredientes"
-    # Sin DELETE a propósito: eliminar un ingrediente también lo quita de los platos
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "patch", "delete", "head", "options"]
+
+    def perform_destroy(self, instance):
+        anterior, identificador = _descripcion_ingrediente(instance), instance.pk
+        with transaction.atomic():
+            _ejecutar(eliminar_ingrediente, instance)
+            _auditar(self.request, "Ingrediente", "ELIMINAR", identificador, anterior, "Ingrediente eliminado")
 
     def perform_update(self, serializer):
         # Se lee antes de guardar para registrar el valor anterior real
@@ -205,15 +215,23 @@ class PlatoListaView(generics.ListCreateAPIView):
             _auditar(self.request, "Plato", "CREAR", plato.pk, "", _descripcion_plato(plato))
 
 
-class PlatoDetalleView(generics.RetrieveUpdateAPIView):
-    """GET /api/platos/5/ devuelve uno. PATCH /api/platos/5/ lo edita."""
+class PlatoDetalleView(generics.RetrieveUpdateDestroyAPIView):
+    """GET /api/platos/5/ devuelve uno, PATCH lo edita y DELETE lo elimina.
+
+    Solo se elimina si está no disponible hace 2 meses. Las comandas viejas guardan su nombre y precio.
+    """
 
     queryset = Plato.objects.select_related("categoria")
     serializer_class = PlatoSerializer
     permission_classes = [PermisoDeModulo]
     modulo = "platos"
-    # Sin DELETE a propósito: eliminar un plato también lo borra del historial de comandas
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "patch", "delete", "head", "options"]
+
+    def perform_destroy(self, instance):
+        anterior, identificador = _descripcion_plato(instance), instance.pk
+        with transaction.atomic():
+            _ejecutar(eliminar_plato, instance)
+            _auditar(self.request, "Plato", "ELIMINAR", identificador, anterior, "Plato eliminado")
 
     def perform_update(self, serializer):
         valores_viejos = _descripcion_plato(serializer.instance)
@@ -236,29 +254,14 @@ class PlatoEstadoView(APIView):
             plato.estado_plato = not plato.estado_plato
             plato.save()
             actual = "Disponible" if plato.estado_plato else "No disponible"
-            _auditar(request, "Plato", "MODIFICAR", plato.pk, f"Estado: {anterior}", f"Estado: {actual}")
+            motivo = str(request.data.get("motivo") or "").strip()[:250]
+            _auditar(request, "Plato", "MODIFICAR", plato.pk, f"Estado: {anterior}", f"Estado: {actual}" + (f". Motivo: {motivo}" if motivo else ""))
         return Response(PlatoSerializer(plato).data)
 
 
 # ---------- BEBIDAS ----------
 def _descripcion_bebida(bebida):
     return f"Nombre: {bebida.nombre_bebida}, Precio: {bebida.precio_bebida}"
-
-
-class TiposBebidaView(APIView):
-    """GET /api/tipos-bebida/: tipos para el formulario de bebidas."""
-
-    permission_classes = [PermisoDeModulo]
-    modulo = "bebidas"
-
-    def get(self, request):
-        return Response(
-            list(
-                TipoBebida.objects.order_by("nombre_tipo_bebida").values(
-                    "id_tipo_bebida", "nombre_tipo_bebida", "estado_tipo_bebida"
-                )
-            )
-        )
 
 
 class BebidaListaView(generics.ListCreateAPIView):
@@ -275,14 +278,23 @@ class BebidaListaView(generics.ListCreateAPIView):
             _auditar(self.request, "Bebida", "CREAR", bebida.pk, "", _descripcion_bebida(bebida))
 
 
-class BebidaDetalleView(generics.RetrieveUpdateAPIView):
-    """GET /api/bebidas/5/ devuelve una. PATCH /api/bebidas/5/ la edita."""
+class BebidaDetalleView(generics.RetrieveUpdateDestroyAPIView):
+    """GET /api/bebidas/5/ devuelve una, PATCH la edita y DELETE la elimina.
+
+    Solo se elimina si está no disponible hace 2 meses. Las comandas viejas guardan su nombre y precio.
+    """
 
     queryset = Bebida.objects.select_related("id_tipo_bebida")
     serializer_class = BebidaSerializer
     permission_classes = [PermisoDeModulo]
     modulo = "bebidas"
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "patch", "delete", "head", "options"]
+
+    def perform_destroy(self, instance):
+        anterior, identificador = _descripcion_bebida(instance), instance.pk
+        with transaction.atomic():
+            _ejecutar(eliminar_bebida, instance)
+            _auditar(self.request, "Bebida", "ELIMINAR", identificador, anterior, "Bebida eliminada")
 
     def perform_update(self, serializer):
         valores_viejos = _descripcion_bebida(serializer.instance)
@@ -305,18 +317,56 @@ class BebidaEstadoView(APIView):
             bebida.disponible_bebida = not bebida.disponible_bebida
             bebida.save()
             actual = "Disponible" if bebida.disponible_bebida else "No disponible"
-            _auditar(request, "Bebida", "MODIFICAR", bebida.pk, f"Estado: {anterior}", f"Estado: {actual}")
+            motivo = str(request.data.get("motivo") or "").strip()[:250]
+            _auditar(request, "Bebida", "MODIFICAR", bebida.pk, f"Estado: {anterior}", f"Estado: {actual}" + (f". Motivo: {motivo}" if motivo else ""))
         return Response(BebidaSerializer(bebida).data)
 
 
 # ---------- MESAS ----------
-class MesaListaView(generics.ListAPIView):
-    """GET /api/mesas/: lista las mesas con su estado y su comanda abierta."""
+def _describir_mesa(mesa):
+    return f"N° {mesa.numero_mesa}, Ubicación: {mesa.ubicacion}"
+
+
+class MesaListaView(generics.ListCreateAPIView):
+    """GET /api/mesas/ lista las mesas con su estado y su comanda abierta. POST crea una."""
 
     queryset = Mesa.objects.order_by("numero_mesa")
     serializer_class = MesaSerializer
     permission_classes = [PermisoDeModulo]
     modulo = "mesas"
+
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            mesa = serializer.save()
+            _auditar(self.request, "Mesa", "CREAR", mesa.pk, "", f"Mesa creada: {_describir_mesa(mesa)}")
+
+
+class MesaDetalleView(generics.RetrieveUpdateDestroyAPIView):
+    """GET /api/mesas/5/ devuelve una. PATCH la edita. DELETE la elimina si nunca tuvo comandas."""
+
+    queryset = Mesa.objects.all()
+    serializer_class = MesaSerializer
+    permission_classes = [PermisoDeModulo]
+    modulo = "mesas"
+    http_method_names = ["get", "patch", "delete", "head", "options"]
+
+    def perform_update(self, serializer):
+        anterior = _describir_mesa(serializer.instance)
+        with transaction.atomic():
+            mesa = serializer.save()
+            _auditar(self.request, "Mesa", "MODIFICAR", mesa.pk, anterior, _describir_mesa(mesa))
+
+    def perform_destroy(self, mesa):
+        # Las comandas guardan la mesa: borrarla rompería el historial
+        if mesa.comandas.exists():
+            raise ValidationError(
+                {"detail": f"No se puede eliminar la mesa {mesa.numero_mesa} porque tiene comandas registradas."}
+            )
+        anterior = f"Mesa {_describir_mesa(mesa)} eliminada"
+        identificador = mesa.pk
+        with transaction.atomic():
+            mesa.delete()
+            _auditar(self.request, "Mesa", "ELIMINAR", identificador, anterior, "")
 
 
 class MesaEstadoView(APIView):
@@ -380,6 +430,55 @@ class ComandaDetalleView(APIView):
             request.data.get("items"),
         )
         return Response(ComandaDetalleSerializer(comanda).data)
+
+    def delete(self, request, pk):
+        """Elimina una comanda abierta y sin pagos, y libera la mesa. Requiere permiso de eliminar."""
+        with transaction.atomic():
+            comanda = get_object_or_404(Comanda.objects.select_for_update(), pk=pk)
+            if not comanda.puede_modificarse:
+                raise ValidationError(
+                    {"detail": f"La comanda #{comanda.id_comanda} está cerrada o tiene pagos registrados: no se puede eliminar."}
+                )
+            anterior = f"Mesa: {comanda.mesa.numero_mesa}. Total: ${comanda.total_comanda}"
+            comanda.mesa.estado_mesa = True
+            comanda.mesa.save()
+            comanda.delete()
+            _auditar(request, "Comanda", "ELIMINAR", pk, anterior, "Comanda eliminada")
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ComandaConsultaView(APIView):
+    """GET /api/comandas/consulta/: todas las comandas, por páginas y con filtros.
+
+    Filtros: ?buscar=, ?estado=pendiente,pagado, ?mesa=5,7, ?fecha_desde=AAAA-MM-DD, ?fecha_hasta=
+    """
+
+    permission_classes = [PermisoDeModulo]
+    modulo = "comandas"
+
+    def get(self, request):
+        comandas = Comanda.objects.select_related("mesa", "empleado").order_by("-fecha_hora")
+        buscar = request.query_params.get("buscar", "").strip()
+        if buscar:
+            filtro = Q(empleado__nombre_empleado__icontains=buscar) | Q(
+                empleado__apellido_empleado__icontains=buscar
+            )
+            if buscar.lstrip("#").isdigit():
+                filtro |= Q(id_comanda=int(buscar.lstrip("#")))
+            comandas = comandas.filter(filtro)
+        estados = [e for e in request.query_params.get("estado", "").split(",") if e]
+        if estados:
+            comandas = comandas.filter(estado_comanda__in=estados)
+        # Una o varias mesas: ?mesa=5 o ?mesa=5,7
+        mesas = [int(m) for m in request.query_params.get("mesa", "").split(",") if m.isdigit()]
+        if mesas:
+            comandas = comandas.filter(mesa_id__in=mesas)
+        desde, hasta = rango_pedido(request)
+        comandas = filtrar_entre_fechas(comandas, "fecha_hora", desde, hasta)
+        return responder_paginado(
+            request, comandas, lambda comanda: ComandaSerializer(comanda).data,
+            {"fecha_desde": desde, "fecha_hasta": hasta},
+        )
 
 
 class ComandaProductosView(APIView):
