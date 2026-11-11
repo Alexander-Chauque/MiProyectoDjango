@@ -1,13 +1,11 @@
 """Ayudas comunes de la API: páginas, fechas y montos."""
-from datetime import datetime, time
 from decimal import Decimal, InvalidOperation
 
 from django.core.paginator import Paginator
-from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from core.fechas import limitar_rango
+from core.fechas import filtrar_por_fecha as filtrar_entre_fechas, limitar_rango  # noqa: F401 (la usan otras vistas)
 
 # Las mismas opciones que ofrecen los listados de la web de Django
 OPCIONES_POR_PAGINA = (10, 25, 50, 100)
@@ -40,21 +38,6 @@ def rango_pedido(request):
     return limitar_rango(
         request.query_params.get("fecha_desde", ""), request.query_params.get("fecha_hasta", "")
     )
-
-
-def filtrar_entre_fechas(consulta, campo, desde, hasta):
-    """Filtra un campo de fecha y hora por días completos, con la hora de Salta."""
-    zona = timezone.get_current_timezone()
-    for texto, hora, operador in ((desde, time.min, "gte"), (hasta, time.max, "lte")):
-        if not texto:
-            continue
-        try:
-            dia = datetime.strptime(texto, "%Y-%m-%d").date()
-        except ValueError:
-            continue
-        momento = timezone.make_aware(datetime.combine(dia, hora), zona)
-        consulta = consulta.filter(**{f"{campo}__{operador}": momento})
-    return consulta
 
 
 def leer_monto(valor, campo, mensaje, permitir_cero=False):

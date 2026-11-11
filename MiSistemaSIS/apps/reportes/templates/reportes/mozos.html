@@ -8,7 +8,7 @@
 
 {% block contenido_reporte %}
 
-<!-- 1. GRÁFICO DE BARRAS -->
+<!-- GRÁFICO DE BARRAS -->
 <div class="tarjeta-grafico" style="margin-bottom: 25px;">
   <div class="titulo-grafico">
     <span class="material-symbols-outlined icono-naranja">bar_chart</span>
@@ -19,7 +19,7 @@
   </div>
 </div>
 
-<!-- 2. TABLA DETALLE -->
+<!-- TABLA DETALLE -->
 <div class="tarjeta-top" style="margin-top: 20px;">
   <div class="titulo-top">
     <span class="material-symbols-outlined icono-naranja">groups</span>
@@ -68,7 +68,7 @@
     if (labels.length === 0) return;
 
     new Chart(document.getElementById('graficoMozos').getContext('2d'), {
-      type: 'bar', // <-- Tipo de gráfico: BARRAS
+      type: 'bar',
       data: {
         labels: labels,
         datasets: [{
@@ -77,8 +77,8 @@
           backgroundColor: 'rgba(245, 166, 35, 0.8)', // Naranja de la marca
           borderColor: '#F5A623',
           borderWidth: 1,
-          borderRadius: 6, // Bordes redondeados en las barras
-          barPercentage: 0.6 // Ancho de las barras
+          borderRadius: 6, 
+          barPercentage: 0.6 
         }]
       },
       options: {

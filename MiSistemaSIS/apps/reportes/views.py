@@ -121,6 +121,26 @@ def reporte_top(request):
         .annotate(total=Sum("cant_bebida"))
         .order_by("-total")[:5]
     )
+    lista_platos = [
+        {
+            "nombre": p['nombre'],
+            "total": p["total"],
+        }
+        for p in top_platos
+    ]
+
+    labels_platos = [p["nombre"] for p in lista_platos]
+    data_platos = [int(p["total"]) for p in lista_platos]
+    
+    lista_bebidas = [
+        {
+            "nombre": b['nombre'],
+            "total": b['total'],
+        }
+        for b in top_bebidas
+    ]
+    labels_bebidas = [b["nombre"] for b in lista_bebidas]
+    data_bebidas = [int(b["total"]) for b in lista_bebidas]
 
     return render(
         request,
@@ -128,6 +148,10 @@ def reporte_top(request):
         {
             "top_platos": [(i["nombre"], i["total"]) for i in top_platos],
             "top_bebidas": [(i["nombre"], i["total"]) for i in top_bebidas],
+            "labels_platos": labels_platos,
+            "data_platos": data_platos,
+            "labels_bebidas": labels_bebidas,
+            "data_bebidas": data_bebidas,
             "fecha_desde": f_desde,
             "fecha_hasta": f_hasta,
             "tab": "top",
@@ -267,15 +291,12 @@ def exportar_csv(request):
         totales, _, _ = obtener_totales_metodos(request)
         writer.writerows(totales)
 
-    # (Puedes agregar más tipos aquí si quieres)
-
     return response
 
 
 @login_required
 @permiso_requerido("reportes", "leer")
 def exportar_pdf_ventas(request):
-    # 1. Obtenemos los mismos datos que usás en la vista HTML
     comandas, f_desde, f_hasta = obtener_comandas(request)
 
     ventas_totales = comandas.aggregate(total=Sum("total_comanda"))["total"] or 0
@@ -294,7 +315,6 @@ def exportar_pdf_ventas(request):
     # Unimos las listas para el PDF
     zip_datos = zip(labels, data)
 
-    # 2. Cargamos la plantilla HTML del PDF
     template = get_template("reportes/pdf_ventas.html")
     context = {
         "nombre_reporte": "Ventas Generales",
@@ -307,7 +327,7 @@ def exportar_pdf_ventas(request):
     }
     html = template.render(context)
 
-    # 3. Creamos el PDF
+    # Creacion del PDF
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="Reporte_Ventas_{f_desde}_{f_hasta}.pdf"'

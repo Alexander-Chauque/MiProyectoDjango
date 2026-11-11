@@ -10,7 +10,7 @@ from reportes.views import obtener_comandas, obtener_totales_metodos
 from ventas.models import DetalleComanda
 
 from .permisos import PermisoDeModulo
-from .utilidades import rango_pedido, responder_paginado
+from .utilidades import filtrar_entre_fechas, rango_pedido, responder_paginado
 
 MAXIMO_EXPORTAR = 10000
 
@@ -134,12 +134,9 @@ class AuditoriaView(APIView):
         detalle = parametros.get("detalle", "").strip()
         if detalle:
             logs = logs.filter(Q(valores_actuales__icontains=detalle) | Q(valores_anteriores__icontains=detalle))
-        # Igual que la web: compara solo la fecha, sin la hora
+        # Igual que la web: días completos en la hora de Salta
         desde, hasta = rango_pedido(request)
-        if desde:
-            logs = logs.filter(fecha_hora__date__gte=desde)
-        if hasta:
-            logs = logs.filter(fecha_hora__date__lte=hasta)
+        logs = filtrar_entre_fechas(logs, "fecha_hora", desde, hasta)
 
         if parametros.get("exportar") == "1":
             return Response({"resultados": [_log_a_dict(log) for log in logs[:MAXIMO_EXPORTAR]]})

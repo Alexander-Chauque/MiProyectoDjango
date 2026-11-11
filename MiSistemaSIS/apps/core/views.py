@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from inventario.models import Plato, Bebida
 from ventas.models import Mesa, Comanda
+from .fechas import filtrar_por_fecha
 
 
 def home(request):
@@ -12,7 +13,8 @@ def home(request):
         return render(request, 'bienvenida.html')
     
     # Si está logueado(home con estadísticas)
-    hoy = timezone.now().date()
+    # localdate(): la fecha de Salta, no la UTC
+    hoy = timezone.localdate()
     
     total_productos = (
         Plato.objects.filter(estado_plato=True).count() +
@@ -31,9 +33,8 @@ def home(request):
         estado_comanda='en_preparacion'
     ).count()
     
-    ventas_hoy = Comanda.objects.filter(
-        estado_comanda='pagado',
-        fecha_hora__date=hoy
+    ventas_hoy = filtrar_por_fecha(
+        Comanda.objects.filter(estado_comanda='pagado'), 'fecha_hora', hoy, hoy
     ).aggregate(total=Sum('total_comanda'))['total'] or 0
     
     contexto = {

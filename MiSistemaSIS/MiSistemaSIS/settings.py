@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'ventas',
     'reportes',
     'auditoria',
+    'notificaciones',
     'core',
 ]
 
@@ -71,14 +72,15 @@ ROOT_URLCONF = 'MiSistemaSIS.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'MiSistemaSIS' / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "MiSistemaSIS" / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "notificaciones.context_processors.sin_leer",
             ],
         },
     },

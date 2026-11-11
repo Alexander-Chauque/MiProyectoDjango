@@ -1,60 +1,86 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cambiar Contraseña - Los Cardones</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
-    <link rel="stylesheet" href="{% static 'css/restablecer_contraseña.css' %}">
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-card">
-            <h1 class="login-titulo">Cambiar Contraseña</h1>
-            <p class="login-subtitulo">
-                Por seguridad, debes cambiar tu contraseña antes de continuar
-            </p>
-            <div class="aviso-cambio">
-                <strong>Información</strong>
-                Esta es la primera vez que inicias sesión.
-                Por seguridad, debes crear una nueva contraseña personal.
-            </div>
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert-{{ message.tags }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-            <form method="POST" class="login-form">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="nueva_contrasena">Nueva Contraseña</label>
-                    <input type="password" name="nueva_contrasena" id="nueva_contrasena" class="form-control"
-                    placeholder="Mínimo 8 caracteres" required minlength="8" autocomplete="new-password">
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirmar_contrasena">Confirmar Contraseña</label>
-                    <input type="password" name="confirmar_contrasena" id="confirmar_contrasena" class="form-control"
-                    placeholder="Repetí la contraseña" required minlength="8"autocomplete="new-password">
-                </div>
-                
-                <button type="submit" class="btn-login">
-                    Guardar Nueva Contraseña
-                </button>
-            </form>
-            
-            <p class="login-copyright">
-                © 2026 Los Cardones - Salta
-            </p>
-            
+{% extends 'registration/base_recuperar.html' %}
+
+{% block title %}Cambiar contraseña{% endblock %}
+
+{% block content %}
+<header class="cuenta-encabezado">
+  <span class="material-symbols-outlined">lock_reset</span>
+  <div>
+    <h1>Cambiar contraseña</h1>
+    <p>Por seguridad, debés cambiar tu contraseña antes de continuar.</p>
+  </div>
+</header>
+
+<section class="cuenta-tarjeta">
+  <form method="POST" class="cuenta-formulario" novalidate>
+    {% csrf_token %}
+
+    <p class="cuenta-aviso">
+      <span class="material-symbols-outlined">info</span>
+      Es la primera vez que iniciás sesión, o el administrador te dio una contraseña temporal.
+      Creá una contraseña personal para seguir usando el sistema.
+    </p>
+
+    {% for error in form.non_field_errors %}<p class="cuenta-error">{{ error }}</p>{% endfor %}
+
+    <div class="cuenta-campo">
+      <label for="{{ form.new_password1.id_for_label }}">
+        <span class="material-symbols-outlined">lock</span> Nueva contraseña
+      </label>
+      <div>
+        <div class="clave-campo">
+          <input type="password" name="new_password1" id="{{ form.new_password1.id_for_label }}" class="form-control" autocomplete="new-password" required autofocus>
+          <button type="button" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false"><span class="material-symbols-outlined">visibility_off</span></button>
         </div>
+        {% for error in form.new_password1.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+      </div>
     </div>
-</body>
-</html>
+
+    <div class="cuenta-campo">
+      <label for="{{ form.new_password2.id_for_label }}">
+        <span class="material-symbols-outlined">lock</span> Confirmar nueva contraseña
+      </label>
+      <div>
+        <div class="clave-campo">
+          <input type="password" name="new_password2" id="{{ form.new_password2.id_for_label }}" class="form-control" autocomplete="new-password" required>
+          <button type="button" class="clave-ver" aria-label="Mostrar contraseña" aria-pressed="false"><span class="material-symbols-outlined">visibility_off</span></button>
+        </div>
+        {% for error in form.new_password2.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <p class="cuenta-aviso">
+      <span class="material-symbols-outlined">info</span>
+      La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula, un número y un carácter especial.
+    </p>
+
+    <div class="cuenta-botones">
+      <button type="submit" form="form-salir" class="cuenta-btn cuenta-btn-secundario">
+        <span class="material-symbols-outlined">logout</span> Cerrar sesión
+      </button>
+      <button type="submit" class="cuenta-btn cuenta-btn-primario">
+        <span class="material-symbols-outlined">save</span> Guardar contraseña
+      </button>
+    </div>
+  </form>
+
+  <!-- LogoutView solo acepta POST; va aparte porque no se pueden anidar formularios -->
+  <form id="form-salir" method="POST" action="{% url 'logout' %}" hidden>{% csrf_token %}</form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Muestra u oculta la contraseña, igual que en Nueva contraseña
+  document.querySelectorAll('.clave-ver').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      const campo = boton.previousElementSibling;
+      const mostrar = campo.type === 'password';
+      campo.type = mostrar ? 'text' : 'password';
+      boton.setAttribute('aria-pressed', String(mostrar));
+      boton.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+      boton.querySelector('span').textContent = mostrar ? 'visibility' : 'visibility_off';
+    });
+  });
+</script>
+{% endblock %}

@@ -111,12 +111,18 @@
           </p>
           <div class="linea-naranja"></div>
           <form method="POST">
-            {% csrf_token %} {% if form.errors %}
-            <div class="alerta-error">
-              <span class="material-symbols-outlined">error</span>
-              Usuario o contraseña incorrectos. Intente de nuevo.
+            {% csrf_token %}
+            {% for message in messages %}
+            <div class="alerta alerta-{{ message.tags|default:'info' }}" role="alert">
+              <span class="material-symbols-outlined">
+                {% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check_circle{% else %}info{% endif %}
+              </span>
+              <span class="alerta-texto">{{ message }}</span>
+              <button type="button" class="alerta-cerrar" aria-label="Cerrar" onclick="this.parentElement.remove()">
+                <span class="material-symbols-outlined">close</span>
+              </button>
             </div>
-            {% endif %}
+            {% endfor %}
 
             <!-- Campo: Correo o Usuario -->
             <div class="grupo-campo">
@@ -126,9 +132,10 @@
                 <input
                   type="text"
                   name="username"
+                  value="{{ identificador }}"
                   placeholder="ejemplo@correo.com"
                   required
-                  autofocus
+                  {% if not identificador %}autofocus{% endif %}
                 />
               </div>
             </div>
@@ -144,6 +151,7 @@
                   id="id_password"
                   placeholder="••••••••"
                   required
+                  {% if identificador %}autofocus{% endif %}
                 />
                 <span
                   class="material-symbols-outlined toggle-password"

@@ -257,6 +257,47 @@ body {
   background-color: #555555;
 }
 
+/* Campanita de notificaciones en el header */
+.campana-notificaciones {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #4A4A4A;
+  color: var(--color-blanco);
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.campana-notificaciones:hover {
+  background-color: #555555;
+}
+
+.campana-notificaciones .material-symbols-outlined {
+  font-size: 24px;
+}
+
+/* Número de no leídas, arriba a la derecha */
+.campana-numero {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background-color: var(--color-rojo);
+  color: var(--color-blanco);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  border: 2px solid var(--color-gris-oscuro);
+}
+
 .user-avatar {
   width: 36px;
   height: 36px;
