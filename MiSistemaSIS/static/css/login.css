@@ -285,9 +285,7 @@ h1 {
 /* =========================================
    6. ALERTA DE ERROR
    ========================================= */
-.alerta-error {
-  background-color: #FEE2E2;
-  color: #991B1B;
+.alerta {
   padding: 12px 15px;
   border-radius: 8px;
   font-size: 13px;
@@ -295,7 +293,40 @@ h1 {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-left: 4px solid #DC2626;
+  border-left: 4px solid;
+  animation: alerta-entrar 0.25s ease-out;
+}
+
+.alerta-texto { flex: 1; }
+
+.alerta-cerrar {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  opacity: 0.6;
+}
+
+.alerta-cerrar:hover { opacity: 1; }
+.alerta-cerrar .material-symbols-outlined { font-size: 18px; }
+
+/* Errores: datos incorrectos, cuenta desactivada */
+.alerta-error, .alerta-danger { background-color: #FEE2E2; color: #991B1B; border-color: #DC2626; }
+.alerta-warning { background-color: #FEF3C7; color: #92400E; border-color: #F59E0B; }
+.alerta-success { background-color: #D1FAE5; color: #065F46; border-color: #10B981; }
+.alerta-info, .alerta-debug { background-color: #E0F2FE; color: #075985; border-color: #0EA5E9; }
+
+/* Al fallar, la tarjeta se sacude un poco para llamar la atención */
+@keyframes alerta-entrar {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alerta { animation: none; }
 }
 
 /* =========================================

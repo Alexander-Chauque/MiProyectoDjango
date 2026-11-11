@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import make_password
 #USUARIO GESTION
 #Cargo
 class Cargo(models.Model):
-    id_cargo = models.AutoField(primary_key=True)
+    id_cargo = models.BigAutoField(primary_key=True)
     nombre_cargo = models.CharField(max_length=100, unique=True)
     descripcion_cargo = models.TextField(blank=True)
     nivel_acceso = models.BigIntegerField(default=1)

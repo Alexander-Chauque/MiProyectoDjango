@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 1.5cm;
+      @frame pie {
+        -pdf-frame-content: pie;
+        bottom: 0.6cm; height: 0.8cm; left: 1.5cm; right: 1.5cm;
+      }
+    }
+    body { font-family: Helvetica, Arial, sans-serif; color: #333; font-size: 9px; }
+    .encabezado { border-bottom: 2px solid #F5A623; padding-bottom: 6px; margin-bottom: 10px; }
+    .encabezado h1 { color: #F5A623; margin: 0; font-size: 20px; }
+    .encabezado p { margin: 2px 0 0 0; font-size: 10px; color: #666; }
+    .filtros { font-size: 9px; color: #555; margin-bottom: 8px; }
+    .aviso { color: #B45309; font-size: 9px; margin-bottom: 6px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background-color: #3D3D3D; color: #FFFFFF; padding: 5px 4px; text-align: left; font-size: 9px; }
+    td { padding: 4px; border-bottom: 1px solid #E5E5E5; vertical-align: top; }
+    .crear { background-color: #D1FAE5; }
+    .modificar { background-color: #FEF3C7; }
+    .anular { background-color: #FEE2E2; }
+    .eliminar { background-color: #E5E7EB; }
+    .vacio { text-align: center; color: #888; padding: 20px; }
+    #pie { font-size: 8px; color: #888; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="encabezado">
+    <h1>Los Cardones</h1>
+    <p>Log de Auditoría · Generado el {% now "d/m/Y H:i" %}</p>
+  </div>
+
+  <div class="filtros">
+    <strong>Filtros:</strong>
+    Tabla: {{ filtros.tabla|default:"todas" }} ·
+    Acción: {{ filtros.accion|default:"todas" }} ·
+    Usuario: {{ usuario_nombre|default:"todos" }} ·
+    Desde: {{ filtros.fecha_desde|default:"—" }} ·
+    Hasta: {{ filtros.fecha_hasta|default:"—" }}
+    {% if filtros.detalle %} · Texto: "{{ filtros.detalle }}"{% endif %}
+    <br><strong>Total de movimientos:</strong> {{ total }}
+  </div>
+
+  {% if recortado %}
+  <div class="aviso">Se muestran los {{ maximo }} movimientos más recientes. Acotá los filtros para ver el resto.</div>
+  {% endif %}
+
+  <table repeat="1">
+    <thead>
+      <tr>
+        <th style="width: 11%;">Fecha y hora</th>
+        <th style="width: 13%;">Usuario</th>
+        <th style="width: 9%;">Tabla</th>
+        <th style="width: 8%;">Acción</th>
+        <th style="width: 6%;">Registro</th>
+        <th style="width: 26%;">Valores anteriores</th>
+        <th style="width: 27%;">Valores actuales</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.fecha_hora|date:"d/m/Y H:i:s" }}</td>
+        <td>{% if log.empleado %}{{ log.empleado.nombre_empleado }} {{ log.empleado.apellido_empleado }}{% else %}Sistema{% endif %}</td>
+        <td>{{ log.tabla }}</td>
+        <td class="{{ log.accion|lower }}">{{ log.accion }}</td>
+        <td>#{{ log.registro_id }}</td>
+        <td>{{ log.valores_anteriores|default:"—" }}</td>
+        <td>{{ log.valores_actuales|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="vacio">No hay movimientos con estos filtros.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div id="pie">Página <pdf:pagenumber> de <pdf:pagecount></div>
+</body>
+</html>

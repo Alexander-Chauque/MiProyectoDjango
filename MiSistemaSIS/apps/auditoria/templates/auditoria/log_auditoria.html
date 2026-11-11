@@ -34,9 +34,9 @@
     </div>
 
     <div class="page-header-acciones">
-        <a href="{% url 'auditoria:exportar_csv' %}?tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}" 
+        <a href="{% url 'auditoria:exportar_pdf' %}?{{ query_filtros }}" 
           class="btn-primario">
-            <span class="material-symbols-outlined">download</span> Exportar Excel
+            <span class="material-symbols-outlined">picture_as_pdf</span> Exportar PDF
         </a>
     </div>
   </div>
@@ -156,7 +156,7 @@
         <tbody>
           {% for log in logs %}
           <tr>
-            <td><strong>{{ forloop.counter }}</strong></td>
+            <td><strong>{{ logs.start_index|add:forloop.counter0 }}</strong></td>
             <td>{{ log.fecha_hora|date:"d/m/Y H:i" }}</td>
             <td>{{ log.empleado.nombre_empleado }} {{ log.empleado.apellido_empleado }}</td>
             <td>{{ log.tabla }}</td>
@@ -192,21 +192,21 @@
         <span class="paginacion-info">Mostrando {{ logs.start_index }} a {{ logs.end_index }} de {{ logs.paginator.count }} registros</span>
         <div class="paginacion-botones">
           {% if logs.has_previous %}
-            <a href="?page={{ logs.previous_page_number }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+            <a href="?page={{ logs.previous_page_number }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
               <span class="material-symbols-outlined">chevron_left</span>
             </a>
           {% endif %}
 
           {% for num in logs.paginator.page_range %}
             {% if logs.number == num %}
-              <a href="?page={{ num }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
+              <a href="?page={{ num }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
             {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
-              <a href="?page={{ num }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+              <a href="?page={{ num }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
             {% endif %}
           {% endfor %}
 
           {% if logs.has_next %}
-            <a href="?page={{ logs.next_page_number }}&tabla={{ filtros.tabla }}&accion={{ filtros.accion }}&usuario={{ filtros.usuario }}&fecha_desde={{ filtros.fecha_desde }}&fecha_hasta={{ filtros.fecha_hasta }}&detalle={{ filtros.detalle }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+            <a href="?page={{ logs.next_page_number }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
               <span class="material-symbols-outlined">chevron_right</span>
             </a>
           {% endif %}

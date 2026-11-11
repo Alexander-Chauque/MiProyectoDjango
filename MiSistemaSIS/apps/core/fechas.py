@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 
 from django.utils import timezone
 
@@ -20,3 +20,23 @@ def limitar_rango(desde, hasta):
     if desde and hasta and desde > hasta:
         return hasta, desde
     return desde, hasta
+
+
+def filtrar_por_fecha(consulta, campo, desde, hasta):
+    """Filtra un DateTimeField por días completos, en la hora de Salta.
+
+    No usa `campo__date`: en MySQL eso se traduce a CONVERT_TZ, que devuelve
+    NULL si el servidor no tiene cargadas las tablas de zonas horarias (XAMPP
+    no las trae), y entonces cualquier rango de fechas sale vacío.
+    """
+    zona = timezone.get_current_timezone()
+    for texto, extremo, operador in ((desde, time.min, "gte"), (hasta, time.max, "lte")):
+        if not texto:
+            continue
+        try:
+            dia = datetime.strptime(texto, "%Y-%m-%d").date() if isinstance(texto, str) else texto
+        except ValueError:
+            continue
+        limite = timezone.make_aware(datetime.combine(dia, extremo), zona)
+        consulta = consulta.filter(**{f"{campo}__{operador}": limite})
+    return consulta

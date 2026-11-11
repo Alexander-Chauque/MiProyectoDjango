@@ -18,6 +18,7 @@ from .forms import (
     EmpleadoModificacionForm,
     MiPerfilForm,
     RestablecerContrasenaForm,
+    NuevaContrasenaForm,
     CargoForm,
     PermisoXCargoForm,
     AsignarPermisosCargoForm,
@@ -318,92 +319,91 @@ def empleado_restablecer_contrasena(request, pk):
     )
 
 
+def _buscar_username(identificador):
+    """Acepta usuario, correo o "Nombre Apellido" (en cualquier orden) y devuelve el username."""
+    if User.objects.filter(username=identificador).exists():
+        return identificador
+
+    candidatos = [Q(correo__iexact=identificador)]
+    partes = identificador.split()
+    if len(partes) >= 2:
+        candidatos.append(Q(nombre_empleado__iexact=partes[0], apellido_empleado__iexact=partes[1]))
+        candidatos.append(Q(apellido_empleado__iexact=partes[0], nombre_empleado__iexact=partes[1]))
+    for condicion in candidatos:
+        # filter() en vez de get(): dos empleados con el mismo nombre ya no provocan un error 500
+        encontrados = list(Empleado.objects.filter(condicion, user__isnull=False).select_related("user")[:2])
+        if len(encontrados) == 1:
+            return encontrados[0].user.username
+    return None
+
+
 def login_view(request):
+    identificador = ""
     if request.method == "POST":
-        identificador = request.POST.get(
-            "username"
-        )  # Puede ser usuario, correo o nombre
-        password = request.POST.get("password")
+        identificador = (request.POST.get("username") or "").strip()
+        password = request.POST.get("password") or ""
 
-        username_real = None
-        if User.objects.filter(username=identificador).exists():
-            username_real = identificador
-        else:
-            try:
-                empleado = Empleado.objects.get(correo__iexact=identificador)
-                if empleado.user:
-                    username_real = empleado.user.username
-            except Empleado.DoesNotExist:
-                pass
-            if not username_real:
-                partes = identificador.split()
-                if len(partes) >= 2:
-                    # Probar Nombre Apellido
-                    try:
-                        empleado = Empleado.objects.get(
-                            nombre_empleado__iexact=partes[0],
-                            apellido_empleado__iexact=partes[1],
-                        )
-                        if empleado.user:
-                            username_real = empleado.user.username
-                    except Empleado.DoesNotExist:
-                        pass
-                    # Probar Apellido Nombre
-                    if not username_real:
-                        try:
-                            empleado = Empleado.objects.get(
-                                apellido_empleado__iexact=partes[0],
-                                nombre_empleado__iexact=partes[1],
-                            )
-                            if empleado.user:
-                                username_real = empleado.user.username
-                        except Empleado.DoesNotExist:
-                            pass
+        if not identificador or not password:
+            messages.error(request, "Completá el correo y la contraseña.")
+            return render(request, "login.html", {"identificador": identificador})
 
-        # Autenticar al usuario
+        username_real = _buscar_username(identificador)
         if username_real:
             user = authenticate(request, username=username_real, password=password)
             if user is not None:
                 login(request, user)
-                # Verificar si debe cambiar la contraseña
+                if not request.POST.get("remember"):
+                    # Sin "Recordar sesión", la sesión termina al cerrar el navegador
+                    request.session.set_expiry(0)
                 try:
-                    empleado = user.empleado
-                    if empleado.debe_cambiar_contrasena:
-                        messages.warning(
-                            request, "Debes cambiar tu contraseña antes de continuar."
-                        )
+                    if user.empleado.debe_cambiar_contrasena:
+                        # La pantalla ya explica el motivo; un mensaje aquí salía repetido
                         return redirect("empleados:cambiar_clave_obligatorio")
                 except Empleado.DoesNotExist:
                     pass
                 return redirect("home")
-        messages.error(request, "Usuario, correo o contraseña incorrectos")
-    return render(request, "login.html")
+
+            # authenticate() rechaza las cuentas inactivas aunque la clave sea correcta.
+            # Solo se avisa si la clave coincide, para no revelar qué cuentas existen.
+            cuenta = User.objects.filter(username=username_real).first()
+            if cuenta and not cuenta.is_active and cuenta.check_password(password):
+                messages.error(
+                    request,
+                    "Tu cuenta está desactivada. Contactá con el administrador del sistema.",
+                )
+                return render(request, "login.html", {"identificador": identificador})
+
+        messages.error(request, "Usuario, correo o contraseña incorrectos. Intentá de nuevo.")
+    return render(request, "login.html", {"identificador": identificador})
 
 
 @login_required
 def cambiar_clave_obligatorio(request):
-    empleado = request.user.empleado
-    if not empleado.debe_cambiar_contrasena:
-        return redirect("empleados:empleado_listar")
-    if request.method == "POST":
-        nueva = request.POST.get("nueva_contrasena")
-        confirmar = request.POST.get("confirmar_contrasena")
-        if nueva and confirmar and nueva == confirmar:
-            if len(nueva) >= 8:
-                request.user.set_password(nueva)
-                request.user.save()
-                empleado.debe_cambiar_contrasena = False
-                empleado.save()
-                update_session_auth_hash(request, request.user)
-                messages.success(request, "Contraseña actualizada exitosamente")
-                return redirect("login")
-            else:
-                messages.error(
-                    request, " La contraseña debe tener al menos 8 caracteres"
-                )
-        else:
-            messages.error(request, "Las contraseñas no coinciden")
-    return render(request, "cambiar_clave_obligatorio.html")
+    empleado = Empleado.objects.filter(user=request.user).first()
+    if not empleado or not empleado.debe_cambiar_contrasena:
+        return redirect("home")
+
+    # Las mismas reglas que la recuperación por correo y la app: 8 caracteres,
+    # una mayúscula, un número y un carácter especial
+    form = NuevaContrasenaForm(request.user, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            form.save()
+            empleado.debe_cambiar_contrasena = False
+            empleado.save()
+            LogAuditoria.objects.create(
+                tabla="Empleado",
+                accion="MODIFICAR",
+                registro_id=empleado.id_empleado,
+                valores_anteriores="",
+                valores_actuales="Cambió la contraseña temporal",
+                empleado=empleado,
+            )
+        # Sin esto, cambiar la clave cerraría la sesión
+        update_session_auth_hash(request, request.user)
+        messages.success(request, "Contraseña actualizada. ¡Bienvenido/a a Los Cardones!")
+        return redirect("home")
+    return render(request, "cambiar_clave_obligatorio.html", {"form": form})
 
 
 # CUENTA DEL USUARIO

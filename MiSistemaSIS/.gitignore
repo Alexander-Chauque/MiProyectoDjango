@@ -18,3 +18,5 @@ media/
 
 # Editor
 .vscode/
+
+logs/

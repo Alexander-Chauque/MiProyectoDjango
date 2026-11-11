@@ -1,14 +1,11 @@
-"""Reglas de comandas y pagos. Todas lanzan ValueError con un mensaje listo para mostrar."""
-from decimal import Decimal, InvalidOperation
-
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
 from auditoria.models import LogAuditoria
 from inventario.models import Bebida, Plato
-
 from .models import Comanda, DetalleComanda, Mesa, Pago
+from decimal import Decimal, InvalidOperation
+from notificaciones.reglas import evaluar_venta_inusual
 
 ESTADOS_ABIERTOS = ["pendiente", "en_preparacion", "entregado"]
 CANTIDAD_MAXIMA = 999
@@ -52,6 +49,7 @@ def registrar_pago(id_comanda, tipo_pago, metodo_pago, monto_texto, empleado):
         comanda.save()
         comanda.mesa.estado_mesa = True
         comanda.mesa.save()
+        evaluar_venta_inusual(comanda)  # Crea notificación si corresponde
 
     LogAuditoria.objects.create(
         tabla="Comanda",

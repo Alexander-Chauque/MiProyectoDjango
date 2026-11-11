@@ -35,6 +35,7 @@ urlpatterns = [
     path('ventas/', include('ventas.urls')),
     path("reportes/", include("reportes.urls")),
     path("auditoria/", include("auditoria.urls")),
+    path("notificaciones/", include("notificaciones.urls")),
     path("api/", include("api.urls")),  # API que usa la web en React
     path("login/", login_view, name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
@@ -58,7 +59,7 @@ urlpatterns = [
         "password-reset-confirm/<uidb64>/<token>/",
         auth_views.PasswordResetConfirmView.as_view(
             template_name="registration/password_reset_confirm.html",
-            form_class=NuevaContrasenaForm,  # Misma regla que Cambiar contraseña
+            form_class=NuevaContrasenaForm,
             success_url="/password-reset-complete/",
         ),
         name="password_reset_confirm",
@@ -71,6 +72,3 @@ urlpatterns = [
         name="password_reset_complete",
     ),
 ]
-
-# Permite ver las fotos subidas. Solo funciona con DEBUG=True, es decir, en desarrollo.
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

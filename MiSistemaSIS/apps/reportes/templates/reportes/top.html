@@ -1,17 +1,72 @@
 {% extends 'reportes/base_reportes.html' %}
+{% block extra_css_reportes %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+{% endblock %}
+
 {% block contenido_reporte %}
 <div class="grid-top-productos">
   <div class="tarjeta-top">
     <div class="titulo-top"><span class="material-symbols-outlined icono-naranja">restaurant</span><h3>Top 5 Platos</h3></div>
+    {% if top_platos %}
+      <div class="cuerpo-grafico" style="height: 260px;">
+        <canvas id="graficoPlatos"></canvas>
+      </div>
+    {% endif %}
     <table class="tabla-top"><thead><tr><th>#</th><th>Plato</th><th class="derecha">Vendidos</th></tr></thead>
       <tbody>{% for n, c in top_platos %}<tr><td class="numero-top">{{ forloop.counter }}</td><td>{{ n }}</td><td class="derecha"><strong>{{ c }}</strong></td></tr>{% empty %}<tr><td colspan="3" class="sin-datos">Sin ventas</td></tr>{% endfor %}</tbody>
     </table>
   </div>
   <div class="tarjeta-top">
     <div class="titulo-top"><span class="material-symbols-outlined icono-naranja">local_drink</span><h3>Top 5 Bebidas</h3></div>
+    {% if top_bebidas %}
+      <div class="cuerpo-grafico" style="height: 260px;">
+        <canvas id="graficoBebidas"></canvas>
+      </div>
+    {% endif %}
     <table class="tabla-top"><thead><tr><th>#</th><th>Bebida</th><th class="derecha">Vendidos</th></tr></thead>
       <tbody>{% for n, c in top_bebidas %}<tr><td class="numero-top">{{ forloop.counter }}</td><td>{{ n }}</td><td class="derecha"><strong>{{ c }}</strong></td></tr>{% empty %}<tr><td colspan="3" class="sin-datos">Sin ventas</td></tr>{% endfor %}</tbody>
     </table>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ labels_platos|json_script:"labels-platos" }}
+{{ data_platos|json_script:"data-platos" }}
+{{ labels_bebidas|json_script:"labels-bebidas" }}
+{{ data_bebidas|json_script:"data-bebidas" }}
+<script>
+  function dibujarTop(idCanvas, idLabels, idData, serie) {
+  const lienzo = document.getElementById(idCanvas);
+  if (!lienzo) return;  // sin ventas no hay canvas
+  const labels = JSON.parse(document.getElementById(idLabels).textContent);
+  const data = JSON.parse(document.getElementById(idData).textContent);
+  new Chart(lienzo, {
+    type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: serie,
+          data: data,
+          backgroundColor: 'rgba(245, 166, 35, 0.8)',
+          borderColor: '#F5A623',
+          borderWidth: 1,
+          borderRadius: 6,
+          barPercentage: 0.6
+        }]
+      },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+}
+
+dibujarTop('graficoPlatos', 'labels-platos', 'data-platos', 'Vendidos');
+dibujarTop('graficoBebidas', 'labels-bebidas', 'data-bebidas', 'Vendidas');
+
+</script>
 {% endblock %}
