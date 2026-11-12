@@ -144,9 +144,22 @@ class caja(models.Model):
             self.gastos.aggregate(total=Sum('monto_gasto'))['total']
             or Decimal('0.00')
         )
+    def calcular_total_ventas(self):
+        return self.pagos.aggregate(
+            total=Sum('monto')
+        )['total'] or Decimal('0.00')
 
+    def calcular_total_ventas_efectivo(self):
+        return self.pagos.filter(
+            metodo_pago__nombre_metodo_pago__iexact='Efectivo'
+        ).aggregate(
+            total=Sum('monto')
+        )['total'] or Decimal('0.00')
+    
     def calcular_saldo_esperado(self):
-        return self.saldo_inicial - self.calcular_total_egresos()
+        ingresos = self.calcular_total_ventas()
+        egresos = self.calcular_total_egresos()
+        return self.saldo_inicial + ingresos - egresos
 
     def realizar_arqueo(
         self,

@@ -104,13 +104,6 @@ class Comanda(models.Model):
 
 
 class Pago(models.Model):
-    METODOS = [
-        ('efectivo', 'Efectivo'),
-        ('tarjeta', 'Tarjeta de Débito/Crédito'),
-        ('transferencia', 'Transferencia'),
-        ('mercadopago', 'Mercado Pago'),
-    ]
-
     id_pago = models.AutoField(primary_key=True)
     comanda = models.ForeignKey(Comanda, on_delete=models.PROTECT,
         db_column='comanda_id',
@@ -118,7 +111,13 @@ class Pago(models.Model):
         verbose_name="Comanda"
     )
     monto = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monto")
-    metodo_pago = models.CharField(max_length=20, choices=METODOS, verbose_name="Método de Pago")
+    metodo_pago = models.ForeignKey(
+    'finanzas.metodo_pago',
+    on_delete=models.PROTECT,
+    db_column='metodo_pago_id',
+    related_name='pagos',
+    verbose_name='Método de Pago'
+    )
     fecha_hora = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y Hora")
     # db_constraint=False: id_empleado es bigint en la base, pero AutoField (int) en el modelo
     empleado = models.ForeignKey(Empleado, on_delete=models.SET_NULL, null=True, blank=True,
@@ -126,7 +125,15 @@ class Pago(models.Model):
         db_constraint=False,
         verbose_name="Cobrado por"
     )
-
+    caja = models.ForeignKey(
+    "finanzas.caja",
+    on_delete=models.PROTECT,
+    db_column="caja_id",
+    related_name="pagos",
+    null=True,
+    blank=True,
+    verbose_name="Caja"
+    )
     class Meta:
         db_table = 'ventas_pago'
         verbose_name = 'Pago'

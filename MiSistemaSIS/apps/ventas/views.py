@@ -11,6 +11,7 @@ from django.forms import inlineformset_factory
 from .forms import MesaForm, ComandaForm, DetalleComandaForm
 from inventario.models import Plato, Bebida, CategoriaPlato, TipoBebida 
 from auditoria.models import LogAuditoria
+from finanzas.models import caja, metodo_pago as MetodoPago
 from empleados.decorators import permiso_requerido, tiene_permiso
 from django.db import transaction
 from reportlab.pdfgen import canvas
@@ -234,7 +235,9 @@ def comanda_listar(request):
         .order_by("-fecha_hora")
     )
     mesas = Mesa.objects.all().order_by("numero_mesa")
-
+    metodos_pago = MetodoPago.objects.filter(
+        estado_metodo_pago=True
+    ).order_by('nombre_metodo_pago')
     buscar = request.GET.get("buscar", "").strip()
     estados = request.GET.getlist("estado")
     mesas_ids = request.GET.getlist("mesa")
@@ -296,6 +299,7 @@ def comanda_listar(request):
         {
             "comandas": comandas,
             "mesas": mesas,
+            "metodos_pago": metodos_pago,
             "por_pagina": por_pagina,
             "buscar": buscar,
             "estados_seleccionados": estados,
@@ -817,19 +821,24 @@ def comanda_cobrar(request):
 
 
 def _registrar_pago(request):
-    """Guarda el pago y cierra la comanda si queda sin saldo. Lanza ValueError si los datos no son válidos."""
+    """Registra el pago y cierra la comanda si queda sin saldo."""
+    metodo_pago_id = request.POST.get("metodo_pago")
     comanda, monto, saldo_restante = registrar_pago(
         request.POST.get("comanda_id"),
         request.POST.get("tipo_pago"),
-        request.POST.get("metodo_pago"),
+        metodo_pago_id,
         request.POST.get("monto_abonado", ""),
         request.user.empleado,
     )
 
     if saldo_restante == 0:
-        messages.success(request, f"Comanda #{comanda.id_comanda} pagada en su totalidad.")
+        messages.success(
+            request,
+            f"Comanda #{comanda.id_comanda} pagada en su totalidad."
+        )
     else:
         messages.success(
             request,
-            f"Pago de ${monto} registrado en la comanda #{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}.",
+            f"Pago de ${monto} registrado en la comanda "
+            f"#{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}."
         )
