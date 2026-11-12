@@ -20,37 +20,35 @@
             <span class="material-symbols-outlined">home</span>
             Inicio
         </a>
-        <span class="material-symbols-outlined">chevron_right</span>
         <span class="breadcrumb-separator">></span>
-
         <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
             Finanzas
         </a>
-        <span class="material-symbols-outlined">chevron_right</span>
         <span class="breadcrumb-separator">></span>
-
         <a href="{% url 'finanzas:listar_cajas' %}" class="breadcrumb-item">
             Cajas
         </a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <span>Abrir caja</span>
+        <span class="breadcrumb-separator">></span>
+        <span   class="breadcrumb-ite-active">Abrir caja</span>
     </nav>
 
     <!-- ENCABEZADO -->
     <header class="page-header">
-        <a href="{% url 'finanzas:listar_cajas' %}"
-           class="btn-volver-flecha"
-           title="Volver al listado">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </a>
+        <div class="page-header-info">  
+            <a href="{% url 'finanzas:listar_cajas' %}"
+            class="btn-volver-flecha"
+            title="Volver al listado">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
 
-        <div class="page-header-icono">
-            <span class="material-symbols-outlined">point_of_sale</span>
-        </div>
+            <div class="page-header-icono">
+                <span class="material-symbols-outlined">point_of_sale</span>
+            </div>
 
-        <div class="page-header-texto">
-            <h1>Abrir caja</h1>
-            <p>Registra una nueva apertura de caja y su saldo inicial.</p>
+            <div class="page-header-texto">
+                <h1>Abrir caja</h1>
+                <p>Registra una nueva apertura de caja y su saldo inicial.</p>
+            </div>
         </div>
     </header>
 

@@ -30,6 +30,5 @@ urlpatterns = [
     path('GASTOS/<int:pk>/editar/', views.editar_gasto, name='editar_gasto'),
     path('GASTOS/<int:pk>/eliminar/', views.eliminar_gasto, name='eliminar_gasto'),
     #RUTAS PARA VENTAS
-    path('VENTAS/listar_ventas/', views.venta_listar, name='venta_listar'),
-    path('VENTAS/crear_venta/', views.venta_crear, name='venta_crear'),
+    path('VENTAS/listar_ventas', views.listar_ventas, name='listar_ventas'),
 ]
