@@ -6,14 +6,14 @@ from django.db.models import Sum, Count, F, DecimalField
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import date, datetime, time
-import csv
 from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from ventas.models import Comanda, DetalleComanda, Pago
 from empleados.models import Empleado
 from inventario.models import CategoriaPlato
-from .productos import CATEGORIA_PLATO, CON_BEBIDA, CON_PLATO, NOMBRE_BEBIDA, NOMBRE_PLATO, PRECIO_PLATO
+from .productos import (CATEGORIA_PLATO, CON_BEBIDA, CON_PLATO, NOMBRE_BEBIDA, NOMBRE_PLATO, PRECIO_PLATO,)
+
 # --- FUNCIÓN AUXILIAR PARA FECHAS ---
 def obtener_rango_fechas(request):
     hoy = timezone.localdate()
@@ -27,12 +27,38 @@ def obtener_rango_fechas(request):
         f_hasta = datetime.strptime(f_hasta_str, "%Y-%m-%d").date()
     except ValueError:
         f_desde, f_hasta = hoy.replace(day=1), hoy
-        f_desde_str, f_hasta_str = f_desde.strftime("%Y-%m-%d"), f_hasta.strftime("%Y-%m-%d")
+        f_desde_str, f_hasta_str = f_desde.strftime("%Y-%m-%d"), f_hasta.strftime(
+            "%Y-%m-%d"
+        )
 
     inicio = timezone.make_aware(datetime.combine(f_desde, time.min))
     fin = timezone.make_aware(datetime.combine(f_hasta, time.max))
     return inicio, fin, f_desde_str, f_hasta_str
 
+AGRUPACIONES = {"dia": "Día", "mes": "Mes", "anio": "Año"}
+MESES = [
+    "Ene",
+    "Feb",
+    "Mar",
+    "Abr",
+    "May",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dic",
+]
+
+
+def etiqueta_periodo(clave):
+    """(año,) -> '2026'; (año, mes) -> 'Oct 2026'; (año, mes, día) -> '15/10'."""
+    if len(clave) == 1:
+        return str(clave[0])
+    if len(clave) == 2:
+        return f"{MESES[clave[1] - 1]} {clave[0]}"
+    return f"{clave[2]:02d}/{clave[1]:02d}"
 
 def obtener_comandas(request):
     inicio, fin, f_desde_str, f_hasta_str = obtener_rango_fechas(request)
@@ -40,7 +66,6 @@ def obtener_comandas(request):
         estado_comanda__iexact="pagado", fecha_hora__range=[inicio, fin]
     )
     return comandas, f_desde_str, f_hasta_str
-
 
 def obtener_totales_metodos(request):
     """Devuelve [(nombre del método, total cobrado)] del período, de mayor a menor."""
@@ -51,7 +76,9 @@ def obtener_totales_metodos(request):
         .values("metodo_pago")
         .annotate(total=Sum("monto"))
     )
-    totales = [(nombres.get(p["metodo_pago"], p["metodo_pago"]), p["total"]) for p in pagos]
+    totales = [
+        (nombres.get(p["metodo_pago"], p["metodo_pago"]), p["total"]) for p in pagos
+    ]
 
     # Comandas cobradas antes de existir la tabla Pago: no tienen método guardado
     sin_registro = Comanda.objects.filter(
@@ -65,25 +92,31 @@ def obtener_totales_metodos(request):
     totales.sort(key=lambda fila: fila[1], reverse=True)
     return totales, f_desde_str, f_hasta_str
 
-
 # --- REPORTE DE VENTAS GENERALES (KPIs y Gráfico) ---
 @login_required
 @permiso_requerido("reportes", "leer")
 def reporte_ventas(request):
     comandas, f_desde, f_hasta = obtener_comandas(request)
-
     ventas_totales = comandas.aggregate(total=Sum("total_comanda"))["total"] or 0
     cant_comandas = comandas.count()
     ticket = (ventas_totales / cant_comandas) if cant_comandas > 0 else 0
-
-    # Gráfico
-    ventas_dia = {}
+    # Gráfico: evolución agrupada por día, mes o año
+    agrupar = request.GET.get("agrupar", "dia")
+    if agrupar not in AGRUPACIONES:
+        agrupar = "dia"
+    ventas_periodo = {}
     for c in comandas:
-        dia = timezone.localtime(c.fecha_hora).date()
-        ventas_dia[dia] = ventas_dia.get(dia, 0) + float(c.total_comanda)
-    fechas = sorted(ventas_dia.keys())
-    labels = [f.strftime("%d/%m") for f in fechas]
-    data = [ventas_dia[f] for f in fechas]
+        fecha = timezone.localtime(c.fecha_hora).date()
+        if agrupar == "anio":
+            clave = (fecha.year,)
+        elif agrupar == "mes":
+            clave = (fecha.year, fecha.month)
+        else:
+            clave = (fecha.year, fecha.month, fecha.day)
+        ventas_periodo[clave] = ventas_periodo.get(clave, 0) + float(c.total_comanda)
+    claves = sorted(ventas_periodo)
+    labels = [etiqueta_periodo(clave) for clave in claves]
+    data = [ventas_periodo[clave] for clave in claves]
 
     return render(
         request,
@@ -96,6 +129,9 @@ def reporte_ventas(request):
             "data": data,
             "fecha_desde": f_desde,
             "fecha_hasta": f_hasta,
+            "agrupar": agrupar,
+            "agrupar_nombre": AGRUPACIONES[agrupar],
+            "agrupaciones": AGRUPACIONES,
             "tab": "ventas",
         },
     )
@@ -115,7 +151,9 @@ def reporte_top(request):
     )
 
     top_bebidas = (
-        DetalleComanda.objects.filter(CON_BEBIDA, comanda__in=comandas, cant_bebida__gt=0)
+        DetalleComanda.objects.filter(
+            CON_BEBIDA, comanda__in=comandas, cant_bebida__gt=0
+        )
         .annotate(nombre=NOMBRE_BEBIDA)
         .values("nombre")
         .annotate(total=Sum("cant_bebida"))
@@ -123,7 +161,7 @@ def reporte_top(request):
     )
     lista_platos = [
         {
-            "nombre": p['nombre'],
+            "nombre": p["nombre"],
             "total": p["total"],
         }
         for p in top_platos
@@ -131,11 +169,11 @@ def reporte_top(request):
 
     labels_platos = [p["nombre"] for p in lista_platos]
     data_platos = [int(p["total"]) for p in lista_platos]
-    
+
     lista_bebidas = [
         {
-            "nombre": b['nombre'],
-            "total": b['total'],
+            "nombre": b["nombre"],
+            "total": b["total"],
         }
         for b in top_bebidas
     ]
@@ -158,7 +196,6 @@ def reporte_top(request):
         },
     )
 
-
 # --- REPORTE POR CATEGORÍA (Táctico) ---
 @login_required
 @permiso_requerido("reportes", "leer")
@@ -170,9 +207,7 @@ def reporte_categorias(request):
         .annotate(categoria_nombre=CATEGORIA_PLATO)
         .values("categoria_nombre")
         .annotate(
-            ingresos=Sum(
-                F("cant_plato") * PRECIO_PLATO, output_field=DecimalField()
-            )
+            ingresos=Sum(F("cant_plato") * PRECIO_PLATO, output_field=DecimalField())
         )
         .order_by("-ingresos")
     )
@@ -187,18 +222,17 @@ def reporte_categorias(request):
             "tab": "categorias",
         },
     )
-# # --- REPORTE DE MOZOS (Táctico) ---
+
+# --- REPORTE DE MOZOS (Táctico) ---
 @login_required
 @permiso_requerido("reportes", "leer")
 def reporte_mozos(request):
     comandas, f_desde, f_hasta = obtener_comandas(request)
-
     mozos = (
         comandas.values("empleado__nombre_empleado", "empleado__apellido_empleado")
         .annotate(total=Sum("total_comanda"), cantidad=Count("id_comanda"))
         .order_by("-total")
     )
-
     lista_mozos = [
         {
             "nombre": f"{m['empleado__nombre_empleado']} {m['empleado__apellido_empleado']}",
@@ -207,23 +241,20 @@ def reporte_mozos(request):
         }
         for m in mozos
     ]
-    
-    labels_mozos = [m['nombre'] for m in lista_mozos]
-    data_mozos = [m['total'] for m in lista_mozos]
-
+    labels_mozos = [m["nombre"] for m in lista_mozos]
+    data_mozos = [m["total"] for m in lista_mozos]
     return render(
         request,
         "reportes/mozos.html",
         {
             "lista_mozos": lista_mozos,
-            'labels_mozos': labels_mozos,
-            'data_mozos': data_mozos,    
+            "labels_mozos": labels_mozos,
+            "data_mozos": data_mozos,
             "fecha_desde": f_desde,
             "fecha_hasta": f_hasta,
             "tab": "mozos",
         },
     )
-
 
 # --- REPORTE DE MÉTODOS DE PAGO---
 @login_required
@@ -245,60 +276,10 @@ def reporte_metodos(request):
         },
     )
 
-# --- EXPORTACIÓN A CSV ---
-@login_required
-@permiso_requerido("reportes", "leer")
-def exportar_csv(request):
-    tipo = request.GET.get("tipo", "ventas")
-    comandas, f_desde, f_hasta = obtener_comandas(request)
-
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = (
-        f'attachment; filename="reporte_{tipo}_{f_desde}_{f_hasta}.csv"'
-    )
-    writer = csv.writer(response)
-
-    if tipo == "ventas":
-        writer.writerow(["ID Comanda", "Fecha", "Mesa", "Mozo", "Total"])
-        for c in comandas:
-            mozo = c.empleado.get_full_name() if c.empleado else "N/A"
-            writer.writerow(
-                [
-                    c.id_comanda,
-                    c.fecha_hora.strftime("%d/%m/%Y %H:%M"),
-                    c.mesa.numero_mesa,
-                    mozo,
-                    c.total_comanda,
-                ]
-            )
-
-    elif tipo == "mozos":
-        writer.writerow(["Mozo", "Cant. Comandas", "Total Vendido"])
-        mozos = comandas.values(
-            "empleado__nombre_empleado", "empleado__apellido_empleado"
-        ).annotate(total=Sum("total_comanda"), cantidad=Count("id_comanda"))
-        for m in mozos:
-            writer.writerow(
-                [
-                    f"{m['empleado__nombre_empleado']} {m['empleado__apellido_empleado']}",
-                    m["cantidad"],
-                    m["total"],
-                ]
-            )
-
-    elif tipo == "metodos":
-        writer.writerow(["Método de Pago", "Total Recaudado"])
-        totales, _, _ = obtener_totales_metodos(request)
-        writer.writerows(totales)
-
-    return response
-
-
 @login_required
 @permiso_requerido("reportes", "leer")
 def exportar_pdf_ventas(request):
     comandas, f_desde, f_hasta = obtener_comandas(request)
-
     ventas_totales = comandas.aggregate(total=Sum("total_comanda"))["total"] or 0
     cant_comandas = comandas.count()
     ticket = (ventas_totales / cant_comandas) if cant_comandas > 0 else 0
@@ -332,9 +313,7 @@ def exportar_pdf_ventas(request):
     response["Content-Disposition"] = (
         f'attachment; filename="Reporte_Ventas_{f_desde}_{f_hasta}.pdf"'
     )
-
     pisa_status = pisa.CreatePDF(html, dest=response)
-
     if pisa_status.err:
         return HttpResponse("Error al generar PDF", status=500)
     return response
