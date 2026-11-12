@@ -97,6 +97,7 @@
         <label>Hasta</label>
         <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control" max="{% now 'Y-m-d' %}">
       </div>
+      {% if agrupar %}<input type="hidden" name="agrupar" value="{{ agrupar }}">{% endif %}
       <button type="submit" class="btn-primario"><span class="material-symbols-outlined">filter_alt</span> Filtrar</button>
     </form>
 

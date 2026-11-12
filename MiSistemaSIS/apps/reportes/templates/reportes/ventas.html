@@ -10,7 +10,12 @@
   </div>
   <!-- Gráfico -->
   <div class="tarjeta-grafico">
-    <div class="titulo-grafico"><span class="material-symbols-outlined icono-naranja">trending_up</span><h3>Evolución de Ventas (Período {{ fecha_desde }} al {{ fecha_hasta }})</h3></div>
+    <div class="titulo-grafico"><span class="material-symbols-outlined icono-naranja">trending_up</span><h3>Evolución de Ventas por {{ agrupar_nombre|lower }} (Período {{ fecha_desde }} al {{ fecha_hasta }})</h3></div>
+    <div class="agrupar-grafico" style="display: flex; gap: 8px; margin-bottom: 12px;">
+      {% for clave, nombre in agrupaciones.items %}
+        <a href="{% url 'reportes:ventas' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}&agrupar={{ clave }}" class="tab-btn {% if agrupar == clave %}activo{% endif %}">Por {{ nombre|lower }}</a>
+      {% endfor %}
+    </div>
     <div class="cuerpo-grafico"><canvas id="grafico"></canvas></div>
   </div>
 {% endblock %}
