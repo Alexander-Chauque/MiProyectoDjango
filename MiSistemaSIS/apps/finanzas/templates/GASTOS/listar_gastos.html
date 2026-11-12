@@ -132,7 +132,31 @@
                         >
                     </div>
                 </div>
+                <!-- Rango de fechas -->
+                <div class="filtro-grupo">
+                    <label>Rango de fecha</label>
+                    <div class="filtro-fecha">
+                        <div class="input-buscar-fecha">
+                            <label for="fecha_desde">Desde</label>
+                            <input
+                                type="date"
+                                id="fecha_desde"
+                                name="fecha_desde"
+                                value="{{ fecha_desde }}"
+                            >
+                        </div>
 
+                        <div class="input-buscar-fecha">
+                            <label for="fecha_hasta">Hasta</label>
+                            <input
+                                type="date"
+                                id="fecha_hasta"
+                                name="fecha_hasta"
+                                value="{{ fecha_hasta }}"
+                            >
+                        </div>
+                    </div>
+                </div>
                 <input type="hidden"
                        name="por_pagina"
                        value="{{ por_pagina }}">

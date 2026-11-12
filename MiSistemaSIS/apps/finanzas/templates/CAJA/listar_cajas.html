@@ -67,7 +67,7 @@
                 </div>
             </div>
 
-            <!-- Estado -->
+            <!-- Estado 
             <div class="filtro-grupo">
                 <label>Estado de la caja</label>
                 <div class="checkboxes">
@@ -103,7 +103,7 @@
                         <span>Cerrado</span>
                     </label>
                 </div>
-            </div>
+            </div>-->
 
             <!-- Rango de fechas -->
             <div class="filtro-grupo">
@@ -202,7 +202,7 @@
 
                                 <!-- Ver detalle -->
                                 <a
-                                    href="{% url 'finanzas:detalle_caja' caja.id_caja %}"
+                                    href="{% url 'finanzas:detalle_caja' caja.pk %}"
                                     class="btn-icon btn-detalle"
                                     title="Ver detalle"
                                 >
@@ -213,7 +213,7 @@
 
                                     <!-- Arqueo -->
                                     <a
-                                        href="{% url 'finanzas:arqueo_caja' caja.id_caja %}"
+                                        href="{% url 'finanzas:arqueo_caja' caja.pk %}"
                                         class="btn-accion"
                                         title="Arqueo de caja"
                                     >
@@ -223,21 +223,15 @@
                                     </a>
 
                                     <!-- Cerrar caja -->
-                                    <form
-                                        method="POST"
-                                        action="{% url 'finanzas:cerrar_caja' caja.id_caja %}"
-                                        style="display:inline;"
-                                        onsubmit="return confirm('¿Estás seguro de que deseas cerrar esta caja?');"
+                                    <a
+                                        href="{% url 'finanzas:cerrar_caja' caja.pk %}"
+                                        class="btn-accion"
+                                        title="Cerrar caja"
                                     >
-                                        {% csrf_token %}
-                                        <button
-                                            type="submit"
-                                            class="btn-icon btn-cerrar"
-                                            title="Cerrar caja"
-                                        >
-                                            <span class="material-symbols-outlined">lock</span>
-                                        </button>
-                                    </form>
+                                        <span class="material-symbols-outlined">
+                                            lock
+                                        </span>
+                                    </a>
 
                                 {% endif %}
                             </div>

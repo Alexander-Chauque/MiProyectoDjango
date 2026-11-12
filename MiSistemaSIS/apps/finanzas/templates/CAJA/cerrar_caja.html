@@ -4,7 +4,7 @@
 {% block title %}Cerrar caja{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/caja.css' %}">
+<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
 <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
 {% endblock %}
@@ -132,7 +132,7 @@
                     <div class="grupo-campo">
                         <label>Saldo esperado</label>
                         <input type="text" class="form-control"
-                               value="$ {{ saldo_esperado|floatformat:2 }}"
+                               value="$ {{ caja.saldo_esperado|floatformat:2 }}"
                                readonly>
                     </div>
 

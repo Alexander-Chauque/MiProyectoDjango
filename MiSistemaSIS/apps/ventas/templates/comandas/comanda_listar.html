@@ -452,14 +452,21 @@
         </div>
 
         <div class="grupo-campo" style="margin-top: 15px;">
-          <label>Método de Pago <span class="req">*</span></label>
-          <select name="metodo_pago" class="form-control" required>
-            <option value="">Seleccione un método...</option>
-            <option value="efectivo">Efectivo</option>
-            <option value="tarjeta">Tarjeta de Débito/Crédito</option>
-            <option value="transferencia">Transferencia</option>
-            <option value="mercadopago">Mercado Pago</option>
-          </select>
+            <label>Método de Pago <span class="req">*</span></label>
+
+            <select name="metodo_pago" class="form-control" required>
+                <option value="">Seleccione un método...</option>
+
+                {% for metodo in metodos_pago %}
+                    <option value="{{ metodo.id_metodo_pago }}">
+                        {{ metodo.nombre_metodo_pago }}
+                    </option>
+                {% empty %}
+                    <option value="" disabled>
+                        No hay métodos de pago disponibles
+                    </option>
+                {% endfor %}
+            </select>
         </div>
         
         <div class="grupo-campo" id="campo-monto-parcial" style="display: none; margin-top: 15px;">

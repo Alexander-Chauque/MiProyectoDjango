@@ -195,7 +195,6 @@
         </div>
 
         <div class="columna-derecha">
-
             <!-- RESUMEN DE SALDOS -->
             <section class="tarjeta-comanda">
                 <div class="titulo-tarjeta">
@@ -220,7 +219,12 @@
                                value="$ {{ saldo_esperado|floatformat:2 }}"
                                readonly>
                     </div>
-
+                    <div class="grupo-campo">
+                        <label>Total de egresos</label>
+                        <input type="text" class="form-control"
+                               value="$ {{ total_egresos|floatformat:2 }}"
+                               readonly>
+                    </div>
                     <div class="grupo-campo">
                         <label>Saldo contado</label>
                         <input type="text"
@@ -261,7 +265,8 @@
                         <label>Fecha y hora del arqueo</label>
                         <input type="text"
                                class="form-control"
-                               readonly>"{% if caja.fecha_arqueo %}{{ caja.fecha_arqueo|date:'d/m/Y H:i' }}{% else %}Sin arqueo registrado{% endif %}"
+                               value="{% if caja.fecha_arqueo %}{{ caja.fecha_arqueo|date:'d/m/Y H:i' }}{% else %}Sin arqueo registrado{% endif %}"
+                               readonly>
                                
                     </div>
 
@@ -269,7 +274,8 @@
                         <label>Responsable del arqueo</label>
                         <input type="text"
                                class="form-control"
-                               readonly>"{% if caja.empleado_arqueamiento %}{{ caja.empleado_arqueamiento.nombre_empleado }} {{ caja.empleado_arqueamiento.apellido_empleado }}{% else %}Pendiente{% endif %}"
+                               value="{% if caja.empleado_arqueamiento %}{{ caja.empleado_arqueamiento.nombre_empleado }} {{ caja.empleado_arqueamiento.apellido_empleado }}{% else %}Pendiente{% endif %}"
+                               readonly>
                                
                     </div>
 
@@ -302,8 +308,8 @@
         <div class="cuerpo-tarjeta">
 
             {% if gastos %}
-                <div class="tabla-responsive">
-                    <table>
+                <div>
+                    <table class="tabla">
                         <thead>
                             <tr>
                                 <th>Descripción</th>
@@ -339,6 +345,110 @@
 
         </div>
     </section>
+    <!-- VENTAS ASOCIADAS -->
+    <section class="tarjeta-comanda">
+        <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined">point_of_sale</span>
+            <h2>Ventas asociadas</h2>
+        </div>
+
+        <div class="cuerpo-tarjeta">
+
+            {% if pagos %}
+                <div>
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th>Comanda</th>
+                                <th>Fecha</th>
+                                <th>Responsable</th>
+                                <th>Método de pago</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for pago in pagos %}
+                                <tr>
+                                    <td>#{{ pago.comanda.id_comanda }}</td>
+
+                                    <td>
+                                        {{ pago.fecha_hora|date:'d/m/Y H:i' }}
+                                    </td>
+
+                                    <td>
+                                        {% if pago.empleado %}
+                                            {{ pago.empleado.nombre_empleado }}
+                                            {{ pago.empleado.apellido_empleado }}
+                                        {% else %}
+                                            No disponible
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {{ pago.metodo_pago.nombre_metodo_pago|default:"No disponible" }}
+                                    </td>
+
+                                    <td>
+                                        $ {{ pago.monto|floatformat:2 }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alerta-info">
+                    <span class="material-symbols-outlined">info</span>
+                    No hay ventas registradas.
+                </div>
+            {% endif %}
+
+        </div>
+    </section>
+    <!-- VENTAS ASOCIADAS -->
+    <section class="tarjeta-comanda">
+        <div class="titulo-tarjeta">
+            <span class="material-symbols-outlined">point_of_sale</span>
+            <h2>Ventas por método de pago</h2>
+        </div>
+
+        <div class="cuerpo-tarjeta">
+
+            {% if ventas_por_metodo %}
+                <div>
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th>Método de pago</th>
+                                <th>Total recaudado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for venta in ventas_por_metodo %}
+                                <tr>
+                                    <td>
+                                        {{ venta.metodo_pago__nombre_metodo_pago }}
+                                    </td>
+
+                                    <td>
+                                        $ {{ venta.total|floatformat:2 }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alerta-info">
+                    <span class="material-symbols-outlined">info</span>
+                    No hay ventas registradas.
+                </div>
+            {% endif %}
+
+        </div>
+    </section>
 
     <!-- ACCIONES -->
     <div class="botones-carrito">
@@ -360,49 +470,5 @@
         {% endif %}
 
     </div>
-
-    <!-- FORMULARIO DE CIERRE -->
-    {% if caja.estado_caja == 'abierto' %}
-        <section class="tarjeta-comanda">
-            <div class="titulo-tarjeta">
-                <span class="material-symbols-outlined">lock</span>
-                <h2>Cerrar caja</h2>
-            </div>
-
-            <div class="cuerpo-tarjeta">
-                <p>
-                    Antes de confirmar el cierre, puedes registrar las
-                    observaciones correspondientes a esta operación.
-                </p>
-
-                <form method="POST"
-                      action="{% url 'finanzas:cerrar_caja' caja.pk %}">
-                    {% csrf_token %}
-
-                    <div class="grupo-campo">
-                        <label for="observaciones_cierre_form">
-                            Observaciones para el cierre
-                        </label>
-
-                        <textarea
-                            id="observaciones_cierre_form"
-                            name="observaciones_cierre"
-                            class="form-control-textarea"
-                            rows="4"
-                            maxlength="1000"
-                            placeholder="Ingresá observaciones sobre el cierre de caja..."></textarea>
-
-                        <small>Máximo 1000 caracteres.</small>
-                    </div>
-
-                    <button type="submit" class="btn-primario">
-                        <span class="material-symbols-outlined">lock</span>
-                        Confirmar cierre
-                    </button>
-                </form>
-            </div>
-        </section>
-    {% endif %}
-
 </div>
 {% endblock %}
