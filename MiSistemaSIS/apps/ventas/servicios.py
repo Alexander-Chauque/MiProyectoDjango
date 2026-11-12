@@ -7,62 +7,144 @@ from django.utils import timezone
 
 from auditoria.models import LogAuditoria
 from inventario.models import Bebida, Plato
-
+from finanzas.models import caja
 from .models import Comanda, DetalleComanda, Mesa, Pago
-
+from finanzas.models import metodo_pago as MetodoPago
 ESTADOS_ABIERTOS = ["pendiente", "en_preparacion", "entregado"]
 CANTIDAD_MAXIMA = 999
 
 
-def registrar_pago(id_comanda, tipo_pago, metodo_pago, monto_texto, empleado):
-    """Guarda el pago y cierra la comanda si queda sin saldo.
 
-    Debe llamarse dentro de transaction.atomic(). Devuelve (comanda, monto, saldo_restante).
+def registrar_pago(id_comanda, tipo_pago, metodo_pago_id, monto_texto, empleado):
+    """Registra un pago asociado a una caja abierta.
+
+    Debe llamarse dentro de transaction.atomic().
+    Devuelve (comanda, monto, saldo_restante).
     """
-    # select_for_update bloquea la fila para que dos cobros simultáneos no se pisen
-    comanda = get_object_or_404(Comanda.objects.select_for_update(), id_comanda=id_comanda)
-    if comanda.estado_comanda not in ESTADOS_ABIERTOS:
-        raise ValueError(f"La comanda #{comanda.id_comanda} ya está cerrada.")
 
-    if metodo_pago not in dict(Pago.METODOS):
+    # Bloquear la comanda para evitar cobros simultáneos.
+    comanda = get_object_or_404(
+        Comanda.objects.select_for_update(),
+        id_comanda=id_comanda
+    )
+
+    if comanda.estado_comanda not in ESTADOS_ABIERTOS:
+        raise ValueError(
+            f"La comanda #{comanda.id_comanda} ya está cerrada."
+        )
+
+    # Validar que el método de pago exista y esté activo.
+    try:
+        metodo_pago_id = int(metodo_pago_id)
+    except (ValueError, TypeError):
         raise ValueError("Seleccioná un método de pago válido.")
 
+    metodo = MetodoPago.objects.filter(
+        id_metodo_pago=metodo_pago_id,
+        estado_metodo_pago=True
+    ).first()
+
+    if not metodo:
+        raise ValueError(
+            "El método de pago seleccionado no es válido o está inactivo."
+        )
+
     saldo = comanda.saldo_pendiente
+    estado_anterior = comanda.estado_comanda
+
     if tipo_pago == "total":
         monto = saldo
+
     elif tipo_pago == "parcial":
         try:
             monto = Decimal(str(monto_texto or ""))
-        except InvalidOperation:
+        except (InvalidOperation, ValueError, TypeError):
             raise ValueError("Ingresá un monto válido.")
-        if not monto.is_finite() or monto <= 0 or monto != monto.quantize(Decimal("0.01")):
-            raise ValueError("Ingresá un monto válido, mayor a 0 y con hasta 2 decimales.")
+
+        if (
+            not monto.is_finite()
+            or monto <= 0
+            or monto != monto.quantize(Decimal("0.01"))
+        ):
+            raise ValueError(
+                "Ingresá un monto válido, mayor a 0 y con hasta 2 decimales."
+            )
+
         if monto > saldo:
-            raise ValueError(f"El monto no puede superar el saldo pendiente de ${saldo}.")
+            raise ValueError(
+                f"El monto no puede superar el saldo pendiente de ${saldo}."
+            )
+
     else:
         raise ValueError("Seleccioná cómo se va a pagar la comanda.")
 
-    if monto > 0:
-        Pago.objects.create(comanda=comanda, monto=monto, metodo_pago=metodo_pago, empleado=empleado)
+    if monto <= 0:
+        raise ValueError("La comanda no tiene un saldo pendiente para pagar.")
 
-    estado_anterior = comanda.estado_comanda
+    # Buscar y bloquear la caja abierta.
+    caja_abierta = caja.objects.select_for_update().filter(
+        estado_caja="abierto"
+    ).first()
+
+    if not caja_abierta:
+        raise ValueError(
+            "No se puede registrar el pago porque no hay una caja abierta."
+        )
+
+    # Registrar el pago.
+    pago = Pago.objects.create(
+        comanda=comanda,
+        caja=caja_abierta,
+        monto=monto,
+        metodo_pago=metodo,
+        empleado=empleado
+    )
+
+    # Registrar creación del pago en auditoría.
+    LogAuditoria.objects.create(
+        tabla="Pagos",
+        accion="CREAR",
+        registro_id=pago.pk,
+        valores_anteriores="",
+        valores_actuales=(
+            f"Comanda: #{comanda.id_comanda}, "
+            f"Monto: ${pago.monto}, "
+            f"Método de pago: {metodo.nombre_metodo_pago}, "
+            f"Caja: #{caja_abierta.pk}, "
+            f"Empleado: {empleado}"
+        ),
+        empleado=empleado,
+    )
+
+    # Calcular saldo restante.
     saldo_restante = saldo - monto
+
+    # Actualizar estado de la comanda si se terminó de pagar.
     if saldo_restante == 0:
         comanda.estado_comanda = "pagado"
         comanda.save()
+
         comanda.mesa.estado_mesa = True
         comanda.mesa.save()
 
+    # Registrar modificación de la comanda.
     LogAuditoria.objects.create(
         tabla="Comanda",
         accion="MODIFICAR",
         registro_id=comanda.id_comanda,
-        valores_anteriores=f"Estado: {estado_anterior}. Saldo: ${saldo}",
-        valores_actuales=f"Estado: {comanda.estado_comanda}. Pago: ${monto} ({metodo_pago}). Saldo: ${saldo_restante}",
+        valores_anteriores=(
+            f"Estado: {estado_anterior}. Saldo: ${saldo}"
+        ),
+        valores_actuales=(
+            f"Estado: {comanda.estado_comanda}. "
+            f"Pago: ${monto}. "
+            f"Método de pago: {metodo.nombre_metodo_pago}. "
+            f"Saldo: ${saldo_restante}"
+        ),
         empleado=empleado,
     )
-    return comanda, monto, saldo_restante
 
+    return comanda, monto, saldo_restante
 
 def _leer_items(items):
     """Convierte [{"tipo": "plato", "id": 3, "cantidad": 2}] en {producto: cantidad}."""

@@ -1,404 +1,383 @@
-```html
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Listado de Gastos{% endblock %}
+
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/Comandas.css' %}">
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="contenedor-comanda">
+<div class="contenedor">
 
-    <!-- Navegación -->
+    <!-- Breadcrumb -->
     <nav class="breadcrumb">
-        <a href="{% url 'home' %}">Inicio</a>
-        <span>/</span>
-        <span>Ventas</span>
+        <a href="{% url 'home' %}" class="breadcrumb-item">
+            <span class="material-symbols-outlined">home</span>
+            Inicio
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <a href="{% url 'finanzas:finanzas_home' %}"
+           class="breadcrumb-item">
+            Finanzas
+        </a>
+
+        <span class="breadcrumb-separator">&gt;</span>
+
+        <span class="breadcrumb-item active">Ventas</span>
     </nav>
 
     <!-- Encabezado -->
     <div class="page-header">
-        <div class="page-header-icono">
-            <span class="material-symbols-outlined">point_of_sale</span>
+        <div class="page-header-info">
+            <div class="page-header-icono">
+                <span class="material-symbols-outlined">
+                    receipt_long
+                </span>
+            </div>
+
+            <div class="page-header-texto">
+                <h1>Ventas</h1>
+                <p>Listado de ventas</p>
+            </div>
         </div>
 
-        <div class="page-header-texto">
-            <h1>Gestión de ventas</h1>
-            <p>Registrar pagos y consultar las ventas realizadas.</p>
-        </div>
         <div class="page-header-acciones">
-            <a href="{% url 'finanzas:listar_met_pago' %}" class="btn-secundario">
-                <span class="material-symbols-outlined">category</span> Métodos de pago
+            <a href="{% url 'finanzas:listar_met_pago' %}"
+               class="btn-secundario">
+                <span class="material-symbols-outlined">category</span>
+                Métodos de pago
             </a>
+
+            {% if caja_cerrada %}
+                <a href="{% url 'finanzas:abrir_caja' %}"
+                   class="btn-primario">
+                    <span class="material-symbols-outlined">add</span>
+                    Abrir caja
+                </a>
+            {% endif %}
+            {% if caja_abierta %}
+                <a href="{% url 'ventas:comanda_listar' %}"
+                   class="btn-primario">
+                    Comandas
+                </a>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Mensajes de Django -->
+    <!-- Estado de caja -->
+    {% if caja_abierta %}
+        <div class="tarjeta-formulario">
+            <div class="tarjeta-titulo">
+                <span class="material-symbols-outlined icono-naranja">
+                    point_of_sale
+                </span>
+                <h2>Caja abierta</h2>
+            </div>
+
+            <p>
+                Hay una caja abierta disponible para registrar nuevas ventas.
+            </p>
+        </div>
+    {% else %}
+        <div class="tarjeta-formulario">
+            <div class="tarjeta-titulo">
+                <span class="material-symbols-outlined icono-naranja">
+                    warning
+                </span>
+                <h2>No hay una caja abierta</h2>
+            </div>
+
+            <p>
+                Para registrar nuevas ventas, primero debes abrir una caja.
+                Puedes consultar las ventas históricas desde este listado.
+            </p>
+        </div>
+    {% endif %}
+
+    <!-- Mensajes -->
     {% if messages %}
         {% for message in messages %}
-            <div class="alerta-info">
-                <span class="material-symbols-outlined">info</span>
-                <p>{{ message }}</p>
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 
-    <!-- Formulario de registro de venta -->
-    <div class="tarjeta-comanda">
-        <div class="titulo-tarjeta">
-            <span class="material-symbols-outlined">payments</span>
-            <h2>Registrar venta</h2>
-        </div>
+    <div class="listado-layout">
 
-        <div class="cuerpo-tarjeta">
+        <!-- Filtros -->
+        <aside class="filtros-panel">
+            <form method="get">
 
-            {% if caja_abierta %}
-
-                <div class="alerta-info">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    <p>
-                        Caja abierta. Puedes registrar una nueva venta.
-                    </p>
+                <div class="filtros-header">
+                    <span class="material-symbols-outlined">
+                        filter_alt
+                    </span>
+                    <h3>Filtros</h3>
                 </div>
 
-            {% else %}
-
-                <div class="alerta-info">
-                    <span class="material-symbols-outlined">warning</span>
-                    <p>
-                        No hay una caja abierta. Debes abrir una caja antes
-                        de registrar ventas.
-                    </p>
-                </div>
-
-            {% endif %}
-
-            <form method="POST" action="{% url 'finanzas:venta_crear' %}">
-                {% csrf_token %}
-
-                <div class="fila-doble">
-
-                    <!-- Comanda -->
-                    <div class="grupo-campo">
-                        <label for="comanda_id">Comanda pendiente</label>
-
-                        <select
-                            name="comanda_id"
-                            id="comanda_id"
-                            class="form-control"
-                            required
-                            {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
-                                disabled
-                            {% endif %}
-                        >
-                            <option value="">Seleccionar comanda</option>
-
-                            {% for c in comandas_pendientes %}
-                                <option
-                                    value="{{ c.id_comanda }}"
-                                    data-total="{{ c.total }}"
-                                >
-                                    Comanda #{{ c.id_comanda }}
-                                    {% if c.mesa %}
-                                        - Mesa {{ c.mesa.numero_mesa }}
-                                    {% endif %}
-                                    - Total: ${{ c.total }}
-                                </option>
-                            {% empty %}
-                                <option value="" disabled>
-                                    No hay comandas pendientes de pago
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Método de pago -->
-                    <div class="grupo-campo">
-                        <label for="metodo_pago_id">Método de pago</label>
-
-                        <select
-                            name="metodo_pago_id"
-                            id="metodo_pago_id"
-                            class="form-control"
-                            required
-                            {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
-                                disabled
-                            {% endif %}
-                        >
-                            <option value="">Seleccionar método de pago</option>
-
-                            {% for mp in metodos_pago %}
-                                <option value="{{ mp.id }}">
-                                    {{ mp.nombre_metodo }}
-                                </option>
-                            {% empty %}
-                                <option value="" disabled>
-                                    No hay métodos de pago registrados
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                </div>
-
-                <div class="fila-doble">
-
-                    <!-- Total de la comanda -->
-                    <div class="grupo-campo">
-                        <label for="total_comanda">Total de la venta</label>
-
+                <div class="filtro-grupo">
+                    <label for="buscar">Responsable, metodo de pago o # de comanda</label>
+                    <div class="input-buscar">
+                        <span class="material-symbols-outlined">
+                            search
+                        </span>
                         <input
                             type="text"
-                            id="total_comanda"
-                            class="form-control"
-                            placeholder="$ 0.00"
-                            readonly
+                            id="buscar"
+                            name="buscar"
+                            value="{{ buscar }}"
+                            placeholder="Buscar venta..."
                         >
                     </div>
+                </div>
+                <!-- Rango de fechas -->
+                <div class="filtro-grupo">
+                    <label>Rango de fecha</label>
+                    <div class="filtro-fecha">
+                        <div class="input-buscar-fecha">
+                            <label for="fecha_desde">Desde</label>
+                            <input
+                                type="date"
+                                id="fecha_desde"
+                                name="fecha_desde"
+                                value="{{ fecha_desde }}"
+                            >
+                        </div>
 
-                    <!-- Monto recibido -->
-                    <div class="grupo-campo">
-                        <label for="monto_recibido">Monto recibido</label>
-
-                        <input
-                            type="number"
-                            name="monto_recibido"
-                            id="monto_recibido"
-                            class="form-control"
-                            min="0"
-                            step="0.01"
-                            placeholder="Ingresar monto recibido"
-                            required
-                            {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
-                                disabled
-                            {% endif %}
-                        >
+                        <div class="input-buscar-fecha">
+                            <label for="fecha_hasta">Hasta</label>
+                            <input
+                                type="date"
+                                id="fecha_hasta"
+                                name="fecha_hasta"
+                                value="{{ fecha_hasta }}"
+                            >
+                        </div>
                     </div>
-
                 </div>
+                <input type="hidden"
+                       name="por_pagina"
+                       value="{{ por_pagina }}">
 
-                <!-- Vuelto calculado visualmente -->
-                <div class="grupo-campo">
-                    <label for="vuelto_calculado">Vuelto estimado</label>
+                <button type="submit" class="btn-aplicar">
+                    <span class="material-symbols-outlined">
+                        filter_alt
+                    </span>
+                    Aplicar filtros
+                </button>
 
-                    <input
-                        type="text"
-                        id="vuelto_calculado"
-                        class="form-control"
-                        placeholder="$ 0.00"
-                        readonly
-                    >
-                </div>
-
-                <div class="alerta-info">
-                    <span class="material-symbols-outlined">info</span>
-                    <p>
-                        El monto recibido debe ser igual o superior al total
-                        de la comanda. El vuelto se calcula automáticamente.
-                    </p>
-                </div>
-
-                <div class="botones-carrito">
-                    <a
-                        href="{% url 'home' %}"
-                        class="btn-secundario"
-                    >
-                        Cancelar
-                    </a>
-
-                    <button
-                        type="submit"
-                        class="btn-primario"
-                        {% if not caja_abierta or not comandas_pendientes or not metodos_pago %}
-                            disabled
-                        {% endif %}
-                    >
-                        <span class="material-symbols-outlined">payments</span>
-                        Registrar venta
-                    </button>
-                </div>
+                <a href="{% url 'finanzas:listar_gastos' %}"
+                   class="btn-limpiar">
+                    <span class="material-symbols-outlined">
+                        refresh
+                    </span>
+                    Limpiar filtros
+                </a>
 
             </form>
-        </div>
-    </div>
+        </aside>
 
-    <!-- Historial de ventas -->
-    <div class="tarjeta-comanda">
-        <div class="titulo-tarjeta">
-            <span class="material-symbols-outlined">receipt_long</span>
-            <h2>Historial de ventas</h2>
-        </div>
+        <!-- Tabla -->
+        <main class="tabla-panel">
 
-        <div class="cuerpo-tarjeta">
+            <div class="tabla-header">
+                <h3>Gastos registrados</h3>
 
-            <div class="grupo-campo">
-                <label for="por_pagina">Registros por página</label>
+                <div class="mostrar">
+                    <label for="por-pagina">Mostrar</label>
 
-                <form method="GET">
-                    <select
-                        name="por_pagina"
-                        id="por_pagina"
-                        class="form-control"
-                        onchange="this.form.submit()"
-                    >
+                    <select id="por-pagina"
+                            onchange="cambiarPorPagina(this.value)">
                         <option value="10"
-                            {% if request.GET.por_pagina == '10' or not request.GET.por_pagina %}
-                                selected
-                            {% endif %}
-                        >
-                            10
+                            {% if por_pagina == 10 %}selected{% endif %}>
+                            10 registros
                         </option>
 
                         <option value="25"
-                            {% if request.GET.por_pagina == '25' %}
-                                selected
-                            {% endif %}
-                        >
-                            25
+                            {% if por_pagina == 25 %}selected{% endif %}>
+                            25 registros
                         </option>
 
                         <option value="50"
-                            {% if request.GET.por_pagina == '50' %}
-                                selected
-                            {% endif %}
-                        >
-                            50
+                            {% if por_pagina == 50 %}selected{% endif %}>
+                            50 registros
+                        </option>
+
+                        <option value="100"
+                            {% if por_pagina == 100 %}selected{% endif %}>
+                            100 registros
                         </option>
                     </select>
-                </form>
+                </div>
             </div>
 
             <div class="tabla-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>N.º de venta</th>
-                            <th>Fecha</th>
-                            <th>Comanda</th>
-                            <th>Método de pago</th>
-                            <th>Total</th>
-                            <th>Monto recibido</th>
-                            <th>Vuelto</th>
-                            <th>Empleado</th>
-                            <th>Caja</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for v in ventas %}
+                <div>
+                    <table class="tabla">
+                        <thead>
                             <tr>
-                                <td>#{{ v.id_venta }}</td>
+                                <th>Comanda</th>
+                                <th>Fecha</th>
+                                <th>Responsable</th>
+                                <th>Caja</th>
+                                <th>Método de pago</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
 
-                                <td>
-                                    {{ v.fecha_venta|date:"d/m/Y H:i" }}
-                                </td>
+                        <tbody>
+                            {% for pago in pagos %}
+                                <tr>
+                                    <td>#{{ pago.comanda.id_comanda }}</td>
 
-                                <td>
-                                    #{{ v.comanda.id_comanda }}
-                                </td>
+                                    <td>
+                                        {{ pago.fecha_hora|date:'d/m/Y H:i' }}
+                                    </td>
 
-                                <td>
-                                    {{ v.metodo_pago.nombre_metodo }}
-                                </td>
+                                    <td>
+                                        {% if pago.empleado %}
+                                            {{ pago.empleado.nombre_empleado }}
+                                            {{ pago.empleado.apellido_empleado }}
+                                        {% else %}
+                                            No disponible
+                                        {% endif %}
+                                    </td>
 
-                                <td>
-                                    ${{ v.total_venta }}
-                                </td>
+                                    <td>#{{ pago.caja.id_caja }}</td>
 
-                                <td>
-                                    ${{ v.monto_recibido }}
-                                </td>
+                                    <td>{{ pago.metodo_pago.nombre_metodo_pago|default:"No disponible" }}</td>
 
-                                <td>
-                                    ${{ v.vuelto }}
-                                </td>
-
-                                <td>
-                                    {% if v.empleado_venta %}
-                                        {{ v.empleado_venta.nombre_empleado }}
-                                        {{ v.empleado_venta.apellido_empleado }}
-                                    {% else %}
-                                        No disponible
-                                    {% endif %}
-                                </td>
-
-                                <td>
-                                    {% if v.caja %}
-                                        #{{ v.caja.id_caja }}
-                                    {% else %}
-                                        No disponible
-                                    {% endif %}
+                                    <td>
+                                        $ {{ pago.monto|floatformat:2 }}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="sin-rsulatdos">
+                                    No hay gastos registrados.
                                 </td>
                             </tr>
-
-                        {% empty %}
-                            <tr>
-                                <td colspan="9">
-                                    No hay ventas registradas.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+            <!-- RESUMEN DE VENTAS POR MÉTODO DE PAGO -->
+            <div class="tarjeta-comanda">
+                <div class="titulo-tarjeta">
+                    <span class="material-symbols-outlined">payments</span>
+                    <h2>Ventas por método de pago</h2>
+                </div>
 
+                <div class="cuerpo-tarjeta">
+
+                    {% if ventas_por_metodo %}
+                        <div>
+                            <table class="tabla">
+                                <thead>
+                                    <tr>
+                                        <th>Método de pago</th>
+                                        <th>Total recaudado</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for venta in ventas_por_metodo %}
+                                        <tr>
+                                            <td>
+                                                {{ venta.metodo_pago__nombre_metodo_pago }}
+                                            </td>
+
+                                            <td>
+                                                $ {{ venta.total|floatformat:2 }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alerta-info">
+                            <span class="material-symbols-outlined">info</span>
+                            No hay ventas registradas.
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
             <!-- Paginación -->
-            {% if ventas.has_other_pages %}
-                <div class="botones-carrito">
+            <div class="paginacion">
 
-                    {% if ventas.has_previous %}
+                <span class="paginacion-info">
+                    {% if pagos.paginator.count %}
+                        Mostrando {{ pagos.start_index }}
+                        a {{ pagos.end_index }}
+                        de {{ pagos.paginator.count }} pagos
+                    {% else %}
+                        No hay pagos para mostrar
+                    {% endif %}
+                </span>
+
+                <div class="paginacion-botones">
+
+                    {% if pagos.has_previous %}
                         <a
-                            class="btn-secundario"
-                            href="?page={{ ventas.previous_page_number }}&por_pagina={{ request.GET.por_pagina|default:'10' }}"
-                        >
-                            Anterior
+                            href="?page={{ pagos.previous_page_number }}&buscar={{ buscar|urlencode }}&por_pagina={{ por_pagina }}"
+                            class="paginacion-btn">
+                            <span class="material-symbols-outlined">
+                                chevron_left
+                            </span>
                         </a>
                     {% endif %}
 
-                    <span>
-                        Página {{ ventas.number }} de {{ ventas.paginator.num_pages }}
-                    </span>
+                    {% for num in pagos.paginator.page_range %}
+                        {% if pagos.number == num %}
+                            <a
+                                href="?page={{ num }}&buscar={{ buscar|urlencode }}&por_pagina={{ por_pagina }}"
+                                class="paginacion-btn pagina-activa">
+                                {{ num }}
+                            </a>
+                        {% elif num > pagos.number|add:"-3" and num < pagos.number|add:"3" %}
+                            <a
+                                href="?page={{ num }}&buscar={{ buscar|urlencode }}&por_pagina={{ por_pagina }}"
+                                class="paginacion-btn">
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
 
-                    {% if ventas.has_next %}
+                    {% if pagos.has_next %}
                         <a
-                            class="btn-primario"
-                            href="?page={{ ventas.next_page_number }}&por_pagina={{ request.GET.por_pagina|default:'10' }}"
-                        >
-                            Siguiente
+                            href="?page={{ pagos.next_page_number }}&buscar={{ buscar|urlencode }}&por_pagina={{ por_pagina }}"
+                            class="paginacion-btn">
+                            <span class="material-symbols-outlined">
+                                chevron_right
+                            </span>
                         </a>
                     {% endif %}
 
                 </div>
-            {% endif %}
+            </div>
 
-        </div>
+        </main>
     </div>
-
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const comandaSelect = document.getElementById('comanda_id');
-    const totalInput = document.getElementById('total_comanda');
-    const recibidoInput = document.getElementById('monto_recibido');
-    const vueltoInput = document.getElementById('vuelto_calculado');
+function cambiarPorPagina(valor) {
+    const url = new URL(window.location.href);
 
-    function actualizarImportes() {
-        const opcion = comandaSelect.options[comandaSelect.selectedIndex];
-        const total = parseFloat(opcion?.dataset.total || '0');
-        const recibido = parseFloat(recibidoInput.value || '0');
+    url.searchParams.set('por_pagina', valor);
+    url.searchParams.set('page', '1');
 
-        totalInput.value = '$ ' + total.toFixed(2);
-
-        const vuelto = Math.max(0, recibido - total);
-        vueltoInput.value = '$ ' + vuelto.toFixed(2);
-    }
-
-    comandaSelect.addEventListener('change', actualizarImportes);
-    recibidoInput.addEventListener('input', actualizarImportes);
-
-    actualizarImportes();
-});
+    window.location.href = url.toString();
+}
 </script>
+
 {% endblock %}
-```
