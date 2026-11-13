@@ -6,13 +6,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="home-container">
-  <div class="home-header">
+<div class="home-container home-container-banner">
+  <div class="home-header home-banner">
         <div>
+            <span class="banner-etiqueta">Peña folclórica · Restaurante · Salta</span>
             <h1 class="titulo">
                 <span class="material-symbols-outlined" style="color: #F5A623;">waving_hand</span>
                 ¡Bienvenido, {{ user.empleado.nombre_empleado|default:user.username }}!
             </h1>
+            <p class="banner-frase">Tradición, música y gastronomía del norte argentino</p>
             <p class="subtitulo">
                 <span class="material-symbols-outlined">info</span>
                 Aquí puedes gestionar todas las operaciones del restaurante.
@@ -35,7 +37,7 @@
 {% if user.empleado.cargo.nivel_acceso >= 4 %}
     <div class="estadisticas-grid">
         <!-- Tarjeta 1: Productos -->
-        <div class="stat-card">
+        <div class="stat-card color-verde">
             <div class="stat-icono">
                 <span class="material-symbols-outlined">inventory_2</span>
             </div>
@@ -43,10 +45,10 @@
                 <h3>{{ total_productos }}</h3>
                 <p>Productos en inventario</p>
             </div>
-        </div>
+          </div>
 
         <!-- Tarjeta 2: Mesas -->
-        <div class="stat-card">
+        <a href="{% url 'ventas:listar_mesa' %}" class="stat-card color-naranja">
             <div class="stat-icono">
                 <span class="material-symbols-outlined">table_restaurant</span>
             </div>
@@ -58,10 +60,10 @@
                 </div>
                 <span class="stat-subtexto">{{ porcentaje_mesas }}%</span>
             </div>
-        </div>
+        </a>
 
         <!-- Tarjeta 3: Comandas -->
-        <div class="stat-card">
+        <a href="{% url 'ventas:comanda_listar' %}" class="stat-card color-rojo">
             <div class="stat-icono">
                 <span class="material-symbols-outlined">receipt_long</span>
             </div>
@@ -70,7 +72,7 @@
                 <p>Comandas pendientes</p>
                 <span class="stat-subtexto">{{ comandas_en_preparacion }} en preparación</span>
             </div>
-        </div>
+        </a>
     </div>
     {% endif %}
 
@@ -88,7 +90,7 @@
         
         <!-- INVENTARIO -->
         {% if user.empleado.cargo.nivel_acceso >= 2 %}
-            <a href="{% url 'inventario:inventario_home' %}" class="modulo-card">
+            <a href="{% url 'inventario:inventario_home' %}" class="modulo-card color-verde">
                 <div class="modulo-icon">
                     <span class="material-symbols-outlined">inventory</span>
                 </div>
@@ -100,7 +102,7 @@
         
         <!-- EMPLEADOS -->
         {% if user.empleado.cargo.nivel_acceso >= 5 %}
-            <a href="{% url 'empleados:empleados_home' %}" class="modulo-card">
+            <a href="{% url 'empleados:empleados_home' %}" class="modulo-card color-azul">
                 <div class="modulo-icon">
                     <span class="material-symbols-outlined">badge</span>
                 </div>
@@ -111,7 +113,7 @@
         {% endif %}
 
         <!-- MESAS -->
-        <a href="{% url 'ventas:listar_mesa' %}" class="modulo-card">
+        <a href="{% url 'ventas:listar_mesa' %}" class="modulo-card color-naranja">
             <div class="modulo-icon">
                 <span class="material-symbols-outlined">table_restaurant</span>
             </div>
@@ -122,7 +124,7 @@
         
         <!-- COMANDAS -->
         {% if user.empleado.cargo.nivel_acceso >= 2 %}
-            <a href="{% url 'ventas:comanda_listar' %}" class="modulo-card">
+            <a href="{% url 'ventas:comanda_listar' %}" class="modulo-card color-rojo">
                 <div class="modulo-icon">
                     <span class="material-symbols-outlined">receipt_long</span>
                 </div>
@@ -134,7 +136,7 @@
         
         <!-- FINANZAS -->
         {% if user.empleado.cargo.nivel_acceso >= 4 %}
-            <a href="{% url 'finanzas:finanzas_home' %}" class="modulo-card">
+            <a href="{% url 'finanzas:finanzas_home' %}" class="modulo-card color-violeta">
                 <div class="modulo-icon">
                     <span class="material-symbols-outlined">point_of_sale</span>
                 </div>
@@ -146,7 +148,7 @@
 
         <!-- REPORTES -->
         {% if user.empleado.cargo.nivel_acceso >= 3 %}
-          <a href="{% url 'reportes:ventas' %}" class="modulo-card">
+          <a href="{% url 'reportes:ventas' %}" class="modulo-card color-turquesa">
               <div class="modulo-icon">
                   <span class="material-symbols-outlined">bar_chart</span>
               </div>
@@ -158,7 +160,7 @@
 
         <!-- AUDITORÍA -->
         {% if user.empleado.cargo.nivel_acceso >= 3 %}
-            <a href="{% url 'auditoria:log_auditoria_listar' %}" class="modulo-card">
+            <a href="{% url 'auditoria:log_auditoria_listar' %}" class="modulo-card color-cafe">
                 <div class="modulo-icon">
                     <span class="material-symbols-outlined">history</span>
                 </div>

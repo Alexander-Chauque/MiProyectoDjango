@@ -33,6 +33,73 @@
     gap: 8px;
 }
 
+.home-container .home-header.home-banner {
+    background-image:
+        linear-gradient(90deg, rgba(20, 16, 12, 0.88) 0%, rgba(20, 16, 12, 0.65) 55%, rgba(20, 16, 12, 0.25) 100%),
+        url('../img/fondo-login.jpEg');
+    background-size: cover;
+    background-position: center 35%;
+    border-radius: 14px;
+    padding: 80px 48px;
+    min-height: 300px;
+    min-height: 400px;
+    min-height: 200px;
+    align-items: flex-end;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    border-bottom: 4px solid #F5A623;
+}
+
+.home-container .home-banner .banner-etiqueta {
+    display: inline-block;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #F5A623;
+    margin-bottom: 8px;
+}
+
+.home-container.home-container-banner {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.home-container .home-header.home-banner .titulo {
+    color: #FFFFFF;
+    font-size: 40px;
+}
+
+.home-container .home-banner .banner-frase {
+    font-family: 'Oswald', sans-serif;
+    font-size: 24px;
+    color: #FFE3B0;
+    margin: 6px 0 0 0;
+}
+
+.home-container .home-header.home-banner .subtitulo {
+    color: #D9D4CC;
+}
+
+.home-container .home-banner .fecha-hora {
+    background-color: rgba(255, 255, 255, 0.92);
+}
+
+.home-container .home-banner .fecha-hora .fecha,
+.home-container .home-banner .fecha-hora .hora {
+    color: #3D3D3D;
+}
+
+@media (max-width: 768px) {
+    .home-container .home-header.home-banner {
+        padding: 26px 20px;
+        min-height: 0;
+        align-items: flex-start;
+    }
+    .home-container .home-header.home-banner .titulo { font-size: 24px; }
+    .home-container .home-banner .banner-frase { font-size: 16px; }
+}
+
 /* Fecha y hora */
 .fecha-hora {
     display: flex;
@@ -60,6 +127,19 @@
     margin-bottom: 40px;
 }
 
+.estadisticas-grid .stat-card {
+  background: color-mix(in srgb, var(--c) 8%, white);
+}
+
+.estadisticas-grid .stat-card:hover {
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--c) 30%, transparent);
+}
+
+a.stat-card {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
 .stat-card {
     background: #FFFFFF;
     border-radius: 12px;
@@ -281,5 +361,134 @@
     .fecha-hora {
         width: 100%;
         justify-content: center;
+    }
+}
+/* ==========================================
+   COLORES Y ANIMACIONES DE LAS TARJETAS
+   Cada tarjeta guarda su color en la variable --c
+   y las reglas de abajo la usan para el ícono,
+   la barra superior, la sombra y el botón.
+   ========================================== */
+.color-verde    { --c: #2E9E6A; }
+.color-azul     { --c: #3B7DD8; }
+.color-naranja  { --c: #F5A623; }
+.color-rojo     { --c: #D9534F; }
+.color-violeta  { --c: #8E5CC4; }
+.color-turquesa { --c: #1FA2B5; }
+.color-cafe     { --c: #A0673A; }
+
+/* Animación de entrada: suben y aparecen */
+@keyframes aparecer {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Animación del ícono al pasar el mouse */
+@keyframes saltito {
+    0%, 100% { transform: rotate(0) scale(1); }
+    30%      { transform: rotate(-10deg) scale(1.15); }
+    60%      { transform: rotate(8deg) scale(1.1); }
+}
+
+/* --- Tarjetas de módulos --- */
+.modulos-grid .modulo-card {
+    position: relative;
+    overflow: hidden;
+    /* "backwards" aplica la animación solo al inicio,
+       así no bloquea el movimiento del :hover */
+    animation: aparecer 0.5s ease backwards;
+}
+
+/* Las tarjetas aparecen una tras otra */
+.modulos-grid .modulo-card:nth-child(1) { animation-delay: 0.05s; }
+.modulos-grid .modulo-card:nth-child(2) { animation-delay: 0.12s; }
+.modulos-grid .modulo-card:nth-child(3) { animation-delay: 0.19s; }
+.modulos-grid .modulo-card:nth-child(4) { animation-delay: 0.26s; }
+.modulos-grid .modulo-card:nth-child(5) { animation-delay: 0.33s; }
+.modulos-grid .modulo-card:nth-child(6) { animation-delay: 0.40s; }
+.modulos-grid .modulo-card:nth-child(7) { animation-delay: 0.47s; }
+
+/* Barra de color arriba que se estira al pasar el mouse */
+.modulos-grid .modulo-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--c);
+    transform: scaleX(0.25);
+    transition: transform 0.35s ease;
+}
+
+.modulos-grid .modulo-card:hover::before {
+    transform: scaleX(1);
+}
+
+.modulos-grid .modulo-card:hover {
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--c) 30%, transparent);
+}
+
+.modulos-grid .modulo-card .modulo-icon {
+    background-color: color-mix(in srgb, var(--c) 14%, white);
+    transition: background-color 0.3s;
+}
+
+.modulos-grid .modulo-card .modulo-icon .material-symbols-outlined {
+    color: var(--c);
+    transition: color 0.3s;
+}
+
+/* Al pasar el mouse, el círculo se llena de color y el ícono salta */
+.modulos-grid .modulo-card:hover .modulo-icon {
+    background-color: var(--c);
+}
+
+.modulos-grid .modulo-card:hover .modulo-icon .material-symbols-outlined {
+    color: #FFFFFF;
+    animation: saltito 0.6s ease;
+}
+
+.modulos-grid .modulo-card .btn-ingresar {
+    color: var(--c);
+}
+
+/* --- Tarjetas de estadísticas --- */
+.estadisticas-grid .stat-card {
+    border-left-color: var(--c);
+    animation: aparecer 0.5s ease backwards;
+}
+
+.estadisticas-grid .stat-card:nth-child(2) { animation-delay: 0.1s; }
+.estadisticas-grid .stat-card:nth-child(3) { animation-delay: 0.2s; }
+
+.estadisticas-grid .stat-card .stat-icono {
+    background-color: color-mix(in srgb, var(--c) 14%, white);
+}
+
+.estadisticas-grid .stat-card .stat-icono .material-symbols-outlined {
+    color: var(--c);
+}
+
+.estadisticas-grid .stat-card .progress {
+    background-color: var(--c);
+}
+
+/* --- Modo oscuro: el fondo del ícono se mezcla con negro --- */
+[data-tema="oscuro"] .modulos-grid .modulo-card .modulo-icon,
+[data-tema="oscuro"] .estadisticas-grid .stat-card .stat-icono {
+    background-color: color-mix(in srgb, var(--c) 22%, #2A2A2A);
+}
+
+[data-tema="oscuro"] .modulos-grid .modulo-card:hover .modulo-icon {
+    background-color: var(--c);
+}
+
+/* Si la persona pidió menos movimiento en su sistema, no se anima */
+@media (prefers-reduced-motion: reduce) {
+    .modulos-grid .modulo-card,
+    .estadisticas-grid .stat-card,
+    .modulos-grid .modulo-card:hover .modulo-icon .material-symbols-outlined {
+        animation: none;
     }
 }

@@ -1,0 +1,283 @@
+/*
+ * COLORES DEL SISTEMA
+ *
+ * Una sola paleta para todos los módulos: cada tipo de texto o aviso tiene
+ * siempre el mismo color. Este archivo se carga último (base.html), así que
+ * le gana a los colores sueltos de cada módulo.
+ *
+ *   Títulos ............ gris oscuro
+ *   Texto y etiquetas .. gris medio
+ *   Subtítulos ......... gris claro
+ *   Info ............... azul        (dato útil, nada que hacer)
+ *   Éxito .............. verde       (salió bien / estado correcto)
+ *   Advertencia ........ ámbar       (prestá atención antes de seguir)
+ *   Error / peligro .... rojo        (algo falló o no se puede deshacer)
+ *
+ * Solo cambia colores: tamaños, bordes y formas siguen como en cada módulo.
+ * Los reportes (.tabs-reportes) y el inicio (.estadisticas-grid) quedan afuera: su aspecto no se toca.
+ */
+
+:root {
+  --texto-titulo: #2D3748;
+  --texto-normal: #4A5568;
+  --texto-secundario: #6B7280;
+  --texto-desactivado: #A0AEC0;
+
+  --info-fondo: #EFF6FF;
+  --info-borde: #3B82F6;
+  --info-texto: #1E40AF;
+
+  --exito-fondo: #ECFDF5;
+  --exito-borde: #10B981;
+  --exito-texto: #065F46;
+
+  --advertencia-fondo: #FFFBEB;
+  --advertencia-borde: #F59E0B;
+  --advertencia-texto: #92400E;
+
+  --error-fondo: #FEF2F2;
+  --error-borde: #DC2626;
+  --error-texto: #991B1B;
+}
+
+[data-tema="oscuro"] {
+  --texto-titulo: #E8E8E8;
+  --texto-normal: #C8C8C8;
+  --texto-secundario: #A8A8A8;
+  --texto-desactivado: #6B6B6B;
+
+  --info-fondo: #1E2F4F;
+  --info-borde: #3B82F6;
+  --info-texto: #93C5FD;
+
+  --exito-fondo: #17382B;
+  --exito-borde: #10B981;
+  --exito-texto: #6EE7B7;
+
+  --advertencia-fondo: #45361A;
+  --advertencia-borde: #F59E0B;
+  --advertencia-texto: #FCD34D;
+
+  --error-fondo: #3F1D1D;
+  --error-borde: #DC2626;
+  --error-texto: #FCA5A5;
+}
+
+/* ---------- Títulos ---------- */
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .page-header-texto h1,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .header-texto h1,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .tarjeta-titulo h2,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .tarjeta-titulo-bebida h2,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-tarjeta h2,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-tarjeta h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-carrito h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .tabla-header h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .filtros-header h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-grafico h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-top h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-header h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .card-contenido h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .stat-info h3,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .detalle-titulo,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-texto strong,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .prod-info strong,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .mesa-info strong,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-reporte strong {
+  color: var(--texto-titulo);
+}
+
+/* ---------- Texto y etiquetas de campos ---------- */
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .grupo-campo label,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .filtro-grupo > label,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .resumen-nota {
+  color: var(--texto-normal);
+}
+
+/* ---------- Subtítulos y texto secundario ---------- */
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .page-header-texto p,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .header-texto p,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .card-contenido p,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .stat-info p,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .text-gris,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .texto-gris,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .text-gris-medio,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .paginacion-info,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-label,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .prod-info span,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-reporte span,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-footer-permisos,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-ayuda,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .contador-caracteres,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .contador-caracteres-bebida {
+  color: var(--texto-secundario) !important;
+}
+
+/* ---------- Info (azul) ---------- */
+.alert-info,
+.alerta-info,
+.alerta-caja-info,
+.alerta-debug,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info.es-info {
+  background: var(--info-fondo) !important;
+  border-color: var(--info-borde) !important;
+  color: var(--info-texto) !important;
+}
+
+.alerta-info span,
+.alerta-info p,
+.alerta-info .material-symbols-outlined {
+  color: var(--info-texto) !important;
+}
+
+/* ---------- Éxito (verde) ---------- */
+.alert-success,
+.alerta-success,
+.alerta-caja-exito,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja:not(.cerrada) {
+  background: var(--exito-fondo) !important;
+  border-color: var(--exito-borde) !important;
+  color: var(--exito-texto) !important;
+}
+
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja:not(.cerrada) .material-symbols-outlined {
+  color: var(--exito-borde) !important;
+}
+
+/* ---------- Advertencia (ámbar) ---------- */
+.alert-warning,
+.alerta-warning,
+.aviso-cambio,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja.cerrada,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja {
+  background: var(--advertencia-fondo) !important;
+  border-color: var(--advertencia-borde) !important;
+  color: var(--advertencia-texto) !important;
+}
+
+.aviso-cambio strong,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info strong,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info ul,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja strong,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja ul {
+  color: var(--advertencia-texto) !important;
+}
+
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja.cerrada .material-symbols-outlined,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info .material-symbols-outlined,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja .material-symbols-outlined {
+  color: var(--advertencia-borde) !important;
+}
+
+/* ---------- Error / peligro (rojo) ---------- */
+.alert-danger,
+.alert-error,
+.alerta-error,
+.alerta-danger,
+.alerta-caja-error,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro {
+  background: var(--error-fondo) !important;
+  border-color: var(--error-borde) !important;
+  color: var(--error-texto) !important;
+}
+
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro strong,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro ul {
+  color: var(--error-texto) !important;
+}
+
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro .material-symbols-outlined,
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-icono-alerta {
+  color: var(--error-borde) !important;
+}
+
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-icono-alerta {
+  background-color: var(--error-fondo) !important;
+}
+
+/* Mensajes de error debajo de un campo */
+.error-mensaje,
+.text-error,
+.texto-error,
+.cuenta-error,
+.texto-peligro,
+.errorlist,
+.errorlist li {
+  color: var(--error-borde) !important;
+}
+
+[data-tema="oscuro"] .error-mensaje,
+[data-tema="oscuro"] .text-error,
+[data-tema="oscuro"] .texto-error,
+[data-tema="oscuro"] .cuenta-error,
+[data-tema="oscuro"] .texto-peligro,
+[data-tema="oscuro"] .errorlist,
+[data-tema="oscuro"] .errorlist li {
+  color: var(--error-texto) !important;
+}
+
+/* ---------- Campo con error (validacion_campos.js) ---------- */
+/* Borde rojo en el campo, o en su envoltorio si tiene $ o ícono */
+.campo-invalido,
+input.campo-invalido,
+select.campo-invalido,
+textarea.campo-invalido,
+.input-error {
+  border-color: var(--error-borde) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+}
+
+/* Dentro de un envoltorio el borde lo lleva el envoltorio */
+.campo-invalido input.campo-invalido,
+.campo-invalido select.campo-invalido {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.campo-invalido .material-symbols-outlined {
+  color: var(--error-borde);
+}
+
+/* Mensaje debajo del campo */
+.mensaje-campo {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 6px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--error-borde);
+}
+
+.mensaje-campo .material-symbols-outlined {
+  font-size: 16px;
+  line-height: 1.1;
+  color: inherit;
+}
+
+.grupo-invalido .checkbox-item,
+.grupo-invalido > label {
+  color: var(--error-borde) !important;
+}
+
+[data-tema="oscuro"] .mensaje-campo,
+[data-tema="oscuro"] .grupo-invalido .checkbox-item,
+[data-tema="oscuro"] .grupo-invalido > label {
+  color: var(--error-texto) !important;
+}
+
+[data-tema="oscuro"] .campo-invalido,
+[data-tema="oscuro"] .input-error {
+  border-color: #F87171 !important;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18) !important;
+}
+
+/* El contador de caracteres sigue dentro del cuadro aunque aparezca el mensaje */
+.grupo-campo:has(> .mensaje-campo) > .contador-caracteres,
+.grupo-campo:has(> .mensaje-campo) > .contador-caracteres-bebida {
+  bottom: calc(12px + 25px);
+}
