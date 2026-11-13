@@ -24,7 +24,12 @@ sys.path.insert(0,os.path.join(BASE_DIR,'apps'))
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-s05l#qdx8^oyqa0(ou)_)lttn+5w)_-h%+u!@8g*h))t7jdbyb'
+# La clave real va en el .env (DJANGO_SECRET_KEY). La de respaldo sirve solo para
+# desarrollo: no protege nada, así que en producción hay que definir la propia.
+SECRET_KEY = os.getenv(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-solo-para-desarrollo-local-cambiar-en-el-env',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -66,6 +71,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Después de guardar, vuelve a la misma página y filtros del listado
+    'core.middleware.RecordarListadoMiddleware',
 ]
 
 ROOT_URLCONF = 'MiSistemaSIS.urls'
@@ -168,10 +175,26 @@ LOGOUT_REDIRECT_URL = '/login/'
 # EMAIL_HOST_USER = 'tuemail@gmail.com'
 # EMAIL_HOST_PASSWORD = 'tu_contraseña_de_aplicacion'
 # ==========================================
-# EMAIL (Desarrollo)
+# EMAIL
+# Con EMAIL_HOST_USER y EMAIL_HOST_PASSWORD en el .env se envía por SMTP real
+# (en Gmail, la contraseña es una "contraseña de aplicación"). Sin ellos, los
+# correos se muestran en la consola del servidor.
 # ==========================================
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'Los Cardones <noreply@loscalderones.com>'
+# Dirección del sistema, para el botón "Ver en la bandeja" de los correos
+SITIO_URL = os.getenv('SITIO_URL', 'http://localhost:8000')
+
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = True
+    EMAIL_TIMEOUT = 15
+    DEFAULT_FROM_EMAIL = f'Los Cardones <{EMAIL_HOST_USER}>'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'Los Cardones <noreply@loscalderones.com>'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
