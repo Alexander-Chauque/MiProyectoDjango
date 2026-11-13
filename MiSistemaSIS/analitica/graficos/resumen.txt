@@ -1,0 +1,13 @@
+RESUMEN ANALÍTICO - LOS CARDONES
+Período: 2025-11-12 a 2026-11-12
+
+Comandas pagadas:      116
+Facturación total:     $ 13.193.900
+Ticket promedio:       $ 113.741
+Ticket mediano:        $ 110.250
+Desvío estándar:       $ 65.289
+Percentiles 25/75/90:  $ 61.825 / $ 147.725 / $ 197.000
+Coef. de variación:    0.57
+Unidades vendidas:     851
+Productos distintos:   116
+Mozos con ventas:      3

@@ -13,4 +13,7 @@ urlpatterns = [
     path("pdf/top/", views.exportar_pdf_ventas, name="pdf_top"),
     path("pdf/categorias/", views.exportar_pdf_ventas, name="pdf_categorias"),
     path("pdf/mozos/", views.exportar_pdf_ventas, name="pdf_mozos"),
+    # Reportes consolidados (Parcial Nº 2 - M2)
+    path("consolidado/<slug:clave>/", views.reporte_consolidado, name="consolidado"),
+    path("consolidado/<slug:clave>/pdf/", views.reporte_consolidado_pdf, name="consolidado_pdf"),
 ]

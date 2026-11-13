@@ -1,0 +1,128 @@
+{% extends 'reportes/base_reportes.html' %}
+
+{% block extra_css_reportes %}
+<style>
+  .consolidado-cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+  .consolidado-cabecera h3 { margin: 0 0 4px 0; }
+  .consolidado-cabecera p { margin: 0; color: #6B7280; font-size: 14px; }
+  .chip-procesos { display: inline-flex; align-items: center; gap: 6px; background: #FFF8E7; color: #B7791F; border: 1px solid #F5D7A1; border-radius: 999px; padding: 4px 12px; font-size: 13px; white-space: nowrap; }
+  .chip-procesos .material-symbols-outlined { font-size: 18px; }
+  .tabla-consolidado-scroll { overflow-x: auto; }
+  .tabla-top tfoot td { font-weight: 700; border-top: 2px solid #F5A623; background: #FFF8E7; }
+  .nota-reporte { font-size: 12px; color: #6B7280; margin-top: 10px; }
+</style>
+{% endblock %}
+
+{% block filtros %}
+<div class="filtros-reportes no-print" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+  <form method="GET" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+    <div class="grupo-filtro">
+      <label>Desde</label>
+      <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control" max="{% now 'Y-m-d' %}">
+    </div>
+    <div class="grupo-filtro">
+      <label>Hasta</label>
+      <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control" max="{% now 'Y-m-d' %}">
+    </div>
+    <div class="grupo-filtro">
+      <label>{{ filtro_extra.etiqueta }}</label>
+      <select name="{{ filtro_extra.nombre }}" class="form-control">
+        <option value="">Todos</option>
+        {% for valor, etiqueta in filtro_extra.opciones %}
+        <option value="{{ valor }}" {% if valor == filtro_extra.valor %}selected{% endif %}>{{ etiqueta }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="grupo-filtro">
+      <label>Filas</label>
+      <select name="por_pagina" class="form-control">
+        <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10</option>
+        <option value="25" {% if por_pagina == 25 %}selected{% endif %}>25</option>
+        <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50</option>
+      </select>
+    </div>
+    <button type="submit" class="btn-primario"><span class="material-symbols-outlined">filter_alt</span> Filtrar</button>
+  </form>
+
+  <div class="acciones-descarga" style="display: flex; gap: 10px;">
+    <a href="{% url 'reportes:consolidado_pdf' clave %}?{{ query_filtros }}" class="btn-secundario" title="Exportar a PDF con los filtros aplicados">
+      <span class="material-symbols-outlined">picture_as_pdf</span> Exportar PDF
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block contenido_reporte %}
+<div class="tarjeta-top">
+  <div class="consolidado-cabecera">
+    <div>
+      <h3>{{ titulo }}</h3>
+      <p>{{ descripcion }}</p>
+    </div>
+    <span class="chip-procesos" title="Procesos que cruza este reporte">
+      <span class="material-symbols-outlined">join_inner</span> {{ procesos }}
+    </span>
+  </div>
+
+  <div class="tabla-consolidado-scroll">
+    <table class="tabla-top">
+      <thead>
+        <tr>
+          {% for nombre, es_numero in columnas %}
+          <th {% if es_numero %}class="derecha"{% endif %}>{{ nombre }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for fila in pagina %}
+        <tr>
+          {% for celda, es_numero in fila %}
+          <td {% if es_numero %}class="derecha"{% endif %}>{{ celda }}</td>
+          {% endfor %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{{ columnas|length }}" class="sin-datos">No hay datos para los filtros elegidos.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if filas %}
+      <tfoot>
+        <tr>
+          {% for celda, es_numero in totales %}
+          <td {% if es_numero %}class="derecha"{% endif %}>{{ celda }}</td>
+          {% endfor %}
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+
+  {% if nota %}<p class="nota-reporte">{{ nota }}</p>{% endif %}
+
+  {% if pagina.paginator.count %}
+  <div class="paginacion no-print">
+    <span class="paginacion-info">Mostrando {{ pagina.start_index }} a {{ pagina.end_index }} de {{ pagina.paginator.count }} registros</span>
+    <div class="paginacion-botones">
+      {% if pagina.has_previous %}
+      <a href="?page={{ pagina.previous_page_number }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </a>
+      {% endif %}
+      {% for num in pagina.paginator.page_range %}
+        {% if pagina.number == num %}
+        <a href="?page={{ num }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn pagina-activa">{{ num }}</a>
+        {% elif num > pagina.number|add:'-3' and num < pagina.number|add:'3' %}
+        <a href="?page={{ num }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if pagina.has_next %}
+      <a href="?page={{ pagina.next_page_number }}&{{ query_filtros }}&por_pagina={{ por_pagina }}" class="paginacion-btn">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

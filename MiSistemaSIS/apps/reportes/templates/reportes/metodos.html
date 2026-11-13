@@ -5,6 +5,45 @@
   <div class="titulo-grafico"><span class="material-symbols-outlined icono-naranja">payments</span><h3>Métodos de Pago</h3></div>
   <div class="cuerpo-grafico" style="height: 300px;"><canvas id="graficoTorta"></canvas></div>
 </div>
+
+<!-- DETALLE POR MES: cuánto entró por cada método en cada mes del período -->
+<div class="tarjeta-top" style="margin-top: 20px;">
+  <div class="titulo-top">
+    <span class="material-symbols-outlined icono-naranja">calendar_month</span>
+    <h3>Métodos de Pago por Mes</h3>
+  </div>
+  <div style="overflow-x: auto;">
+    <table class="tabla-top">
+      <thead>
+        <tr>
+          <th>Mes</th>
+          {% for metodo in labels_metodos %}<th class="derecha">{{ metodo }}</th>{% endfor %}
+          <th class="derecha">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mes, valores, total in meses %}
+        <tr>
+          <td><strong>{{ mes }}</strong></td>
+          {% for valor in valores %}<td class="derecha">${{ valor|floatformat:0 }}</td>{% endfor %}
+          <td class="derecha"><strong>${{ total|floatformat:0 }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="{{ labels_metodos|length|add:2 }}" style="text-align: center;">No hay cobros en el período seleccionado.</td></tr>
+        {% endfor %}
+      </tbody>
+      {% if meses|length > 1 %}
+      <tfoot>
+        <tr>
+          <td><strong>Total del período</strong></td>
+          {% for total in totales_metodos %}<td class="derecha"><strong>${{ total|floatformat:0 }}</strong></td>{% endfor %}
+          <td class="derecha numero-top">${{ total_general|floatformat:0 }}</td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
 {% endblock %}
 {% block extra_js %}
 {{ labels_metodos|json_script:"labels-metodos" }}{{ data_metodos|json_script:"data-metodos" }}
