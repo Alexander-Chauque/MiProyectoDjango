@@ -15,6 +15,7 @@ from django.db.models import Q
 from empleados.decorators import permiso_requerido
 from django.utils import timezone
 from auditoria.models import LogAuditoria
+from core.mensajes import ErrorDeCampo, error_campo, informar_error
 
 
 @login_required
@@ -120,36 +121,36 @@ def _validar_plato(request, plato=None):
     """Devuelve los datos limpios del formulario o lanza ValueError con el motivo."""
     nombre = request.POST.get("nombre", "").strip().title()
     if not nombre or len(nombre) > 100 or not re.match(r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s/-]+$", nombre):
-        raise ValueError(
-            "Nombre inválido: solo se permiten letras, números, espacios, / y -"
+        raise ErrorDeCampo(
+            "nombre", "Nombre inválido: solo se permiten letras, números, espacios, / y -"
         )
     existentes = Plato.objects.filter(nombre_plato__iexact=nombre)
     if plato:
         existentes = existentes.exclude(pk=plato.pk)
     if existentes.exists():
-        raise ValueError(f'Plato "{nombre}" ya existe')
+        raise ErrorDeCampo("nombre", f'Ya existe un plato llamado "{nombre}".')
 
     try:
         precio = Decimal(request.POST.get("precio", ""))
     except InvalidOperation:
-        raise ValueError("Precio inválido: ingrese un número válido")
+        raise ErrorDeCampo("precio", "Precio inválido: ingrese un número válido")
     if not precio.is_finite() or precio <= 0 or precio >= 10**8:
-        raise ValueError("Precio inválido: debe ser mayor a 0 y menor a 100.000.000")
+        raise ErrorDeCampo("precio", "Precio inválido: debe ser mayor a 0 y menor a 100.000.000")
     if precio != precio.quantize(Decimal("0.01")):
-        raise ValueError("Precio inválido: se permiten hasta 2 decimales")
+        raise ErrorDeCampo("precio", "Precio inválido: se permiten hasta 2 decimales")
 
     categoria_id = request.POST.get("categoria", "")
     categoria = None
     if categoria_id.isdigit():
         categoria = CategoriaPlato.objects.filter(pk=categoria_id).first()
     if not categoria:
-        raise ValueError("Debe seleccionar una categoría válida")
+        raise ErrorDeCampo("categoria", "Seleccioná una categoría.")
 
     ids = request.POST.getlist("ingredientes")
     if not ids:
-        raise ValueError("Debe seleccionar al menos un ingrediente")
+        raise ErrorDeCampo("ingredientes", "Seleccioná al menos un ingrediente.")
     if not all(i.isdigit() for i in ids):
-        raise ValueError("Hay ingredientes inválidos")
+        raise ErrorDeCampo("ingredientes", "Hay ingredientes inválidos.")
     actuales = plato.detalleplato_set.values("ingrediente_id") if plato else []
     ingredientes = list(
         Ingrediente.objects.filter(pk__in=ids).filter(
@@ -157,7 +158,7 @@ def _validar_plato(request, plato=None):
         )
     )
     if len(ingredientes) != len(set(ids)):
-        raise ValueError("Hay ingredientes que no existen o no están disponibles")
+        raise ErrorDeCampo("ingredientes", "Hay ingredientes que no existen o no están disponibles.")
 
     return {
         "nombre": nombre,
@@ -194,9 +195,9 @@ def crear_plato(request):
                     empleado=request.user.empleado,
                 )
         except ValueError as e:
-            messages.error(request, str(e))
+            informar_error(request, e)
         except IntegrityError:
-            messages.error(request, "Ya existe un plato con ese nombre")
+            error_campo(request, "nombre", "Ya existe un plato con ese nombre.")
         else:
             messages.success(request, f'Plato "{plato.nombre_plato}" creado exitosamente')
             return redirect("inventario:listar_platos")
@@ -241,10 +242,10 @@ def editar_plato(request, pk):
                     empleado=request.user.empleado,
                 )
         except ValueError as e:
-            messages.error(request, str(e))
+            informar_error(request, e)
         except IntegrityError:
             plato.refresh_from_db()
-            messages.error(request, "Ya existe un plato con ese nombre")
+            error_campo(request, "nombre", "Ya existe un plato con ese nombre.")
         else:
             messages.success(request, f'Plato "{plato.nombre_plato}" editado exitosamente')
             return redirect("inventario:listar_platos")
@@ -363,15 +364,55 @@ def listar_ingredientes(request):
 
 @login_required
 @permiso_requerido("ingredientes", "escribir")
+def _validar_ingrediente(request, actual=None):
+    """Revisa los datos del formulario de ingrediente.
+
+    Devuelve (nombre, unidad, costo) o None si hubo errores (ya informados
+    junto a cada campo con error_campo).
+    """
+    nombre = (request.POST.get("nombre") or "").strip()
+    unidad = (request.POST.get("unidad_medida") or "").strip().lower()
+    costo_texto = (request.POST.get("costo_unitario") or "").strip().replace(",", ".")
+    hay_error = False
+
+    if not nombre:
+        error_campo(request, "nombre", "El nombre del ingrediente es obligatorio.")
+        hay_error = True
+    elif len(nombre) > 100:
+        error_campo(request, "nombre", "El nombre no puede superar los 100 caracteres.")
+        hay_error = True
+
+    unidades = dict(Ingrediente._meta.get_field("unidad_medida").choices)
+    if unidad not in unidades:
+        error_campo(request, "unidad_medida", "Seleccioná una unidad de medida.")
+        hay_error = True
+
+    costo = None
+    try:
+        costo = Decimal(costo_texto)
+        if not costo.is_finite() or costo < 0 or costo != costo.quantize(Decimal("0.01")):
+            raise InvalidOperation
+    except (InvalidOperation, ValueError):
+        error_campo(request, "costo_unitario", "Ingresá un costo válido: 0 o más, con hasta 2 decimales.")
+        hay_error = True
+
+    if not hay_error:
+        repetidos = Ingrediente.objects.filter(nombre_ingrediente__iexact=nombre, unidad_medida=unidad)
+        if actual is not None:
+            repetidos = repetidos.exclude(pk=actual.pk)
+        if repetidos.exists():
+            error_campo(request, "nombre", f'Ya existe el ingrediente "{nombre.title()}" medido en {unidades[unidad].lower()}.')
+            hay_error = True
+
+    return None if hay_error else (nombre, unidad, costo)
+
+
 def crear_ingrediente(request):
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        if nombre:
-            nombre = nombre.lower()
-        unidad_medida = request.POST.get("unidad_medida")
-        if unidad_medida:
-            unidad_medida = unidad_medida.lower()
-        costo_unitario = request.POST.get("costo_unitario", 0)
+        datos = _validar_ingrediente(request)
+        if datos is None:
+            return render(request, "ingredientes/crear_ingrediente.html")
+        nombre, unidad_medida, costo_unitario = datos
 
         ingrediente = Ingrediente.objects.create(
             nombre_ingrediente=nombre,
@@ -399,19 +440,16 @@ def editar_ingrediente(request, pk):
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
     if request.method == "POST":
         valores_viejos = f"Nombre: {ingrediente.nombre_ingrediente}, Unidad: {ingrediente.unidad_medida}, Costo: {ingrediente.costo_unitario}"
-        nombre = request.POST.get("nombre")
-        if nombre:
-            nombre = nombre.title()
-        ingrediente.nombre_ingrediente = nombre
-
-        unidad_medida = request.POST.get("unidad_medida")
-        if unidad_medida:
-            unidad_medida = unidad_medida.lower()
+        datos = _validar_ingrediente(request, actual=ingrediente)
+        if datos is None:
+            # Se muestra lo que escribió el usuario, sin guardarlo
+            ingrediente.nombre_ingrediente = (request.POST.get("nombre") or "").strip()
+            ingrediente.unidad_medida = (request.POST.get("unidad_medida") or "").strip().lower()
+            return render(request, "ingredientes/editar_ingrediente.html", {"ingrediente": ingrediente})
+        nombre, unidad_medida, costo_unitario = datos
+        ingrediente.nombre_ingrediente = nombre.title()
         ingrediente.unidad_medida = unidad_medida
-
-        ingrediente.costo_unitario = request.POST.get(
-            "costo_unitario", ingrediente.costo_unitario
-        )
+        ingrediente.costo_unitario = costo_unitario
         ingrediente.save()
 
         valores_nuevos = f"Nombre: {ingrediente.nombre_ingrediente}, Unidad: {ingrediente.unidad_medida}, Costo: {ingrediente.costo_unitario}"
@@ -537,11 +575,29 @@ def listar_categorias(request):
 
 @login_required
 @permiso_requerido("categorias", "escribir")
+def _validar_nombre_categoria(request, actual=None):
+    """El nombre de la categoría, o None si está vacío o repetido (avisa junto al campo)."""
+    nombre = (request.POST.get("nombre") or "").strip().title()
+    if not nombre:
+        error_campo(request, "nombre", "El nombre de la categoría es obligatorio.")
+        return None
+    if len(nombre) > 100:
+        error_campo(request, "nombre", "El nombre no puede superar los 100 caracteres.")
+        return None
+    repetidas = CategoriaPlato.objects.filter(nombre_categoria_plato__iexact=nombre)
+    if actual is not None:
+        repetidas = repetidas.exclude(pk=actual.pk)
+    if repetidas.exists():
+        error_campo(request, "nombre", f'Ya existe una categoría llamada "{nombre}".')
+        return None
+    return nombre
+
+
 def crear_categoria(request):
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        if nombre:
-            nombre = nombre.title()
+        nombre = _validar_nombre_categoria(request)
+        if nombre is None:
+            return render(request, "categorias/crear_categoria.html")
         descripcion = request.POST.get("descripcion", "")
 
         CategoriaPlato.objects.create(
@@ -559,11 +615,13 @@ def editar_categoria(request, pk):
     categoria = get_object_or_404(CategoriaPlato, pk=pk)
 
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        if nombre:
-            nombre = nombre.title()
-        categoria.nombre_categoria_plato = nombre
+        nombre = _validar_nombre_categoria(request, actual=categoria)
         categoria.descripcion_categoria_plato = request.POST.get("descripcion", "")
+        if nombre is None:
+            # Se muestra lo que escribió el usuario, sin guardarlo
+            categoria.nombre_categoria_plato = (request.POST.get("nombre") or "").strip()
+            return render(request, "categorias/editar_categoria.html", {"categoria": categoria})
+        categoria.nombre_categoria_plato = nombre
         categoria.save()
 
         messages.success(
@@ -696,7 +754,7 @@ def editar_tipo_bebida(request, pk):
             return redirect("inventario:listar_tipo_bebida")
     else:
         form = TipoBebidaForm(instance=tipo)
-    return render(request, "bebidas/editar_tipo_bebida.html", {"form": form})
+    return render(request, "bebidas/editar_tipo_bebida.html", {"form": form, "tipo": tipo})
 
 
 @login_required

@@ -69,7 +69,7 @@
           <label>Unidad de medida</label>
           <div class="checkboxes">
             <label class="checkbox-item">
-              <input type="checkbox" id="uni-todas" onchange="toggleUnidades(this)">
+              <input type="checkbox" id="uni-todas" onchange="toggleUnidades(this)" {% if not unidades_seleccionadas %}checked{% endif %}>
               <span>Todas</span>
             </label>
             <label class="checkbox-item">
@@ -191,7 +191,7 @@
                           {% if ingrediente.estado_ingrediente %}toggle_off{% else %}toggle_on{% endif %}
                       </span>
                   </a>
-                  <a href="{% url 'inventario:eliminar_ingrediente' ingrediente.pk}" class="btn-icon btn-clave" title="Eliminar">
+                  <a href="{% url 'inventario:eliminar_ingrediente' ingrediente.pk %}" class="btn-icon btn-clave" title="Eliminar">
                     <span class="material-symbols-outlined">delete</span>
                   </a>
                 </div>

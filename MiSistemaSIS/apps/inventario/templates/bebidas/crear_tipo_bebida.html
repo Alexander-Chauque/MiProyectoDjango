@@ -50,14 +50,16 @@
 
     <div class="grupo-campo">
       <label>Nombre <span class="req">*</span></label>
-      <input type="text" name="nombre" class="form-control" placeholder="Ej. Bebidas sin alcohol, Cervezas, Vinos..."
-        required value="{{ request.POST.nombre }}">
+      <input type="text" name="nombre_tipo_bebida" class="form-control" placeholder="Ej. Bebidas sin alcohol, Cervezas, Vinos..."
+        required value="{{ form.nombre_tipo_bebida.value|default:'' }}" maxlength="50">
+      {% for error in form.nombre_tipo_bebida.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
     </div>
 
     <div class="grupo-campo" style="margin-top: 20px;">
       <label>Descripción (opcional)</label>
-      <textarea name="descripcion" class="form-control" rows="3"
-        placeholder="Breve descripción...">{{ request.POST.descripcion }}</textarea>
+      <textarea name="descripcion_tipo_bebida" class="form-control" rows="3"
+        placeholder="Breve descripción...">{{ form.descripcion_tipo_bebida.value|default:'' }}</textarea>
+      {% for error in form.descripcion_tipo_bebida.errors %}<span class="text-error">{{ error }}</span>{% endfor %}
     </div>
 
     <div class="acciones-formulario">
