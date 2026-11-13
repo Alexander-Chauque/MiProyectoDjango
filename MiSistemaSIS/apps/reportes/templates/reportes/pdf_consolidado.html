@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 1.5cm 1.5cm 2.4cm 1.5cm;
+      /* Pie repetido en todas las hojas: filtros, usuario, fecha y hora */
+      @frame pie {
+        -pdf-frame-content: pie;
+        bottom: 0.6cm; height: 1.4cm; left: 1.5cm; right: 1.5cm;
+      }
+    }
+    body { font-family: Helvetica, Arial, sans-serif; color: #333; font-size: 9px; }
+    .encabezado { border-bottom: 2px solid #F5A623; padding-bottom: 6px; margin-bottom: 10px; }
+    .encabezado td { vertical-align: middle; border: none; padding: 0; }
+    .encabezado h1 { color: #F5A623; margin: 0; font-size: 20px; }
+    .encabezado .sub { font-size: 10px; color: #666; }
+    .encabezado .titulo { font-size: 14px; font-weight: bold; color: #333; text-align: right; }
+    .procesos { font-size: 9px; color: #B7791F; text-align: right; }
+    .descripcion { font-size: 9px; color: #555; margin-bottom: 8px; }
+    table.datos { width: 100%; border-collapse: collapse; }
+    table.datos th { background-color: #3D3D3D; color: #FFFFFF; padding: 5px 4px; text-align: left; font-size: 8.5px; }
+    table.datos td { padding: 4px; border-bottom: 1px solid #E5E5E5; }
+    table.datos tr.total td { font-weight: bold; background-color: #FFF8E7; border-top: 2px solid #F5A623; }
+    .derecha { text-align: right; }
+    .vacio { text-align: center; color: #888; padding: 20px; }
+    .nota { font-size: 8px; color: #777; margin-top: 6px; }
+    #pie { font-size: 8px; color: #555; border-top: 1px solid #DDD; padding-top: 4px; }
+  </style>
+</head>
+<body>
+  <table class="encabezado">
+    <tr>
+      {% if logo %}<td style="width: 1.6cm;"><img src="{{ logo }}" width="42" height="42"></td>{% endif %}
+      <td>
+        <h1>Los Cardones</h1>
+        <div class="sub">Sistema de Gestión Gastronómica · Reportes consolidados</div>
+      </td>
+      <td>
+        <div class="titulo">{{ titulo }}</div>
+        <div class="procesos">Cruza: {{ procesos }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="descripcion">{{ descripcion }}</div>
+
+  <table class="datos" repeat="1">
+    <thead>
+      <tr>
+        {% for nombre, es_numero in columnas %}
+        <th {% if es_numero %}class="derecha"{% endif %}>{{ nombre }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in filas %}
+      <tr>
+        {% for celda, es_numero in fila %}
+        <td {% if es_numero %}class="derecha"{% endif %}>{{ celda }}</td>
+        {% endfor %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="{{ columnas|length }}" class="vacio">No hay datos para los filtros elegidos.</td></tr>
+      {% endfor %}
+      {% if filas %}
+      <tr class="total">
+        {% for celda, es_numero in totales %}
+        <td {% if es_numero %}class="derecha"{% endif %}>{{ celda }}</td>
+        {% endfor %}
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  {% if nota %}<div class="nota">{{ nota }}</div>{% endif %}
+
+  <div id="pie">
+    <strong>Filtros aplicados:</strong> {{ filtros_texto }}<br>
+    <strong>Usuario:</strong> {{ usuario }} ·
+    <strong>Generado:</strong> {{ generado|date:"d/m/Y" }} a las {{ generado|date:"H:i" }} hs ·
+    Página <pdf:pagenumber> de <pdf:pagecount>
+  </div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static reportes_extras %}
 
 {% block extra_css %}
 
@@ -9,10 +9,32 @@
 <link rel="stylesheet" href="{% static 'css/reportes.css' %}">
 <style>
   /* ESTILOS PARA IMPRESIÓN (PDF/IMAGEN) */
+  /* Encabezado que solo aparece al imprimir (en pantalla está oculto) */
+  .encabezado-impresion, .descripcion-impresion { display: none; }
+
   @media print {
-    .navbar, .footer, .breadcrumb, .tabs-reportes, .filtros-reportes, .acciones-descarga, .btn-volver, .no-print {
+    .navbar, .topbar, .sidebar, .overlay, .footer, .breadcrumb, .tabs-reportes, .filtros-reportes, .acciones-descarga, .btn-volver, .no-print {
       display: none !important;
     }
+    .encabezado-impresion {
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 20px;
+      border-bottom: 3px solid #F5A623; padding-bottom: 10px; margin-bottom: 18px;
+      font-family: Arial, Helvetica, sans-serif; color: #333;
+    }
+    .encabezado-impresion .logo-impresion { height: 60px; width: auto; display: block; }
+    .descripcion-impresion {
+      display: block; margin-bottom: 16px; padding: 10px 14px;
+      background: #FFF8E7 !important; border-left: 4px solid #F5A623;
+      font-family: Arial, Helvetica, sans-serif; color: #333;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact; /* que se imprima el fondo */
+    }
+    .descripcion-impresion p { margin: 4px 0 0 0; font-size: 13px; line-height: 1.5; }
+    .nivel-impresion {
+      font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #B7791F;
+    }
+    .encabezado-impresion .datos { text-align: right; font-size: 12px; line-height: 1.5; }
+    /* En modo oscuro, al imprimir se usa el fondo blanco y texto oscuro */
+    html, body, .contenido, main { background: #FFFFFF !important; color: #333 !important; }
     .contenedor { max-width: 100%; padding: 0; }
     .tarjeta-reporte, .tarjeta-grafico, .tarjeta-top { 
       box-shadow: none !important; border: 1px solid #ddd; page-break-inside: avoid;
@@ -25,10 +47,137 @@
 <!-- LIBRERÍA PARA DESCARGAR IMAGEN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+  // En modo oscuro los gráficos tienen letras gris claro: sobre papel blanco no se leen.
+  // Antes de imprimir o sacar la imagen se pasan a gris oscuro, y después se vuelven al color del tema.
+  let modoImpresion = false;  // true mientras se imprime o se saca la imagen
+
+  // Al imprimir, escribe los números sobre el gráfico: el monto arriba de cada barra
+  // y el porcentaje en cada porción de las donas. En pantalla no dibuja nada.
+  const valoresAlImprimir = {
+    id: 'valoresAlImprimir',
+    afterDatasetsDraw: function (grafico) {
+      if (!modoImpresion) return;
+      const ctx = grafico.ctx;
+      const tipo = grafico.config.type;
+      const horizontal = grafico.options.indexAxis === 'y';
+      ctx.save();
+      ctx.fillStyle = '#333333';
+      ctx.font = 'bold 12px Arial';
+      grafico.data.datasets.forEach(function (serie, i) {
+        const total = serie.data.reduce(function (a, b) { return a + (Number(b) || 0); }, 0);
+        const conPesos = (serie.label || '').includes('$');
+        grafico.getDatasetMeta(i).data.forEach(function (elemento, j) {
+          const valor = Number(serie.data[j]);
+          if (!valor) return;
+          const punto = elemento.tooltipPosition();
+          if (tipo === 'doughnut' || tipo === 'pie') {
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(Math.round(valor / total * 100) + '%', punto.x, punto.y);
+          } else if (tipo === 'bar') {
+            const texto = (conPesos ? '$' : '') + valor.toLocaleString('es-AR');
+            if (horizontal) {  // barras acostadas (Top 5): el número a la derecha
+              ctx.textBaseline = 'middle';
+              const ancho = ctx.measureText(texto).width;
+              if (punto.x + 6 + ancho > grafico.chartArea.right) {
+                // No entra afuera de la barra: se escribe adentro, pegado al final
+                ctx.textAlign = 'right';
+                ctx.fillText(texto, punto.x - 6, punto.y);
+              } else {
+                ctx.textAlign = 'left';
+                ctx.fillText(texto, punto.x + 6, punto.y);
+              }
+            } else {           // barras paradas (Mozos): el número arriba
+              ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+              ctx.fillText(texto, punto.x, punto.y - 4);
+            }
+          } else if (tipo === 'line' && serie.data.length <= 15) {
+            // Líneas (Ventas): el monto sobre cada punto. Con muchos puntos se amontonan, así que no se ponen.
+            const texto = (conPesos ? '$' : '') + valor.toLocaleString('es-AR');
+            const area = grafico.chartArea;
+            const mitad = ctx.measureText(texto).width / 2;
+            // Cerca de los bordes se alinea hacia adentro para que no se corte
+            let x = punto.x;
+            if (x + mitad > area.right) x = area.right - mitad;
+            if (x - mitad < area.left) x = area.left + mitad;
+            ctx.textAlign = 'center';
+            // Si el punto está muy arriba, el monto va debajo del punto
+            if (punto.y - 22 < area.top) {
+              ctx.textBaseline = 'top';
+              ctx.fillText(texto, x, punto.y + 8);
+            } else {
+              ctx.textBaseline = 'bottom';
+              ctx.fillText(texto, x, punto.y - 8);
+            }
+          }
+        });
+      });
+      ctx.restore();
+    }
+  };
+  if (window.Chart) Chart.register(valoresAlImprimir);
+
+  // Pasa los gráficos a colores de papel (texto oscuro y cuadrícula clara) o los devuelve
+  // a sus colores originales, que se guardan antes de cambiarlos.
+  function colorearGraficos(activar) {
+    Object.values(Chart.instances).forEach(function (grafico) {
+      const opciones = grafico.options;
+      const leyenda = opciones.plugins && opciones.plugins.legend ? opciones.plugins.legend.labels : null;
+      const ejes = Object.values(opciones.scales || {});
+
+      if (activar) {
+        if (grafico.coloresOriginales) return;  // ya estaba preparado
+        grafico.coloresOriginales = {
+          texto: opciones.color,
+          leyenda: leyenda ? leyenda.color : null,
+          ejes: ejes.map(function (eje) {
+            return { numeros: eje.ticks ? eje.ticks.color : null, cuadricula: eje.grid ? eje.grid.color : null };
+          }),
+        };
+        opciones.color = '#333333';
+        if (leyenda) leyenda.color = '#333333';
+        ejes.forEach(function (eje) {
+          if (eje.ticks) eje.ticks.color = '#333333';
+          if (eje.grid) eje.grid.color = '#E5E7EB';
+        });
+      } else {
+        const originales = grafico.coloresOriginales;
+        if (!originales) return;
+        opciones.color = originales.texto;
+        if (leyenda) leyenda.color = originales.leyenda;
+        ejes.forEach(function (eje, i) {
+          if (eje.ticks) eje.ticks.color = originales.ejes[i].numeros;
+          if (eje.grid) eje.grid.color = originales.ejes[i].cuadricula;
+        });
+        delete grafico.coloresOriginales;
+      }
+      grafico.update('none');
+    });
+  }
+
+  function prepararImpresion(activar) {
+    if (!window.Chart) return;
+    modoImpresion = activar;
+    colorearGraficos(activar);
+  }
+
+  // Botón PDF: primero prepara los gráficos y espera a que se redibujen; después abre la impresión.
+  // (Si se imprime con Ctrl+P, lo hacen los eventos de abajo.)
+  function imprimirReporte() {
+    prepararImpresion(true);
+    setTimeout(function () { window.print(); }, 300);
+  }
+  window.addEventListener('beforeprint', function () { prepararImpresion(true); });
+  window.addEventListener('afterprint', function () { prepararImpresion(false); });
+  // Algunos navegadores avisan la impresión solo por acá
+  if (window.matchMedia) {
+    window.matchMedia('print').addEventListener('change', function (e) { prepararImpresion(e.matches); });
+  }
+
   function descargarComoImagen() {
     const area = document.getElementById('area-reporte');
     const botones = document.querySelector('.acciones-descarga');
-    
+    prepararImpresion(true);
+
     // Oculta los botones temporalmente para que no salgan en la foto
     botones.style.display = 'none';
 
@@ -40,6 +189,7 @@
     }).then(canvas => {
       // Volve a mostrar los botones
       botones.style.display = 'flex';
+      prepararImpresion(false);
 
       // Crea el enlace de descarga
       const link = document.createElement('a');
@@ -49,6 +199,7 @@
     }).catch(err => {
       console.error("Error al generar la imagen:", err);
       botones.style.display = 'flex'; // Mostrar botones si falla
+      prepararImpresion(false);
     });
   }
 </script>
@@ -84,8 +235,17 @@
     <a href="{% url 'reportes:categorias' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == 'categorias' %}activo{% endif %}"><span class="material-symbols-outlined">category</span> Categorías</a>
     <a href="{% url 'reportes:mozos' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == 'mozos' %}activo{% endif %}"><span class="material-symbols-outlined">groups</span> Mozos</a>
     <a href="{% url 'reportes:metodos' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == 'metodos' %}activo{% endif %}"><span class="material-symbols-outlined">payments</span> Pagos</a>
+    {% comment %}
+    OCULTO TEMPORALMENTE (exposición de otra materia). Para volver a mostrar las pestañas
+    de los reportes consolidados del Parcial 2, borrar este {% comment %} y su cierre.
+    {% consolidados_visibles as consolidados %}
+    {% for r in consolidados %}
+    <a href="{% url 'reportes:consolidado' r.clave %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == r.clave %}activo{% endif %}"><span class="material-symbols-outlined">{{ r.icono }}</span> {{ r.nombre }}</a>
+    {% endfor %}
+    {% endcomment %}
   </div>
 
+  {% block filtros %}
   <!-- FILTROS Y BOTONES DE DESCARGA -->
   <div class="filtros-reportes no-print" style="justify-content: space-between;">
     <form method="GET" style="display: flex; gap: 15px; align-items: flex-end;">
@@ -106,7 +266,7 @@
       <button onclick="descargarComoImagen()" class="btn-secundario" title="Descargar como Imagen">
         <span class="material-symbols-outlined">image</span> Imagen
       </button>
-      <button onclick="window.print()" class="btn-secundario" title="Guardar como PDF">
+      <button onclick="imprimirReporte()" class="btn-secundario" title="Guardar como PDF">
         <span class="material-symbols-outlined">picture_as_pdf</span> PDF
       </button>
       {% comment %}
@@ -115,6 +275,43 @@
       </a>
       {% endcomment %}
     </div>
+  </div>
+  {% endblock %}
+
+  <!-- ENCABEZADO INSTITUCIONAL: solo se ve al imprimir o guardar como PDF -->
+  <div class="encabezado-impresion">
+    <div>
+      <!-- logo.jpeg es la versión para fondo claro (logo.png tiene "Salta" en blanco) -->
+      <img src="{% static 'img/logo/logo.jpeg' %}" alt="Los Cardones - Salta" class="logo-impresion">
+    </div>
+    <div class="datos">
+      <strong>Reporte:</strong>
+      {% if tab == 'ventas' %}Evolución mensual de las ventas{% elif tab == 'top' %}Top 5 de platos y bebidas más vendidos{% elif tab == 'categorias' %}Ingresos por categoría de plato{% elif tab == 'mozos' %}Rendimiento por mozo{% elif tab == 'metodos' %}Evolución mensual de los métodos de pago{% else %}{{ titulo|default:"Reporte" }}{% endif %}<br>
+      <strong>Período:</strong> {{ fecha_desde|default:"—" }} al {{ fecha_hasta|default:"—" }}<br>
+      <strong>Generado por:</strong> {% if request.user.empleado %}{{ request.user.empleado.nombre_empleado }} {{ request.user.empleado.apellido_empleado }}{% else %}{{ request.user.username }}{% endif %}
+      · {% now "d/m/Y H:i" %} hs
+    </div>
+  </div>
+
+  <!-- DESCRIPCIÓN DEL REPORTE: solo se ve al imprimir, para explicar qué muestra y a qué nivel apunta -->
+  <div class="descripcion-impresion">
+    {# Nivel, destinatario y objetivo tomados de la Tabla 122 y las fichas del Documento Oficial #}
+    {% if tab == 'ventas' %}
+      <span class="nivel-impresion">Nivel estratégico · Dueño y encargado</span>
+      <p>Analizar si los ingresos crecen o bajan a lo largo de los meses para evaluar la marcha del negocio.</p>
+    {% elif tab == 'top' %}
+      <span class="nivel-impresion">Nivel táctico · Encargado y jefe de cocina</span>
+      <p>Conocer los platos y las bebidas con más unidades vendidas.</p>
+    {% elif tab == 'categorias' %}
+      <span class="nivel-impresion">Nivel táctico · Encargado y jefe de cocina</span>
+      <p>Identificar qué categorías de platos generan más ingresos.</p>
+    {% elif tab == 'mozos' %}
+      <span class="nivel-impresion">Nivel táctico · Encargado y jefe de mozos</span>
+      <p>Comparar los ingresos que generó cada mozo en un período.</p>
+    {% elif tab == 'metodos' %}
+      <span class="nivel-impresion">Nivel estratégico · Dueño</span>
+      <p>Ver cómo cambia la proporción de los ingresos que entra por efectivo, tarjeta, transferencia y QR.</p>
+    {% endif %}
   </div>
 
   <!-- CONTENIDO DEL REPORTE (Envuelto para la captura) -->

@@ -13,6 +13,18 @@ from ventas.models import Comanda, DetalleComanda, Pago
 from empleados.models import Empleado
 from inventario.models import CategoriaPlato
 from .productos import (CATEGORIA_PLATO, CON_BEBIDA, CON_PLATO, NOMBRE_BEBIDA, NOMBRE_PLATO, PRECIO_PLATO,)
+import base64
+from functools import lru_cache
+from urllib.parse import urlencode
+
+from django.conf import settings
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.http import Http404
+from django.shortcuts import redirect
+
+from empleados.decorators import NIVEL_ADMINISTRADOR, nivel_de, tiene_permiso
+from .consolidados import REPORTES, SOLO_ADMINISTRADOR
 
 # --- FUNCIÓN AUXILIAR PARA FECHAS ---
 def obtener_rango_fechas(request):
@@ -70,14 +82,14 @@ def obtener_comandas(request):
 def obtener_totales_metodos(request):
     """Devuelve [(nombre del método, total cobrado)] del período, de mayor a menor."""
     inicio, fin, f_desde_str, f_hasta_str = obtener_rango_fechas(request)
-    nombres = dict(Pago.METODOS)
     pagos = (
         Pago.objects.filter(fecha_hora__range=[inicio, fin])
-        .values("metodo_pago")
+        .values("metodo_pago__nombre_metodo_pago")
         .annotate(total=Sum("monto"))
     )
     totales = [
-        (nombres.get(p["metodo_pago"], p["metodo_pago"]), p["total"]) for p in pagos
+        (p["metodo_pago__nombre_metodo_pago"] or "Sin método registrado", p["total"])
+        for p in pagos
     ]
 
     # Comandas cobradas antes de existir la tabla Pago: no tienen método guardado
@@ -91,6 +103,41 @@ def obtener_totales_metodos(request):
 
     totales.sort(key=lambda fila: fila[1], reverse=True)
     return totales, f_desde_str, f_hasta_str
+
+
+def obtener_metodos_por_mes(request, metodos):
+    """Total cobrado por método en cada mes del período.
+
+    Devuelve [(etiqueta del mes, [total por método en el orden de `metodos`], total del mes)].
+    Se agrupa en Python con la hora local, igual que el reporte de ventas.
+    """
+    inicio, fin, _, _ = obtener_rango_fechas(request)
+    por_mes = {}
+
+    def sumar(fecha_hora, metodo, monto):
+        fecha = timezone.localtime(fecha_hora)
+        mes = por_mes.setdefault((fecha.year, fecha.month), {})
+        mes[metodo] = mes.get(metodo, 0) + monto
+
+    pagos = Pago.objects.filter(fecha_hora__range=[inicio, fin]).values_list(
+        "fecha_hora", "metodo_pago__nombre_metodo_pago", "monto"
+    )
+    for fecha_hora, metodo, monto in pagos:
+        sumar(fecha_hora, metodo or "Sin método registrado", monto)
+
+    sin_registro = Comanda.objects.filter(
+        estado_comanda__iexact="pagado",
+        fecha_hora__range=[inicio, fin],
+        pagos__isnull=True,
+    ).values_list("fecha_hora", "total_comanda")
+    for fecha_hora, total in sin_registro:
+        sumar(fecha_hora, "Sin método registrado", total)
+
+    filas = []
+    for clave in sorted(por_mes):
+        valores = [por_mes[clave].get(m, 0) for m in metodos]
+        filas.append((etiqueta_periodo(clave), valores, sum(valores)))
+    return filas
 
 # --- REPORTE DE VENTAS GENERALES (KPIs y Gráfico) ---
 @login_required
@@ -263,6 +310,7 @@ def reporte_metodos(request):
     totales, f_desde, f_hasta = obtener_totales_metodos(request)
     labels_metodos = [nombre for nombre, _ in totales]
     data_metodos = [float(total) for _, total in totales]
+    meses = obtener_metodos_por_mes(request, labels_metodos)
 
     return render(
         request,
@@ -270,6 +318,9 @@ def reporte_metodos(request):
         {
             "labels_metodos": labels_metodos,
             "data_metodos": data_metodos,
+            "meses": meses,
+            "totales_metodos": [total for _, total in totales],
+            "total_general": sum(total for _, total in totales),
             "fecha_desde": f_desde,
             "fecha_hasta": f_hasta,
             "tab": "metodos",
@@ -316,4 +367,103 @@ def exportar_pdf_ventas(request):
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
         return HttpResponse("Error al generar PDF", status=500)
+    return response
+
+
+def puede_ver_consolidado(user, clave):
+    permiso = REPORTES[clave]["permiso"]
+    if permiso == SOLO_ADMINISTRADOR:
+        return nivel_de(user) >= NIVEL_ADMINISTRADOR
+    return tiene_permiso(user, *permiso)
+
+
+def _reporte_permitido(request, clave):
+    """Los datos del reporte, o None si el usuario no tiene permiso (y deja el mensaje)."""
+    if clave not in REPORTES:
+        raise Http404("Reporte inexistente")
+    if not puede_ver_consolidado(request.user, clave):
+        messages.error(
+            request,
+            f'El reporte "{REPORTES[clave]["nombre"]}" está restringido a tu perfil.',
+        )
+        return None
+    datos = REPORTES[clave]["funcion"](request)
+    # Cada celda viaja con su alineación: los números van a la derecha
+    numericas = [es_numero for _, es_numero in datos["columnas"]]
+    datos["filas"] = [list(zip(fila, numericas)) for fila in datos["filas"]]
+    datos["totales"] = list(zip(datos["totales"], numericas))
+    return datos
+
+
+@login_required
+def reporte_consolidado(request, clave):
+    datos = _reporte_permitido(request, clave)
+    if datos is None:
+        return redirect("reportes:ventas")
+
+    try:
+        por_pagina = int(request.GET.get("por_pagina", 10))
+    except (TypeError, ValueError):
+        por_pagina = 10
+    if por_pagina not in (10, 25, 50):
+        por_pagina = 10
+    pagina = Paginator(datos["filas"], por_pagina).get_page(request.GET.get("page"))
+
+    filtros = datos["filtros"]
+    return render(
+        request,
+        "reportes/consolidado.html",
+        {
+            **datos,
+            "clave": clave,
+            "tab": clave,
+            "pagina": pagina,
+            "por_pagina": por_pagina,
+            "fecha_desde": filtros["fecha_desde"],
+            "fecha_hasta": filtros["fecha_hasta"],
+            # Con urlencode, los filtros sobreviven al paginar y al exportar
+            "query_filtros": urlencode({k: v for k, v in filtros.items() if v}),
+        },
+    )
+
+
+@lru_cache(maxsize=1)
+def logo_en_base64():
+    """El logo incrustado en el HTML: xhtml2pdf no siempre resuelve rutas con espacios o tildes."""
+    ruta = settings.BASE_DIR / "static" / "img" / "logo" / "logo.png"
+    try:
+        return "data:image/png;base64," + base64.b64encode(ruta.read_bytes()).decode()
+    except OSError:
+        return ""
+
+
+def nombre_de_usuario(user):
+    try:
+        e = user.empleado
+        return f"{e.nombre_empleado} {e.apellido_empleado}"
+    except Empleado.DoesNotExist:
+        return user.get_username()
+
+
+@login_required
+def reporte_consolidado_pdf(request, clave):
+    datos = _reporte_permitido(request, clave)
+    if datos is None:
+        return redirect("reportes:ventas")
+
+    html = get_template("reportes/pdf_consolidado.html").render(
+        {
+            **datos,
+            "logo": logo_en_base64(),
+            "usuario": nombre_de_usuario(request.user),
+            "generado": timezone.localtime(),
+        }
+    )
+    filtros = datos["filtros"]
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="Reporte_{clave}_{filtros["fecha_desde"]}_{filtros["fecha_hasta"]}.pdf"'
+    )
+    if pisa.CreatePDF(html, dest=response, encoding="utf-8").err:
+        return HttpResponse("Error al generar el PDF", status=500)
     return response
