@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ tipo }}</title>
+</head>
+<!-- Los programas de correo ignoran <style>: por eso cada etiqueta lleva su propio estilo -->
+<body style="margin:0; padding:0; background-color:#F4F1EA; font-family:Arial, Helvetica, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F1EA; padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background-color:#FFFFFF; border-radius:10px; overflow:hidden; border:1px solid #E7E2D8;">
+
+          <!-- Encabezado -->
+          <tr>
+            <td style="background-color:#F5A623; padding:20px 28px;">
+              <div style="font-size:22px; font-weight:bold; color:#FFFFFF;">Los Cardones</div>
+              <div style="font-size:13px; color:#FFF8E7;">Sistema de Gestión · Aviso automático</div>
+            </td>
+          </tr>
+
+          <!-- Tipo de alerta -->
+          <tr>
+            <td style="padding:28px 28px 8px 28px;">
+              <span style="display:inline-block; background-color:#FDECEC; color:#B42318; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:1px;">
+                Alerta
+              </span>
+              <h1 style="margin:12px 0 0 0; font-size:20px; color:#2B2A27;">{{ tipo }}</h1>
+            </td>
+          </tr>
+
+          <!-- Mensaje -->
+          <tr>
+            <td style="padding:12px 28px;">
+              <p style="margin:0; font-size:15px; line-height:22px; color:#3D3D3D; background-color:#FFF8E7; border-left:4px solid #F5A623; padding:14px 16px;">
+                {{ mensaje }}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Fecha y destino -->
+          <tr>
+            <td style="padding:8px 28px; font-size:13px; color:#6C6862;">
+              <strong>Fecha:</strong> {{ fecha|date:"d/m/Y" }} a las {{ fecha|date:"H:i" }} hs<br>
+              <strong>Enviado al cargo:</strong> {{ cargo }}
+            </td>
+          </tr>
+
+          <!-- Botón -->
+          <tr>
+            <td style="padding:20px 28px 28px 28px;">
+              <a href="{{ enlace }}" style="display:inline-block; background-color:#3D3D3D; color:#FFFFFF; text-decoration:none; font-size:14px; font-weight:bold; padding:12px 22px; border-radius:6px;">
+                Ver en la bandeja
+              </a>
+            </td>
+          </tr>
+
+          <!-- Pie -->
+          <tr>
+            <td style="padding:16px 28px; background-color:#FAFAF7; border-top:1px solid #E7E2D8; font-size:11px; color:#8A857C;">
+              Este correo se envió automáticamente porque se cumplió una regla de alerta del sistema.
+              No hace falta responderlo.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

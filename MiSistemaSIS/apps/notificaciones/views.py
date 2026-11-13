@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from empleados.models import Empleado
-from .models import Notificacion
+from .models import Notificacion, TIPOS
 
 # Create your views here.
 def mis_notificaciones(request):
@@ -18,17 +18,48 @@ def mis_notificaciones(request):
 
 @login_required
 def bandeja_notificaciones(request):
-  """Muestra la bandeja de notificaciones del usuario."""
+  """Muestra la bandeja de notificaciones del usuario, con filtros y paginación."""
   notificaciones = mis_notificaciones(request)
-  if request.GET.get("estado") =="sin_leer":
+
+  buscar = request.GET.get("buscar", "").strip()
+  tipos = request.GET.getlist("tipo")
+  estados = request.GET.getlist("estado")
+
+  if buscar:
+    notificaciones = notificaciones.filter(mensaje__icontains=buscar)
+
+  if tipos:
+    notificaciones = notificaciones.filter(tipo__in=tipos)
+
+  # "sin_leer" y "leida" a la vez equivalen a no filtrar por estado
+  if "sin_leer" in estados and "leida" not in estados:
     notificaciones = notificaciones.filter(leida=False)
-  
-  paginator = Paginator(notificaciones, 10) # Mostrar 10 notificaciones por página
-  
-  page_number = request.GET.get('page')
-  page_obj = paginator.get_page(page_number)
-  
-  return render(request, 'notificaciones/bandeja.html', {'notificaciones': page_obj, 'estado': request.GET.get("estado", ""),})
+  elif "leida" in estados and "sin_leer" not in estados:
+    notificaciones = notificaciones.filter(leida=True)
+
+  try:
+    por_pagina = int(request.GET.get("por_pagina", 10))
+  except (ValueError, TypeError):
+    por_pagina = 10
+  if por_pagina not in [10, 25, 50, 100]:
+    por_pagina = 10
+
+  paginator = Paginator(notificaciones, por_pagina)
+  page_obj = paginator.get_page(request.GET.get("page"))
+
+  # Los mismos filtros, para armar los enlaces de la paginación
+  filtros = request.GET.copy()
+  filtros.pop("page", None)
+
+  return render(request, "notificaciones/bandeja.html", {
+    "notificaciones": page_obj,
+    "buscar": buscar,
+    "tipos": TIPOS,
+    "tipos_seleccionados": tipos,
+    "estados_seleccionados": estados,
+    "por_pagina": por_pagina,
+    "filtros_url": filtros.urlencode(),
+  })
 
 @login_required
 @require_POST
