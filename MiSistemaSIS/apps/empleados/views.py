@@ -26,6 +26,7 @@ from .forms import (
     AsistenciaForm,
 )
 from django.contrib.auth import authenticate, login
+from django.core.cache import cache
 from empleados.decorators import NIVEL_ADMINISTRADOR, nivel_de, permiso_requerido, puede_gestionar, tiene_permiso
 from empleados.servicios import asignar_permisos_a_cargo, es_administrador
 from django.contrib.auth.models import User
@@ -34,6 +35,7 @@ from datetime import datetime
 from django.db.models import Q
 from django.core.paginator import Paginator
 from auditoria.models import LogAuditoria
+from core.mensajes import error_campo
 
 
 # Create your views here.
@@ -161,6 +163,11 @@ def empleado_modificacion(request, pk):
         return redirect("empleados:empleado_listar")
 
     if request.method == "POST":
+        # Se arma antes de validar: al validar, el formulario ya carga los datos nuevos en el empleado
+        valores_viejos = (
+            f"Nombre: {empleado.nombre_empleado}, Apellido: {empleado.apellido_empleado}, "
+            f"Correo: {empleado.correo}, Usuario: {empleado.user_auto}"
+        )
         form = EmpleadoModificacionForm(request.POST, instance=empleado)
 
         if form.is_valid():
@@ -168,15 +175,15 @@ def empleado_modificacion(request, pk):
             if cargo and not puede_gestionar(request.user, cargo.nivel_acceso):
                 messages.error(request, _SIN_NIVEL_CARGO)
                 return redirect("empleados:empleado_modificacion", pk=pk)
-            valores_viejos = f"Nombre: {empleado.nombre_empleado}, Apellido: {empleado.apellido_empleado}, Correo: {empleado.correo}"
+            # Empleado.save() también actualiza el usuario si cambió el nombre o el apellido
             empleado_guardado = form.save(commit=True)
-            if empleado_guardado.user:
-                user = empleado_guardado.user
-                user.first_name = empleado_guardado.nombre_empleado
-                user.last_name = empleado_guardado.apellido_empleado
-                user.email = empleado_guardado.correo
-                user.save() 
-            valores_nuevos = f"Nombre: {empleado_guardado.nombre_empleado}, Apellido: {empleado_guardado.apellido_empleado}, Correo: {empleado_guardado.correo}"
+            if empleado_guardado.user and empleado_guardado.user.email != empleado_guardado.correo:
+                empleado_guardado.user.email = empleado_guardado.correo
+                empleado_guardado.user.save(update_fields=["email"])
+            valores_nuevos = (
+                f"Nombre: {empleado_guardado.nombre_empleado}, Apellido: {empleado_guardado.apellido_empleado}, "
+                f"Correo: {empleado_guardado.correo}, Usuario: {empleado_guardado.user_auto}"
+            )
 
             LogAuditoria.objects.create(
                 tabla="Empleado",
@@ -189,7 +196,8 @@ def empleado_modificacion(request, pk):
 
             messages.success(
                 request,
-                f'Empleado "{empleado_guardado.nombre_empleado}" actualizado correctamente',
+                f'Empleado "{empleado_guardado.nombre_empleado} {empleado_guardado.apellido_empleado}" '
+                f'actualizado correctamente. Usuario: {empleado_guardado.user_auto}',
             )
             return redirect("empleados:empleado_listar")
     else:
@@ -319,6 +327,38 @@ def empleado_restablecer_contrasena(request, pk):
     )
 
 
+# --- Límite de intentos de inicio de sesión ---
+# Después de INTENTOS_MAXIMOS fallos con el mismo usuario desde la misma IP,
+# el ingreso queda bloqueado BLOQUEO_SEGUNDOS. Protege contra quien prueba
+# contraseñas una tras otra. (La API ya tiene su propio límite: 10 por minuto.)
+INTENTOS_MAXIMOS = 5
+BLOQUEO_SEGUNDOS = 5 * 60
+
+
+def _clave_intentos(request, identificador):
+    ip = request.META.get("REMOTE_ADDR", "")
+    return f"login_fallidos:{ip}:{identificador.lower()}"
+
+
+def _minutos_bloqueado(request, identificador):
+    """Minutos que faltan para poder intentar de nuevo, o 0 si no está bloqueado."""
+    datos = cache.get(_clave_intentos(request, identificador))
+    if not datos or datos["intentos"] < INTENTOS_MAXIMOS:
+        return 0
+    restante = datos["hasta"] - timezone.now().timestamp()
+    return max(1, int(restante // 60) + (1 if restante % 60 else 0)) if restante > 0 else 0
+
+
+def _registrar_fallo(request, identificador):
+    """Suma un intento fallido. Devuelve los intentos que quedan."""
+    clave = _clave_intentos(request, identificador)
+    datos = cache.get(clave) or {"intentos": 0}
+    datos["intentos"] += 1
+    datos["hasta"] = timezone.now().timestamp() + BLOQUEO_SEGUNDOS
+    cache.set(clave, datos, BLOQUEO_SEGUNDOS)
+    return INTENTOS_MAXIMOS - datos["intentos"]
+
+
 def _buscar_username(identificador):
     """Acepta usuario, correo o "Nombre Apellido" (en cualquier orden) y devuelve el username."""
     if User.objects.filter(username=identificador).exists():
@@ -347,10 +387,20 @@ def login_view(request):
             messages.error(request, "Completá el correo y la contraseña.")
             return render(request, "login.html", {"identificador": identificador})
 
+        minutos = _minutos_bloqueado(request, identificador)
+        if minutos:
+            messages.error(
+                request,
+                f"Demasiados intentos fallidos. Esperá {minutos} "
+                f"minuto{'s' if minutos != 1 else ''} y volvé a intentar.",
+            )
+            return render(request, "login.html", {"identificador": identificador})
+
         username_real = _buscar_username(identificador)
         if username_real:
             user = authenticate(request, username=username_real, password=password)
             if user is not None:
+                cache.delete(_clave_intentos(request, identificador))
                 login(request, user)
                 if not request.POST.get("remember"):
                     # Sin "Recordar sesión", la sesión termina al cerrar el navegador
@@ -373,7 +423,21 @@ def login_view(request):
                 )
                 return render(request, "login.html", {"identificador": identificador})
 
-        messages.error(request, "Usuario, correo o contraseña incorrectos. Intentá de nuevo.")
+        quedan = _registrar_fallo(request, identificador)
+        if quedan <= 0:
+            messages.error(
+                request,
+                f"Demasiados intentos fallidos. El ingreso quedó bloqueado "
+                f"{BLOQUEO_SEGUNDOS // 60} minutos.",
+            )
+        elif quedan <= 2:
+            messages.error(
+                request,
+                f"Usuario, correo o contraseña incorrectos. Te queda{'n' if quedan > 1 else ''} "
+                f"{quedan} intento{'s' if quedan > 1 else ''} antes del bloqueo.",
+            )
+        else:
+            messages.error(request, "Usuario, correo o contraseña incorrectos. Intentá de nuevo.")
     return render(request, "login.html", {"identificador": identificador})
 
 
@@ -1023,7 +1087,7 @@ def crear_tipo_asistencia(request):
         descripcion = request.POST.get("desc_tipo_asis", "").strip()
 
         if TipoAsistencia.objects.filter(nombre_tipo_asis=nombre).exists():
-            messages.error(request, f'El turno "{nombre}" ya existe.')
+            error_campo(request, "nombre_tipo_asis", f'El turno "{nombre}" ya existe.')
         else:
             tipo = TipoAsistencia.objects.create(
                 nombre_tipo_asis=nombre,
@@ -1058,7 +1122,7 @@ def editar_tipo_asistencia(request, pk):
             .exclude(pk=pk)
             .exists()
         ):
-            messages.error(request, f'El turno "{nombre}" ya existe.')
+            error_campo(request, "nombre_tipo_asis", f'El turno "{nombre}" ya existe.')
         else:
             valores_viejos = f"Nombre: {tipo.nombre_tipo_asis}, Descripción: {tipo.desc_tipo_asistencia}"
 

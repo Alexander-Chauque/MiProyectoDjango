@@ -66,7 +66,7 @@
         <label>Cargo</label>
         <div class="checkboxes">
           <label class="checkbox-item">
-            <input type="checkbox" id="cat-todos" onchange="toggleCategorias(this)">
+            <input type="checkbox" id="cat-todos" onchange="toggleCategorias(this)" {% if not cargos_seleccionados %}checked{% endif %}>
             <span>Todos</span>
           </label>
           {% for cargo in cargos %}

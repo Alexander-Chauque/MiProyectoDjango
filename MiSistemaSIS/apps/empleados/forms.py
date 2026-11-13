@@ -123,28 +123,8 @@ class EmpleadoModificacionForm(forms.ModelForm):
             raise forms.ValidationError("Este correo ya está registrado en otro empleado.")
         return correo
 
-    def save(self, commit=True):
-        empleado = super().save(commit=False)
-        if self.instance.pk:
-            original = Empleado.objects.get(pk=self.instance.pk)
-            if (
-                original.nombre_empleado != self.cleaned_data["nombre_empleado"]
-                or original.apellido_empleado != self.cleaned_data["apellido_empleado"]
-            ):
-                empleado.user_auto = empleado.generate_user_auto()
-
-                if empleado.user:
-                    empleado.user.username = empleado.user_auto
-                    empleado.user.first_name = self.cleaned_data["nombre_empleado"]
-                    empleado.user.last_name = self.cleaned_data["apellido_empleado"]
-                    empleado.user.save()
-        else:
-            empleado.user_auto = empleado.generate_user_auto()
-
-        if commit:
-            empleado.save()
-
-        return empleado
+    # No hace falta un save() propio: Empleado.save() regenera el usuario
+    # cuando no corresponde al nombre y actualiza la cuenta para iniciar sesión.
 
 
 class MiPerfilForm(forms.ModelForm):

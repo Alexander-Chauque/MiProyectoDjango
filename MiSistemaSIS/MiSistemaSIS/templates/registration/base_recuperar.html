@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}" />
     <link rel="stylesheet" href="{% static 'css/usuario.css' %}" />
     <link rel="stylesheet" href="{% static 'css/tema_oscuro.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/colores.css' %}" />
   </head>
   <body>
     <!-- Sin menú lateral: quien recupera su contraseña todavía no inició sesión -->
@@ -32,10 +33,10 @@
       <main class="contenido">
         <div class="cuenta-pagina">
           {% block content %}{% endblock %}
-          {% include 'includes/paisaje_cuenta.html' %}
         </div>
       </main>
     </div>
     {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/validacion_campos.js' %}"></script>
   </body>
 </html>

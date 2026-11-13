@@ -175,8 +175,8 @@ button.user-dropdown[aria-expanded="true"] .dropdown-arrow {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 190px);
-  /* Deja lugar para los cerros: la tarjeta solo puede tapar parte del cielo */
-  padding-bottom: calc(var(--cuenta-alto-paisaje) * 0.75);
+  /* Espacio entre la última tarjeta y el pie de página */
+  padding-bottom: 30px;
   overflow: hidden;
   color: var(--cuenta-texto);
 }
