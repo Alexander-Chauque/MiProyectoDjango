@@ -13,13 +13,7 @@
 <div class="contenedor">
 
   <!-- Mensajes de Django -->
-  {% if messages %}
-    {% for message in messages %}
-      <div class="mensaje {{ message.tags }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
+
 
   <nav class="breadcrumb">
     <a href="{% url 'home' %}" class="breadcrumb-item">

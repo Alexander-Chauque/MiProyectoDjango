@@ -4,43 +4,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprobante Comanda #{{ comanda.id_comanda }} - Los Cardones</title>
+    <title>Comprobante N° {{ comanda.id_comanda|stringformat:"06d" }} - Los Cardones</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Poppins:wght@400;500;600&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="{% static 'css/comprobante.css' %}">
 </head>
 <body>
-    <div class="comprobante">
-        <div class="comprobante-header">
-            <h1>LOS CARDONES</h1>
-            <p>Balcarce 922, Salta - Argentina</p>
-            <p>Tel: (387) 123-4567 | CUIT: 30-12345678-9</p>
-        </div>
-        <div class="comprobante-titulo">
-            <h2>COMPROBANTE DE COMANDA</h2>
-            <p class="comprobante-numero">N° {{ comanda.id_comanda }}</p>
-        </div>
-        <div class="comprobante-datos">
-            <div class="datos-fila">
-                <div class="datos-columna">
-                    <p><strong>Fecha:</strong> {{ comanda.fecha_hora|date:"d/m/Y H:i" }}</p>
-                    <p><strong>Mesa:</strong> Mesa {{ comanda.mesa.numero_mesa }}</p>
-                    <p><strong>Mozo:</strong> {{ comanda.empleado.get_full_name }}</p>
-                </div>
-                <div class="datos-columna">
-                    <p><strong>Estado:</strong> {{ comanda.get_estado_comanda_display }}</p>
-                    <p><strong>Observaciones:</strong> {{ comanda.observaciones_comanda|default:"Sin observaciones" }}</p>
-                </div>
+    <main class="comprobante">
+
+        {% if comanda.estado_comanda == 'anulado' or comanda.estado_comanda == 'cancelado' %}
+        <div class="sello-anulado">ANULADA</div>
+        {% endif %}
+
+        <!-- ===== Encabezado: logo a la izquierda, título y número a la derecha ===== -->
+        <header class="comp-encabezado">
+            <img src="{% static 'img/logo/logo.jpeg' %}" alt="Los Cardones - Salta" class="comp-logo">
+            <div class="comp-titulo">
+                <h1>Comprobante de venta</h1>
+                <dl class="comp-meta">
+                    <dt>N° de comprobante</dt>
+                    <dd class="comp-numero">{{ comanda.id_comanda|stringformat:"06d" }}</dd>
+                    <dt>Fecha</dt>
+                    <dd>{{ comanda.fecha_hora|date:"d/m/Y" }}</dd>
+                    <dt>Hora</dt>
+                    <dd>{{ comanda.fecha_hora|date:"H:i" }}</dd>
+                </dl>
             </div>
-        </div>
-        <table class="comprobante-tabla">
+        </header>
+
+        <!-- ===== Datos del local y del servicio ===== -->
+        <section class="comp-partes">
+            <div>
+                <h2>Emitido por</h2>
+                <p class="comp-nombre">Peña Los Cardones</p>
+                <p>Restaurante folclórico</p>
+                <p>Balcarce 922, Salta - Argentina</p>
+                <p>Tel: (387) 123-4567</p>
+                <p>CUIT: 30-12345678-9</p>
+            </div>
+            <div class="derecha">
+                <h2>Detalle del servicio</h2>
+                <p class="comp-nombre">Mesa {{ comanda.mesa.numero_mesa }}</p>
+                {% if comanda.mesa.get_ubicacion_display %}<p>{{ comanda.mesa.get_ubicacion_display }}</p>{% endif %}
+                <p>Atendido por: {{ comanda.empleado.get_full_name|default:"Sin asignar" }}</p>
+                <p>Estado: <span class="comp-estado estado-{{ comanda.estado_comanda }}">{{ comanda.get_estado_comanda_display }}</span></p>
+            </div>
+        </section>
+
+        <!-- ===== Productos ===== -->
+        <table class="comp-tabla">
             <thead>
                 <tr>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
                     <th class="centrado">Cant.</th>
-                    <th class="derecha">Precio Unit.</th>
+                    <th>Descripción</th>
+                    <th class="derecha">P. unitario</th>
                     <th class="derecha">Subtotal</th>
                 </tr>
             </thead>
@@ -48,48 +67,93 @@
                 {% for detalle in detalles %}
                     {% if detalle.tiene_plato %}
                     <tr>
-                        <td><span class="badge-tipo">Plato</span></td>
-                        <td>{{ detalle.nombre_del_plato }}</td>
                         <td class="centrado">{{ detalle.cant_plato }}</td>
-                        <td class="derecha">${{ detalle.precio_del_plato|floatformat:0 }}</td>
-                        <td class="derecha"><strong>${{ detalle.subtotal_plato|floatformat:0 }}</strong></td>
+                        <td>
+                            {{ detalle.nombre_del_plato }}
+                            <span class="comp-tipo">Plato</span>
+                        </td>
+                        <td class="derecha">$ {{ detalle.precio_del_plato|floatformat:"0g" }}</td>
+                        <td class="derecha">$ {{ detalle.subtotal_plato|floatformat:"0g" }}</td>
                     </tr>
                     {% endif %}
                     {% if detalle.tiene_bebida %}
                     <tr>
-                        <td><span class="badge-tipo">Bebida</span></td>
-                        <td>{{ detalle.nombre_de_la_bebida }}</td>
                         <td class="centrado">{{ detalle.cant_bebida }}</td>
-                        <td class="derecha">${{ detalle.precio_de_la_bebida|floatformat:0 }}</td>
-                        <td class="derecha"><strong>${{ detalle.subtotal_bebida|floatformat:0 }}</strong></td>
+                        <td>
+                            {{ detalle.nombre_de_la_bebida }}
+                            <span class="comp-tipo tipo-bebida">Bebida</span>
+                        </td>
+                        <td class="derecha">$ {{ detalle.precio_de_la_bebida|floatformat:"0g" }}</td>
+                        <td class="derecha">$ {{ detalle.subtotal_bebida|floatformat:"0g" }}</td>
                     </tr>
                     {% endif %}
+                {% empty %}
+                    <tr><td colspan="4" class="centrado comp-vacio">La comanda no tiene productos.</td></tr>
                 {% endfor %}
             </tbody>
-            <tfoot>
-                <tr class="fila-total">
-                    <td colspan="4" class="derecha"><strong>TOTAL:</strong></td>
-                    <td class="derecha"><strong>${{ comanda.total_comanda|floatformat:0 }}</strong></td>
-                </tr>
-            </tfoot>
         </table>
-        <div class="comprobante-pie">
-            <p><strong>Usuario:</strong> {{ comanda.empleado.user_auto }}</p>
-            <p><strong>Emitido:</strong> {{ comanda.fecha_hora|date:"d/m/Y H:i" }}</p>
-            <p class="gracias">¡Gracias por su visita!</p>
-            <p class="redes">www.loscardones.com | @loscardones</p>
-        </div>
-    </div>
+
+        <!-- ===== Pagos y observaciones (izquierda) · Totales (derecha) ===== -->
+        <section class="comp-resumen">
+            <div class="comp-info">
+                <h2>Forma de pago</h2>
+                {% if pagos %}
+                <ul class="comp-pagos">
+                    {% for pago in pagos %}
+                    <li>
+                        <span class="material-symbols-outlined">payments</span>
+                        <span>{{ pago.metodo_pago.nombre_metodo_pago }}</span>
+                        <span class="comp-pago-fecha">{{ pago.fecha_hora|date:"d/m H:i" }}</span>
+                        <strong>$ {{ pago.monto|floatformat:"0g" }}</strong>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="comp-suave">Todavía no se registraron pagos.</p>
+                {% endif %}
+
+                {% if comanda.observaciones_comanda %}
+                <h2>Observaciones</h2>
+                <p class="comp-suave">{{ comanda.observaciones_comanda }}</p>
+                {% endif %}
+            </div>
+
+            <div class="comp-totales">
+                {% if subtotal_platos %}
+                <div class="fila"><span>Platos</span><span>$ {{ subtotal_platos|floatformat:"0g" }}</span></div>
+                {% endif %}
+                {% if subtotal_bebidas %}
+                <div class="fila"><span>Bebidas</span><span>$ {{ subtotal_bebidas|floatformat:"0g" }}</span></div>
+                {% endif %}
+                <div class="fila fila-total"><span>Total</span><span>$ {{ comanda.total_comanda|floatformat:"0g" }}</span></div>
+                <div class="fila"><span>Pagado</span><span>$ {{ comanda.total_pagado|floatformat:"0g" }}</span></div>
+                <div class="fila fila-saldo {% if not comanda.saldo_pendiente %}saldado{% endif %}">
+                    <span>{% if comanda.saldo_pendiente %}Saldo a pagar{% else %}Saldado{% endif %}</span>
+                    <span>$ {{ comanda.saldo_pendiente|floatformat:"0g" }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Pie ===== -->
+        <footer class="comp-pie">
+            <p class="comp-gracias">¡Gracias por su visita!</p>
+            <p class="comp-suave">Tradición, música y gastronomía del norte argentino</p>
+            <p class="comp-legal">
+                Emitido por {{ comanda.empleado.user_auto|default:request.user.username }} el {% now "d/m/Y H:i" %} ·
+                Documento no válido como factura
+            </p>
+        </footer>
+    </main>
 
     <div class="comprobante-acciones">
-        <button onclick="window.print()" class="btn-imprimir">
-            Imprimir
+        <button type="button" onclick="window.print()" class="btn-imprimir">
+            <span class="material-symbols-outlined">print</span> Imprimir
         </button>
         <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="btn-volver">
-            Volver al Detalle
+            <span class="material-symbols-outlined">receipt_long</span> Volver al detalle
         </a>
         <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver">
-            Volver al Listado
+            <span class="material-symbols-outlined">list</span> Volver al listado
         </a>
     </div>
 </body>

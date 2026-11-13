@@ -32,6 +32,7 @@
         <p>Gestiona los pedidos y comandas del restaurante.</p>
       </div>
     </div>
+    <div class="page-header-acciones">
       <a href="{% url 'ventas:comanda_crear' %}" class="btn-primario">
         <span class="material-symbols-outlined">add</span> Nueva Comanda
       </a>
@@ -92,7 +93,7 @@
         <label>Mesa</label>
         <div class="checkboxes">
           <label class="checkbox-item">
-            <input type="checkbox" id="mesa-todas" onchange="toggleMesas(this)">
+            <input type="checkbox" id="mesa-todas" onchange="toggleMesas(this)" {% if not mesas_seleccionadas %}checked{% endif %}>
             <span>Todas</span>
           </label>
           {% for mesa in mesas %}
@@ -213,6 +214,7 @@
                           <span class="punto-estado anulado"></span> Anular Comanda
                       </a>
                       {% endif %}
+                    </div>
                   </div>
                 {% else %}
                   <span class="btn-icon" style="background-color: #F3F4F6; color: #A0AEC0; cursor: not-allowed;" title="Comanda cerrada">
@@ -458,7 +460,7 @@
                 <option value="">Seleccione un método...</option>
 
                 {% for metodo in metodos_pago %}
-                    <option value="{{ metodo.id_metodo_pago }}">
+                    <option value="{{ metodo.id_metodo_pago }}"{% if metodo.permite_cambio %} data-permite-cambio="1"{% endif %}>
                         {{ metodo.nombre_metodo_pago }}
                     </option>
                 {% empty %}
@@ -472,6 +474,13 @@
         <div class="grupo-campo" id="campo-monto-parcial" style="display: none; margin-top: 15px;">
           <label>Monto a abonar <span class="req">*</span></label>
           <input type="number" name="monto_abonado" class="form-control" step="0.01" min="0.01" placeholder="Ej: 1500.00">
+        </div>
+
+        <!-- Solo con métodos que permiten dar vuelto (por ejemplo, Efectivo) -->
+        <div class="grupo-campo" id="campo-monto-recibido" style="display: none; margin-top: 15px;">
+          <label>Monto recibido (opcional)</label>
+          <input type="number" name="monto_recibido" class="form-control" step="0.01" min="0.01" placeholder="Con cuánto paga el cliente">
+          <small class="text-gris" id="texto-vuelto" style="display: block; margin-top: 6px;"></small>
         </div>
       </div>
 
@@ -598,6 +607,9 @@ function abrirModalPago(idComanda, total, saldo) {
     campoMonto.style.display = 'none';
     inputMonto.required = false;
     inputMonto.max = saldo;
+    document.getElementById('form-pago').dataset.saldo = saldo;
+    document.getElementById('campo-monto-recibido').style.display = 'none';
+    document.getElementById('texto-vuelto').textContent = '';
 
     const formatear = valor => parseFloat(valor).toLocaleString('es-AR', {minimumFractionDigits: 2});
     document.getElementById('pago-comanda-id').value = idComanda;
@@ -629,8 +641,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 inputMonto.required = false;
                 inputMonto.value = ''; // Limpiamos el valor
             }
+            calcularVuelto();
         });
     });
+
+    // --- VUELTO: solo con los métodos que lo permiten ---
+    const form = document.getElementById('form-pago');
+    const selectMetodo = form.querySelector('select[name="metodo_pago"]');
+    const campoRecibido = document.getElementById('campo-monto-recibido');
+    const inputRecibido = campoRecibido.querySelector('input');
+    const textoVuelto = document.getElementById('texto-vuelto');
+
+    function calcularVuelto() {
+        const opcion = selectMetodo.selectedOptions[0];
+        const permite = opcion && opcion.dataset.permiteCambio === '1';
+        campoRecibido.style.display = permite ? 'block' : 'none';
+        if (!permite) { inputRecibido.value = ''; textoVuelto.textContent = ''; return; }
+
+        const parcial = form.querySelector('input[name="tipo_pago"]:checked').value === 'parcial';
+        const aCobrar = parseFloat(parcial ? inputMonto.value : form.dataset.saldo) || 0;
+        const recibido = parseFloat(inputRecibido.value);
+        inputRecibido.min = aCobrar || 0.01;
+        if (!inputRecibido.value || !aCobrar) { textoVuelto.textContent = ''; return; }
+
+        const formatear = v => v.toLocaleString('es-AR', {minimumFractionDigits: 2});
+        if (recibido < aCobrar) {
+            textoVuelto.textContent = `Falta: $${formatear(aCobrar - recibido)}`;
+            textoVuelto.style.color = '#DC2626';
+        } else {
+            textoVuelto.textContent = `Vuelto a entregar: $${formatear(recibido - aCobrar)}`;
+            textoVuelto.style.color = '#059669';
+        }
+    }
+
+    selectMetodo.addEventListener('change', calcularVuelto);
+    inputRecibido.addEventListener('input', calcularVuelto);
+    inputMonto.addEventListener('input', calcularVuelto);
 });
 
 </script>

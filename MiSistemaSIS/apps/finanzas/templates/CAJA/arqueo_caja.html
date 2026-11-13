@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0"
       rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -16,49 +17,43 @@
 
     <!-- MIGAS DE PAN -->
     <nav class="breadcrumb">
-        <a href="{% url 'home' %}">
+        <a href="{% url 'home' %}" class="breadcrumb-item">
             <span class="material-symbols-outlined">home</span>
             Inicio
         </a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <a href="{% url 'finanzas:finanzas_home' %}">Finanzas</a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <a href="{% url 'finanzas:listar_cajas' %}">Cajas</a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <a href="{% url 'finanzas:detalle_caja' caja.pk %}">
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">Finanzas</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="{% url 'finanzas:listar_cajas' %}" class="breadcrumb-item">Cajas</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="{% url 'finanzas:detalle_caja' caja.pk %}" class="breadcrumb-item">
             Caja #{{ caja.pk }}
         </a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <span>Arqueo</span>
+        <span class="breadcrumb-separator">&gt;</span>
+        <span class="breadcrumb-item active">Arqueo</span>
     </nav>
 
     <!-- ENCABEZADO -->
     <header class="page-header">
-        <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
-           class="btn-volver-flecha"
-           title="Volver al detalle">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </a>
+        <div class="page-header-info">
+            <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
+               class="btn-volver-flecha"
+               title="Volver al detalle">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
 
-        <div class="page-header-icono">
-            <span class="material-symbols-outlined">fact_check</span>
-        </div>
+            <div class="page-header-icono">
+                <span class="material-symbols-outlined">fact_check</span>
+            </div>
 
-        <div class="page-header-texto">
-            <h1>Arqueo de caja #{{ caja.pk }}</h1>
-            <p>Registrá el dinero contado y verificá las diferencias de caja.</p>
+            <div class="page-header-texto">
+                <h1>Arqueo de caja #{{ caja.pk }}</h1>
+                <p>Registrá el dinero contado y verificá las diferencias de caja.</p>
+            </div>
         </div>
     </header>
 
-    <!-- MENSAJES -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alerta-info {{ message.tags }}">
-                <span class="material-symbols-outlined">info</span>
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+
 
     <!-- VALIDACIÓN DEL ESTADO -->
     {% if caja.estado_caja != 'abierto' %}
@@ -208,7 +203,7 @@
 
                             <div class="alerta-info">
                                 <span class="material-symbols-outlined">calculate</span>
-                                El saldo esperado se calcula con el saldo inicial menos los gastos registrados en esta caja.
+                                Saldo esperado = saldo inicial + cobros en efectivo − gastos. Los cobros con tarjeta o transferencia no se cuentan porque no están en el cajón.
                             </div>
 
                         </div>

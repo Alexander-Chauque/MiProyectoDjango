@@ -13,13 +13,7 @@
 <div class="contenedor">
 
   <!-- Mensajes de Django -->
-  {% if messages %}
-    {% for message in messages %}
-      <div class="mensaje {{ message.tags }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
+
 
   <!-- Navegación -->
   <nav class="breadcrumb">
@@ -100,9 +94,9 @@
       <label>Estado</label>
       <p>
         {% if categoria.estado_categoria_gasto %}
-          <span class="estado-activo">Activa</span>
+          <span class="badge badge-activo">Activa</span>
         {% else %}
-          <span class="estado-inactivo">Inactiva</span>
+          <span class="badge badge-inactivo">Inactiva</span>
         {% endif %}
       </p>
     </div>

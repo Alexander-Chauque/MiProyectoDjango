@@ -63,17 +63,9 @@
         {% csrf_token %}
 
         <!-- Información de la caja -->
-        <div class="tarjeta-formulario">
-            <div class="tarjeta-titulo">
-                <span class="material-symbols-outlined icono-naranja">
-                    point_of_sale
-                </span>
-                <h2>Caja abierta</h2>
-            </div>
-
-            <p>
-                El gasto se registrará automáticamente en la caja abierta.
-            </p>
+        <div class="aviso-caja">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span><strong>Caja abierta</strong> El gasto se registra automáticamente en la caja abierta.</span>
         </div>
 
         <!-- Datos del gasto -->

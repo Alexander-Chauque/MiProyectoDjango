@@ -1,4 +1,3 @@
-```django
 {% extends 'base.html' %}
 {% load static %}
 
@@ -57,15 +56,7 @@
     </div>
   </div>
 
-  {% if messages %}
-    <div class="mensajes">
-      {% for message in messages %}
-        <div class="mensaje {{ message.tags }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+
 
   <form method="POST" class="tarjeta-formulario">
     {% csrf_token %}
@@ -105,6 +96,13 @@
         placeholder="Breve descripción del método de pago...">{{ metodo.descripcion_metodo_pago }}</textarea>
     </div>
 
+    <div class="grupo-campo" style="margin-top: 20px;">
+      <label class="casilla-formulario">
+        <input type="checkbox" name="permite_cambio" {% if metodo.permite_cambio %}checked{% endif %}>
+        <span>Permite dar vuelto (por ejemplo, Efectivo)</span>
+      </label>
+    </div>
+
     <div class="acciones-formulario">
 
       <a href="{% url 'finanzas:listar_met_pago' %}"
@@ -122,4 +120,3 @@
   </form>
 </div>
 {% endblock %}
-```

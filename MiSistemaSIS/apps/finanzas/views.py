@@ -19,6 +19,7 @@ from django.utils.dateparse import parse_date
 from datetime import datetime, time, timedelta
 from django.utils import timezone
 from auditoria.models import LogAuditoria
+from core.mensajes import error_campo
 from django.urls import reverse
 @login_required
 def finanzas_home(request):
@@ -70,9 +71,8 @@ def crear_cat_gasto(request):
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
         if not nombre:
-            messages.error(
-                request,
-                'El nombre de la categoría es obligatorio.'
+            error_campo(
+                    request, "nombre", 'El nombre de la categoría es obligatorio.'
             )
             return render(
                 request,
@@ -82,9 +82,8 @@ def crear_cat_gasto(request):
         if categoria_gasto.objects.filter(
             nombre_categoria_gasto__iexact=nombre
         ).exists():
-            messages.error(
-                request,
-                'Ya existe una categoría con ese nombre.'
+            error_campo(
+                    request, "nombre", 'Ya existe una categoría con ese nombre.'
             )
             return render(
                 request,
@@ -137,14 +136,14 @@ def editar_cat_gasto(request, pk):
         descripcion = request.POST.get('descripcion', '').strip()
 
         if not nombre:
-            messages.error(request, 'El nombre es obligatorio.')
+            error_campo(
+                    request, "nombre", 'El nombre es obligatorio.')
 
         elif categoria_gasto.objects.filter(
             nombre_categoria_gasto__iexact=nombre
         ).exclude(pk=categoria.pk).exists():
-            messages.error(
-                request,
-                'Ya existe una categoría con ese nombre.'
+            error_campo(
+                    request, "nombre", 'Ya existe una categoría con ese nombre.'
             )
 
         else:
@@ -263,7 +262,6 @@ def detalle_cat_gasto(request, pk):
             'gastos': gastos,
         }
     )
-
 
 @login_required
 @permiso_requerido('caja', 'modificar')
@@ -391,11 +389,11 @@ def crear_met_pago(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
+        permite_cambio = request.POST.get('permite_cambio') == 'on'
 
         if not nombre:
-            messages.error(
-                request,
-                'El nombre del método de pago es obligatorio.'
+            error_campo(
+                    request, "nombre", 'El nombre del método de pago es obligatorio.'
             )
             return render(request, 'METODO_PAGO/crear_met_pago.html')
 
@@ -405,9 +403,8 @@ def crear_met_pago(request):
         if metodo_pago.objects.filter(
             nombre_metodo_pago__iexact=nombre
         ).exists():
-            messages.error(
-                request,
-                'Ya existe un método de pago con ese nombre.'
+            error_campo(
+                    request, "nombre", 'Ya existe un método de pago con ese nombre.'
             )
             return render(request, 'METODO_PAGO/crear_met_pago.html')
 
@@ -415,7 +412,8 @@ def crear_met_pago(request):
             # Crear método de pago.
             metodo = metodo_pago.objects.create(
                 nombre_metodo_pago=nombre,
-                descripcion_metodo_pago=descripcion
+                descripcion_metodo_pago=descripcion,
+                permite_cambio=permite_cambio,
             )
 
             # Registrar auditoría.
@@ -427,6 +425,7 @@ def crear_met_pago(request):
                 valores_actuales=(
                     f"Nombre: {metodo.nombre_metodo_pago}, "
                     f"Descripción: {metodo.descripcion_metodo_pago}, "
+                    f"Permite vuelto: {'Sí' if metodo.permite_cambio else 'No'}, "
                     f"Estado: {metodo.estado_metodo_pago}"
                 ),
                 empleado=request.user.empleado,
@@ -450,11 +449,11 @@ def editar_met_pago(request, pk):
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
+        permite_cambio = request.POST.get('permite_cambio') == 'on'
 
         if not nombre:
-            messages.error(
-                request,
-                'El nombre del método de pago es obligatorio.'
+            error_campo(
+                    request, "nombre", 'El nombre del método de pago es obligatorio.'
             )
 
         else:
@@ -464,9 +463,8 @@ def editar_met_pago(request, pk):
                 nombre_metodo_pago__iexact=nombre
             ).exclude(pk=metodo.pk).exists():
 
-                messages.error(
-                    request,
-                    'Ya existe otro método de pago con ese nombre.'
+                error_campo(
+                    request, "nombre", 'Ya existe otro método de pago con ese nombre.'
                 )
 
             else:
@@ -474,6 +472,7 @@ def editar_met_pago(request, pk):
                 hubo_cambios = (
                     metodo.nombre_metodo_pago != nombre
                     or metodo.descripcion_metodo_pago != descripcion
+                    or metodo.permite_cambio != permite_cambio
                 )
 
                 if hubo_cambios:
@@ -481,6 +480,7 @@ def editar_met_pago(request, pk):
                     valores_anteriores = (
                         f"Nombre: {metodo.nombre_metodo_pago}, "
                         f"Descripción: {metodo.descripcion_metodo_pago}, "
+                        f"Permite vuelto: {'Sí' if metodo.permite_cambio else 'No'}, "
                         f"Estado: {metodo.estado_metodo_pago}"
                     )
 
@@ -488,12 +488,14 @@ def editar_met_pago(request, pk):
                     valores_actuales = (
                         f"Nombre: {nombre}, "
                         f"Descripción: {descripcion}, "
+                        f"Permite vuelto: {'Sí' if permite_cambio else 'No'}, "
                         f"Estado: {metodo.estado_metodo_pago}"
                     )
 
                     with transaction.atomic():
                         metodo.nombre_metodo_pago = nombre
                         metodo.descripcion_metodo_pago = descripcion
+                        metodo.permite_cambio = permite_cambio
                         metodo.save()
 
                         # Registrar auditoría.
@@ -756,9 +758,8 @@ def abrir_caja(request):
         ).strip()
 
         if len(observaciones) > 1000:
-            messages.error(
-                request,
-                'Las observaciones de apertura no pueden superar los 1000 caracteres.'
+            error_campo(
+                    request, "observaciones_apertura", 'Las observaciones de apertura no pueden superar los 1000 caracteres.'
             )
             return render(request, 'CAJA/abrir_caja.html', {
                 'saldo_inicial': saldo_inicial_texto,
@@ -772,9 +773,8 @@ def abrir_caja(request):
                 raise ValueError
 
         except (InvalidOperation, ValueError):
-            messages.error(
-                request,
-                'El saldo inicial debe ser un número válido y no negativo.'
+            error_campo(
+                    request, "saldo_inicial", 'El saldo inicial debe ser un número válido y no negativo.'
             )
             return render(request, 'CAJA/abrir_caja.html', {
                 'saldo_inicial': saldo_inicial_texto,
@@ -838,6 +838,7 @@ def detalle_caja(request, pk):
 
     total_ventas = caja_actual.calcular_total_ventas()
     ventas_efectivo = caja_actual.calcular_total_ventas_efectivo()
+    ventas_otros_medios = total_ventas - ventas_efectivo
 
     # Agrupar ventas dinámicamente por método de pago
     ventas_por_metodo = (
@@ -861,6 +862,7 @@ def detalle_caja(request, pk):
         'pagos': pagos,
         'total_ventas': total_ventas,
         'ventas_efectivo': ventas_efectivo,
+        'ventas_otros_medios': ventas_otros_medios,
         'ventas_por_metodo': ventas_por_metodo,
     })
 
@@ -913,9 +915,8 @@ def arqueo_caja(request, pk):
         contexto['saldo_contado'] = saldo_texto
 
         if len(observaciones) > 1000:
-            messages.error(
-                request,
-                'Las observaciones de arqueo no pueden superar los 1000 caracteres.'
+            error_campo(
+                    request, "observaciones_arqueo", 'Las observaciones de arqueo no pueden superar los 1000 caracteres.'
             )
             return render(
                 request, 'CAJA/arqueo_caja.html', contexto
@@ -928,9 +929,8 @@ def arqueo_caja(request, pk):
                 raise ValueError
 
         except (InvalidOperation, ValueError):
-            messages.error(
-                request,
-                'El saldo contado debe ser un número válido y no negativo.'
+            error_campo(
+                    request, "saldo_contado", 'El saldo contado debe ser un número válido y no negativo.'
             )
             return render(
                 request, 'CAJA/arqueo_caja.html', contexto
@@ -998,6 +998,31 @@ def arqueo_caja(request, pk):
     return render(request, 'CAJA/arqueo_caja.html', contexto)
 
 
+def _resumen_caja(caja_actual):
+    """Los números del resumen de saldos (detalle y cierre de caja)."""
+    total_ventas = caja_actual.calcular_total_ventas()
+    ventas_efectivo = caja_actual.calcular_total_ventas_efectivo()
+    return {
+        'total_egresos': caja_actual.calcular_total_egresos(),
+        'total_ventas': total_ventas,
+        'ventas_efectivo': ventas_efectivo,
+        'ventas_otros_medios': total_ventas - ventas_efectivo,
+        'saldo_esperado': caja_actual.calcular_saldo_esperado(),
+    }
+
+
+def _contexto_cierre(request, caja_actual, **extra):
+    empleado = getattr(request.user, 'empleado', None)
+    cargo = getattr(empleado, 'cargo', None)
+    return {
+        'caja': caja_actual,
+        'empleado': empleado,
+        'cargo_nombre': cargo.nombre_cargo if cargo else 'Sin cargo asignado',
+        **_resumen_caja(caja_actual),
+        **extra,
+    }
+
+
 @login_required
 @permiso_requerido('caja', 'modificar')
 def cerrar_caja(request, pk):
@@ -1012,9 +1037,7 @@ def cerrar_caja(request, pk):
         return render(
             request,
             'CAJA/cerrar_caja.html',
-            {
-                'caja': caja_actual,
-            }
+            _contexto_cierre(request, caja_actual),
         )
 
     if request.method == 'POST':
@@ -1033,17 +1056,15 @@ def cerrar_caja(request, pk):
         ).strip()
 
         if len(observaciones) > 1000:
-            messages.error(
-                request,
-                'Las observaciones de cierre no pueden superar los 1000 caracteres.'
+            error_campo(
+                    request, "observaciones_cierre", 'Las observaciones de cierre no pueden superar los 1000 caracteres.'
             )
             return render(
                 request,
                 'CAJA/cerrar_caja.html',
-                {
-                    'caja': caja_actual,
-                    'observaciones_cierre': observaciones,
-                }
+                _contexto_cierre(
+                    request, caja_actual, observaciones_cierre=observaciones
+                ),
             )
 
         try:
@@ -1102,10 +1123,9 @@ def cerrar_caja(request, pk):
             return render(
                 request,
                 'CAJA/cerrar_caja.html',
-                {
-                    'caja': caja_actual,
-                    'observaciones_cierre': observaciones,
-                }
+                _contexto_cierre(
+                    request, caja_actual, observaciones_cierre=observaciones
+                ),
             )
 
 
@@ -1255,9 +1275,8 @@ def crear_gasto(request):
         ).strip()
 
         if not descripcion:
-            messages.error(
-                request,
-                'La descripción es obligatoria.'
+            error_campo(
+                    request, "descripcion_gasto", 'La descripción es obligatoria.'
             )
 
         else:
@@ -1268,9 +1287,8 @@ def crear_gasto(request):
                     raise ValueError
 
             except (InvalidOperation, ValueError):
-                messages.error(
-                    request,
-                    'El monto debe ser un número válido mayor que cero.'
+                error_campo(
+                    request, "monto_gasto", 'El monto debe ser un número válido mayor que cero.'
                 )
 
             else:
@@ -1284,9 +1302,8 @@ def crear_gasto(request):
                 )
 
                 if not categoria:
-                    messages.error(
-                        request,
-                        'Seleccioná una categoría de gasto activa.'
+                    error_campo(
+                    request, "cat_gasto", 'Seleccioná una categoría de gasto activa.'
                     )
 
                 else:
@@ -1308,9 +1325,8 @@ def crear_gasto(request):
                             )
 
                             if monto > saldo_disponible:
-                                messages.error(
-                                    request,
-                                    f'El monto del gasto ${monto} supera '
+                                error_campo(
+                    request, "monto_gasto", f'El monto del gasto ${monto} supera '
                                     f'el saldo disponible de la caja '
                                     f'${saldo_disponible}.'
                                 )
@@ -1435,9 +1451,8 @@ def editar_gasto(request, pk):
         ).strip()
 
         if not descripcion:
-            messages.error(
-                request,
-                'La descripción es obligatoria.'
+            error_campo(
+                    request, "descripcion_gasto", 'La descripción es obligatoria.'
             )
             return render(request, 'GASTOS/editar_gasto.html', {
                 'gasto': gasto_actual,
@@ -1452,9 +1467,8 @@ def editar_gasto(request, pk):
                 raise ValueError
 
         except (InvalidOperation, ValueError):
-            messages.error(
-                request,
-                'El monto debe ser un número válido mayor que cero.'
+            error_campo(
+                    request, "monto_gasto", 'El monto debe ser un número válido mayor que cero.'
             )
             return render(request, 'GASTOS/editar_gasto.html', {
                 'gasto': gasto_actual,
@@ -1472,18 +1486,16 @@ def editar_gasto(request, pk):
         ).first() if categoria_id.isdigit() else None
 
         if not caja_actual:
-            messages.error(
-                request,
-                'Seleccioná una caja abierta válida.'
+            error_campo(
+                    request, "caja_gasto", 'Seleccioná una caja abierta válida.'
             )
 
         elif not categoria or (
             not categoria.estado_categoria_gasto
             and categoria.pk != gasto_actual.cat_gasto_id
         ):
-            messages.error(
-                request,
-                'Seleccioná una categoría válida.'
+            error_campo(
+                    request, "cat_gasto", 'Seleccioná una categoría válida.'
             )
 
         else:
@@ -1494,9 +1506,8 @@ def editar_gasto(request, pk):
                 saldo_disponible += gasto_actual.monto_gasto
 
             if monto > saldo_disponible:
-                messages.error(
-                    request,
-                    f'El monto del gasto ${monto} supera el saldo '
+                error_campo(
+                    request, "monto_gasto", f'El monto del gasto ${monto} supera el saldo '
                     f'disponible de la caja ${saldo_disponible}.'
                 )
                 return render(

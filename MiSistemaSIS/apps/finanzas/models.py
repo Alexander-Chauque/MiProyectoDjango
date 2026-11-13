@@ -14,6 +14,8 @@ class metodo_pago(models.Model):
     nombre_metodo_pago = models.CharField(max_length=50, unique= True, null=False, blank=False)
     descripcion_metodo_pago = models.TextField(blank=True)
     estado_metodo_pago = models.BooleanField(default=True)
+    # Solo se puede dar vuelto con los métodos que lo permiten (por ejemplo, Efectivo)
+    permite_cambio = models.BooleanField(default=False, verbose_name="Permite dar vuelto")
 
     class Meta:
         db_table='finanzas_metodopago'
@@ -155,15 +157,29 @@ class caja(models.Model):
             total=Sum('monto')
         )['total'] or Decimal('0.00')
 
-    def calcular_total_ventas_efectivo(self):
+    def _pagos_en_efectivo(self):
+        """Cobros que entran al cajón: los métodos que dan vuelto (Efectivo)."""
         return self.pagos.filter(
-            metodo_pago__nombre_metodo_pago__iexact='Efectivo'
-        ).aggregate(
+            Q(metodo_pago__permite_cambio=True)
+            | Q(metodo_pago__nombre_metodo_pago__iexact='Efectivo')
+        )
+
+    def calcular_total_ventas_efectivo(self):
+        return self._pagos_en_efectivo().aggregate(
             total=Sum('monto')
         )['total'] or Decimal('0.00')
-    
+
+    def calcular_total_ventas_otros_medios(self):
+        """Tarjeta, transferencia, QR...: se cobran, pero no son billetes en el cajón."""
+        return self.calcular_total_ventas() - self.calcular_total_ventas_efectivo()
+
     def calcular_saldo_esperado(self):
-        ingresos = self.calcular_total_ventas()
+        """Dinero que debería haber en el cajón al contarlo.
+
+        Saldo inicial + cobros en efectivo - gastos. Los cobros con tarjeta o
+        transferencia no se suman, porque no están físicamente en la caja.
+        """
+        ingresos = self.calcular_total_ventas_efectivo()
         egresos = self.calcular_total_egresos()
         return self.saldo_inicial + ingresos - egresos
 

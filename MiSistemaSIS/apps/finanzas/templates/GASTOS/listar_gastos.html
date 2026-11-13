@@ -65,42 +65,20 @@
 
     <!-- Estado de caja -->
     {% if caja_abierta %}
-        <div class="tarjeta-formulario">
-            <div class="tarjeta-titulo">
-                <span class="material-symbols-outlined icono-naranja">
-                    point_of_sale
-                </span>
-                <h2>Caja abierta</h2>
-            </div>
-
-            <p>
-                Hay una caja abierta disponible para registrar nuevos gastos.
-            </p>
+        <div class="aviso-caja">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span><strong>Caja abierta</strong> Los gastos nuevos se registran en esta caja.</span>
+            <a href="{% url 'finanzas:detalle_caja' caja_abierta.pk %}">Ver caja</a>
         </div>
     {% else %}
-        <div class="tarjeta-formulario">
-            <div class="tarjeta-titulo">
-                <span class="material-symbols-outlined icono-naranja">
-                    warning
-                </span>
-                <h2>No hay una caja abierta</h2>
-            </div>
-
-            <p>
-                Para registrar nuevos gastos, primero debes abrir una caja.
-                Puedes consultar los gastos históricos desde este listado.
-            </p>
+        <div class="aviso-caja cerrada">
+            <span class="material-symbols-outlined">lock</span>
+            <span><strong>Sin caja abierta</strong> Para registrar gastos, primero abrí una caja. Los gastos anteriores se pueden consultar igual.</span>
+            <a href="{% url 'finanzas:abrir_caja' %}">Abrir caja</a>
         </div>
     {% endif %}
 
-    <!-- Mensajes -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+
 
     <div class="listado-layout">
 
@@ -294,7 +272,7 @@
 
                         {% empty %}
                             <tr>
-                                <td colspan="7" class="sin-rsulatdos">
+                                <td colspan="7" class="sin-resultados">
                                     No hay gastos registrados.
                                 </td>
                             </tr>

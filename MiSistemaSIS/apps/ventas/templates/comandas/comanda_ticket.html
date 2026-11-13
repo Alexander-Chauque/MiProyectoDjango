@@ -7,7 +7,8 @@
     <title>Tickets de la comanda #{{ comanda.id_comanda }} - Los Cardones</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="{% static 'css/ticket.css' %}">
 </head>
 <body>
@@ -15,34 +16,50 @@
         {% for ticket in tickets %}
         <div class="ticket-columna">
             <section class="ticket">
-                <img class="ticket-logo" src="{% static 'img/ticket/logo.png' %}" alt="Los Cardones">
+                {% if anulada %}<div class="ticket-sello">ANULADA</div>{% endif %}
 
-                <div class="ticket-banda">
-                    <img src="{% static 'img/ticket/' %}{{ ticket.icono }}.svg" alt="">
-                    <span>{{ ticket.titulo }}</span>
-                </div>
-
-                <div class="ticket-datos">
-                    <div class="ticket-dato">
-                        <span><strong>Comanda N.º:</strong> {{ comanda.id_comanda|stringformat:"06d" }}</span>
-                        <span><strong>Mesa:</strong> {{ comanda.mesa.numero_mesa|stringformat:"02d" }}</span>
+                <!-- Logo y destino -->
+                <header class="ticket-encabezado">
+                    <img class="ticket-logo" src="{% static 'img/logo/logo.jpeg' %}" alt="Los Cardones - Salta">
+                    <div class="ticket-banda">
+                        <img src="{% static 'img/ticket/' %}{{ ticket.icono }}.svg" alt="">
+                        <div>
+                            <span class="ticket-banda-titulo">{{ ticket.titulo }}</span>
+                            <span class="ticket-banda-destino">Ticket para {{ ticket.destino|lower }}</span>
+                        </div>
                     </div>
-                    <div class="ticket-dato">
-                        <span><strong>Fecha:</strong> {{ comanda.fecha_hora|date:"d/m/Y" }}</span>
-                        <span><strong>Hora:</strong> {{ comanda.fecha_hora|date:"H:i" }}</span>
+                </header>
+
+                <!-- Datos de la comanda -->
+                <dl class="ticket-datos">
+                    <div>
+                        <dt>Comanda N°</dt>
+                        <dd class="ticket-numero">{{ comanda.id_comanda|stringformat:"06d" }}</dd>
                     </div>
-                    <div class="ticket-dato">
-                        <span><strong>Mozo:</strong> {{ comanda.empleado.get_full_name }}</span>
+                    <div class="derecha">
+                        <dt>Mesa</dt>
+                        <dd class="ticket-mesa">{{ comanda.mesa.numero_mesa|stringformat:"02d" }}</dd>
                     </div>
-                </div>
+                    <div>
+                        <dt>Fecha</dt>
+                        <dd>{{ comanda.fecha_hora|date:"d/m/Y" }}</dd>
+                    </div>
+                    <div class="derecha">
+                        <dt>Hora</dt>
+                        <dd>{{ comanda.fecha_hora|date:"H:i" }}</dd>
+                    </div>
+                    <div class="ticket-dato-ancho">
+                        <dt>Mozo</dt>
+                        <dd>{{ comanda.empleado.get_full_name|default:"Sin asignar" }}</dd>
+                    </div>
+                </dl>
 
-                {% if anulada %}<div class="ticket-anulada">COMANDA ANULADA: NO PREPARAR</div>{% endif %}
+                {% if anulada %}<div class="ticket-anulada">Comanda anulada: no preparar</div>{% endif %}
 
-                <div class="ticket-corte"></div>
-
+                <!-- Productos -->
                 <table class="ticket-tabla">
                     <thead>
-                        <tr><th>Cant.</th><th>Descripción</th></tr>
+                        <tr><th class="centrado">Cant.</th><th>Descripción</th></tr>
                     </thead>
                     <tbody>
                         {% for producto in ticket.productos %}
@@ -54,19 +71,21 @@
                     </tbody>
                 </table>
 
-                <div class="ticket-corte"></div>
-
                 {% if comanda.observaciones_comanda %}
                 <div class="ticket-observaciones">
-                    <strong>Observaciones:</strong>
+                    <h2>Observaciones</h2>
                     <p>{{ comanda.observaciones_comanda }}</p>
                 </div>
                 {% endif %}
 
-                <img class="ticket-paisaje" src="{% static 'img/ticket/paisaje.svg' %}" alt="">
+                <footer class="ticket-pie">
+                    {{ ticket.productos|length }} producto{{ ticket.productos|length|pluralize }} ·
+                    impreso el {% now "d/m H:i" %}
+                </footer>
             </section>
 
             <button type="button" class="ticket-boton no-print" data-imprimir>
+                <span class="material-symbols-outlined">print</span>
                 Imprimir ticket de {{ ticket.destino|lower }}
             </button>
         </div>
@@ -78,11 +97,16 @@
     <div class="tickets-acciones no-print">
         {% if tickets|length > 1 %}
         <button type="button" class="ticket-boton" data-imprimir-todos>
+            <span class="material-symbols-outlined">print</span>
             Imprimir los {{ tickets|length }} tickets
         </button>
         {% endif %}
-        <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="ticket-volver">Volver al detalle</a>
-        <a href="{% url 'ventas:comanda_listar' %}" class="ticket-volver">Volver al listado</a>
+        <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="ticket-volver">
+            <span class="material-symbols-outlined">receipt_long</span> Volver al detalle
+        </a>
+        <a href="{% url 'ventas:comanda_listar' %}" class="ticket-volver">
+            <span class="material-symbols-outlined">list</span> Volver al listado
+        </a>
     </div>
 
     <script>

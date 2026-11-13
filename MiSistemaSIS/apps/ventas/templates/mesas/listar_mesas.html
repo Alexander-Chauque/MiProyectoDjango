@@ -62,7 +62,7 @@
         <label>Ubicación</label>
         <div class="checkboxes">
           <label class="checkbox-item">
-            <input type="checkbox" id="ubi-todas" onchange="toggleUbicaciones(this)">
+            <input type="checkbox" id="ubi-todas" onchange="toggleUbicaciones(this)" {% if not ubicaciones_seleccionadas %}checked{% endif %}>
             <span>Todas</span>
           </label>
           <label class="checkbox-item">

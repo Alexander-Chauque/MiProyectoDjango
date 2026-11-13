@@ -156,6 +156,7 @@ class MetodoPagoSerializer(serializers.ModelSerializer):
             "nombre_metodo_pago",
             "descripcion_metodo_pago",
             "estado_metodo_pago",
+            "permite_cambio",
             "total_ventas",
         ]
         read_only_fields = ["id_metodo_pago", "estado_metodo_pago"]
@@ -177,7 +178,10 @@ class MetodoPagoSerializer(serializers.ModelSerializer):
 
 
 def _describir_metodo(metodo):
-    return f"Nombre: {metodo.nombre_metodo_pago}, Estado: {_activo(metodo.estado_metodo_pago)}"
+    return (
+        f"Nombre: {metodo.nombre_metodo_pago}, Estado: {_activo(metodo.estado_metodo_pago)}, "
+        f"Permite vuelto: {'Sí' if metodo.permite_cambio else 'No'}"
+    )
 
 
 class MetodoPagoListaView(APIView):
@@ -607,6 +611,10 @@ class VentaListaView(APIView):
                 raise ValidationError({"detail": "El total de la comanda no es válido."})
             if recibido < total:
                 raise ValidationError({"monto_recibido": ["El monto recibido es menor al total de la comanda."]})
+            if recibido > total and not metodo.permite_cambio:
+                raise ValidationError({"monto_recibido": [
+                    f"{metodo.nombre_metodo_pago} no permite dar vuelto: el monto recibido tiene que ser exactamente ${total}."
+                ]})
 
             venta = Venta.objects.create(
                 comanda=comanda,

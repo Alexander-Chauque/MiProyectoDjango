@@ -1,250 +1,325 @@
-/* Tickets de cocina, bar y parrilla. Mismo diseño que los de la app. */
+
+:root {
+  --naranja: #F5A623;
+  --naranja-oscuro: #C9781A;
+  --crema: #FFF6E6;
+  --texto: #2F2A24;
+  --texto-suave: #7A7067;
+  --linea: #ECE6DD;
+}
+
 * {
-    box-sizing: border-box;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 body {
-    margin: 0;
-    padding: 24px 16px;
-    background: #F0ECE6;
-    color: #2B2B2B;
-    font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 32px 16px 110px;
+  background: #EFEBE5;
+  color: var(--texto);
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
+.material-symbols-outlined { font-size: 18px; vertical-align: middle; }
+.centrado { text-align: center; }
+.derecha { text-align: right; }
+
 .tickets {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 28px;
 }
 
 .ticket-columna {
-    width: 100%;
-    max-width: 320px;
+  width: 100%;
+  max-width: 330px;
 }
 
+/* ---------- Hoja del ticket ---------- */
 .ticket {
-    padding-top: 16px;
-    background: #FFFFFF;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
-    overflow: hidden;
+  position: relative;
+  background: #FFFFFF;
+  border-top: 7px solid var(--naranja);
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(60, 40, 10, 0.12);
+  padding: 20px 18px 14px;
+  overflow: hidden;
+}
+
+/* ---------- Encabezado ---------- */
+.ticket-encabezado {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--linea);
 }
 
 .ticket-logo {
-    display: block;
-    width: 104px;
-    margin: 0 auto 12px;
+  display: block;
+  width: 170px;
+  margin: 0 auto 14px;
+  /* El fondo casi blanco del JPG se funde con el papel */
+  mix-blend-mode: multiply;
+  filter: brightness(1.06) contrast(1.08);
 }
 
 .ticket-banda {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin: 0 26px 14px;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: linear-gradient(100deg, #E8890C, #C8650A);
-    color: #FFFFFF;
-    font-family: "Oswald", Arial, sans-serif;
-    font-size: 25px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--naranja);
+  color: #FFFFFF;
 }
 
 .ticket-banda img {
-    width: 40px;
-    height: 40px;
-    flex: none;
+  width: 36px;
+  height: 36px;
+  flex: none;
 }
 
+.ticket-banda-titulo {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  line-height: 1.1;
+}
+
+.ticket-banda-destino {
+  display: block;
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+/* ---------- Datos ---------- */
 .ticket-datos {
-    margin: 0 16px;
-    font-size: 13px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--linea);
 }
 
-.ticket-dato {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 7px 0;
-    border-bottom: 1px solid #D5D5D5;
+.ticket-datos dt {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--naranja-oscuro);
 }
 
-.ticket-dato:last-child {
-    border-bottom: 0;
+.ticket-datos dd {
+  margin: 0;
+  font-weight: 500;
 }
 
+.ticket-dato-ancho { grid-column: 1 / -1; }
+
+.ticket-numero,
+.ticket-mesa {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.ticket-mesa { color: var(--naranja-oscuro); }
+
+/* ---------- Anulada ---------- */
 .ticket-anulada {
-    margin: 8px 16px 0;
-    padding: 6px;
-    background: #FEE2E2;
-    color: #991B1B;
-    font-size: 13px;
-    font-weight: 700;
-    text-align: center;
+  margin-top: 12px;
+  padding: 7px;
+  border-radius: 6px;
+  background: #FDE3E3;
+  color: #A33A3A;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
 }
 
-.ticket-corte {
-    margin: 8px 16px 10px;
-    border-top: 1.5px dashed #6B6B6B;
+.ticket-sello {
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+  padding: 4px 18px;
+  border: 4px solid rgba(200, 50, 50, 0.3);
+  border-radius: 8px;
+  color: rgba(200, 50, 50, 0.3);
+  font-family: 'Oswald', sans-serif;
+  font-size: 42px;
+  letter-spacing: 5px;
+  pointer-events: none;
 }
 
+/* ---------- Tabla ---------- */
 .ticket-tabla {
-    width: calc(100% - 32px);
-    margin: 0 16px;
-    border-collapse: collapse;
-    font-size: 14px;
+  width: 100%;
+  margin-top: 14px;
+  border-collapse: collapse;
+  font-size: 14px;
 }
 
 .ticket-tabla th {
-    padding: 6px;
-    background: #FFD79A;
-    font-size: 13px;
-    text-align: center;
+  padding: 7px 8px;
+  background: var(--naranja);
+  color: #FFFFFF;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: left;
 }
 
-.ticket-tabla th:first-child {
-    width: 44px;
-    border-radius: 5px 0 0 5px;
-}
-
-.ticket-tabla th:nth-child(2) {
-    text-align: left;
-}
-
-.ticket-tabla th:last-child {
-    border-radius: 0 5px 5px 0;
-}
+.ticket-tabla th.centrado { text-align: center; width: 52px; }
 
 .ticket-tabla td {
-    padding: 8px 6px;
-    border-bottom: 1px solid #D5D5D5;
-    overflow-wrap: anywhere;
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--linea);
+  overflow-wrap: anywhere;
 }
 
-.ticket-tabla tr:last-child td {
-    border-bottom: 0;
-}
+.ticket-tabla tbody tr:nth-child(even) td { background: #FFFBF4; }
 
 .ticket-cantidad {
-    font-weight: 700;
-    text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  text-align: center;
 }
 
+/* ---------- Observaciones ---------- */
 .ticket-observaciones {
-    margin: 0 16px 12px;
-    font-size: 13px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--naranja);
+  border-radius: 4px;
+  background: var(--crema);
+}
+
+.ticket-observaciones h2 {
+  margin: 0 0 2px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--naranja-oscuro);
 }
 
 .ticket-observaciones p {
-    margin: 3px 0 0;
-    font-style: italic;
-    overflow-wrap: anywhere;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
-.ticket-paisaje {
-    display: block;
-    width: 100%;
-    height: auto;
+/* ---------- Pie ---------- */
+.ticket-pie {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1.5px dashed #C9C0B4;
+  font-size: 10px;
+  color: #A69C91;
+  text-align: center;
 }
 
+/* ---------- Botones (no se imprimen) ---------- */
 .ticket-boton,
 .ticket-volver {
-    display: inline-block;
-    padding: 10px 16px;
-    border: 0;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 8px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
 }
 
 .ticket-boton {
-    background: #C8650A;
-    color: #FFFFFF;
+  background: var(--naranja);
+  color: #FFFFFF;
 }
 
-.ticket-boton:hover {
-    background: #A9521A;
-}
+.ticket-boton:hover { background: var(--naranja-oscuro); transform: translateY(-1px); }
 
 .ticket-columna .ticket-boton {
-    width: 100%;
-    margin-top: 12px;
+  width: 100%;
+  margin-top: 12px;
 }
 
 .ticket-volver {
-    background: #FFFFFF;
-    color: #3D3D3D;
-    box-shadow: inset 0 0 0 1px #BDBDBD;
+  background: #FFFFFF;
+  color: var(--texto);
+  box-shadow: inset 0 0 0 1px #D9D2C8;
 }
+
+.ticket-volver:hover { color: var(--naranja-oscuro); box-shadow: inset 0 0 0 1px var(--naranja); }
 
 .ticket-boton:focus-visible,
 .ticket-volver:focus-visible {
-    outline: 3px solid #3D3D3D;
-    outline-offset: 2px;
+  outline: 3px solid var(--texto);
+  outline-offset: 2px;
 }
 
 .tickets-acciones {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 24px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .tickets-vacio {
-    font-size: 16px;
-    text-align: center;
+  font-size: 16px;
+  text-align: center;
 }
 
+/* ---------- Impresión ---------- */
 @media print {
-    @page {
-        margin: 0;
-    }
+  @page { margin: 0; }
 
-    body {
-        padding: 0;
-        background: #FFFFFF;
-    }
+  body {
+    padding: 0;
+    background: #FFFFFF;
+  }
 
-    .no-print {
-        display: none !important;
-    }
+  .no-print { display: none !important; }
 
-    .tickets {
-        display: block;
-    }
+  .tickets { display: block; }
 
-    /* Un ticket por hoja. Se limita al ancho del papel de una comandera (80 mm). */
-    .ticket-columna {
-        max-width: 80mm;
-        margin: 0 auto;
-        break-inside: avoid;
-    }
+  /* Un ticket por hoja, al ancho del papel de una comandera (80 mm) */
+  .ticket-columna {
+    max-width: 80mm;
+    margin: 0 auto;
+    break-inside: avoid;
+  }
 
-    .ticket-columna + .ticket-columna {
-        break-before: page;
-    }
+  .ticket-columna + .ticket-columna { break-before: page; }
 
-    .ticket {
-        border-radius: 0;
-        box-shadow: none;
-    }
+  .ticket {
+    border-radius: 0;
+    box-shadow: none;
+    padding: 12px 10px 8px;
+  }
 
-    .imprimir-uno .ticket-columna:not(.ticket-elegido) {
-        display: none;
-    }
-
-    .imprimir-uno .ticket-elegido {
-        break-before: auto;
-    }
+  .imprimir-uno .ticket-columna:not(.ticket-elegido) { display: none; }
+  .imprimir-uno .ticket-elegido { break-before: auto; }
 }
