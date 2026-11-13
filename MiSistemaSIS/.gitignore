@@ -20,3 +20,5 @@ media/
 .vscode/
 
 logs/
+# Carpeta de Expo creada por error: la app móvil es otro proyecto
+.expo/
