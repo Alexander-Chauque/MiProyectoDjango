@@ -136,7 +136,7 @@
                 <a href="{% url 'inventario:estado_tipo_bebida' tipo.pk %}" class="btn-icon {% if tipo.estado_tipo_bebida %}btn-baja{% else %}btn-reactivar{% endif %}" title="{% if tipo.estado_tipo_bebida %}Desactivar{% else %}Activar{% endif %}">
                   <span class="material-symbols-outlined">{% if tipo.estado_tipo_bebida %}toggle_off{% else %} toggle_on{% endif %}</span>
                 </a>
-                <a href="{% url 'inventario:eliminar_tipo_bebida' tipo.pk}" class="btn-icon btn-clave" title="Eliminar">
+                <a href="{% url 'inventario:eliminar_tipo_bebida' tipo.pk %}" class="btn-icon btn-clave" title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
                 </a>
               </div>

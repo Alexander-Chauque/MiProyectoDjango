@@ -5,7 +5,7 @@ from .models import TipoBebida, Bebida
 class TipoBebidaForm(forms.ModelForm):
     class Meta:
         model = TipoBebida
-        fields = ['nombre_tipo_bebida', 'descripcion_tipo_bebida', 'estado_tipo_bebida']
+        fields = ['nombre_tipo_bebida', 'descripcion_tipo_bebida']
         widgets = {
             'nombre_tipo_bebida': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion_tipo_bebida': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -13,9 +13,11 @@ class TipoBebidaForm(forms.ModelForm):
         }
         
     def clean_nombre_tipo_bebida(self):
-        nombre = self.cleaned_data.get('nombre_tipo_bebida')
+        nombre = (self.cleaned_data.get('nombre_tipo_bebida') or '').strip()
+        if not nombre:
+            raise forms.ValidationError('El nombre es obligatorio.')
         if TipoBebida.objects.filter(nombre_tipo_bebida__iexact=nombre).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError('Este tipo de bebida ya existe')
+            raise forms.ValidationError('Ya existe un tipo de bebida con ese nombre.')
         return nombre.title()
 
 #Form. Bebida

@@ -63,7 +63,7 @@
           <label>Tipo de bebida</label>
           <div class="checkboxes">
             <label class="checkbox-item">
-              <input type="checkbox" id="tipo-todos" onchange="toggleTipos(this)" {% if not estados_seleccionados%}checked{% endif %}>
+              <input type="checkbox" id="tipo-todos" onchange="toggleTipos(this)" {% if not tipos_seleccionados %}checked{% endif %}>
               <span>Todos</span>
             </label>
             {% for tipo in tipos %}
@@ -166,7 +166,7 @@
                   onclick="event.preventDefault(); abrirModalDesdeBoton(this);">
                   <span class="material-symbols-outlined">{% if bebida.disponible_bebida %}toggle_off{% else %}toggle_on{% endif %}</span>
                 </a>
-                <a href="{% url 'inventario:eliminar_bebida' bebida.pk}" class="btn-icon btn-clave" title="Eliminar">
+                <a href="{% url 'inventario:eliminar_bebida' bebida.pk %}" class="btn-icon btn-clave" title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
                 </a>
               </div>

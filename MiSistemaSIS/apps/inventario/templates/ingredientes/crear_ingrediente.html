@@ -54,7 +54,7 @@
     <div class="grupo-campo">
       <label>Nombre del ingrediente <span class="req">*</span></label>
       <input type="text" name="nombre" class="form-control" placeholder="Ej. Harina, Queso, Tomate..." required
-        value="{{ request.POST.nombre }}">
+        value="{{ request.POST.nombre }}" maxlength="100">
     </div>
 
     <div class="grupo-campo" style="margin-top: 20px;">
@@ -74,7 +74,7 @@
       <div class="input-con-prefijo">
         <span>$</span>
         <input type="number" name="costo_unitario" step="0.01" min="0" placeholder="0.00"
-          value="{{ request.POST.costo_unitario }}">
+          value="{{ request.POST.costo_unitario }}" required>
       </div>
     </div>
 
