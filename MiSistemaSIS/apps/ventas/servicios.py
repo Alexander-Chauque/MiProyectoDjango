@@ -14,11 +14,39 @@ CANTIDAD_MAXIMA = 999
 
 
 
-def registrar_pago(id_comanda, tipo_pago, metodo_pago_id, monto_texto, empleado):
+def calcular_vuelto(metodo, monto, recibido_texto):
+    """Vuelto a entregar. Sin monto recibido se cobra justo y no hay vuelto.
+
+    Solo se da vuelto con un método que lo permita (por ejemplo, Efectivo).
+    """
+    if recibido_texto in (None, ""):
+        return Decimal("0")
+    try:
+        recibido = Decimal(str(recibido_texto))
+    except (InvalidOperation, ValueError, TypeError):
+        raise ValueError("Ingresá un monto recibido válido.")
+    if not recibido.is_finite() or recibido != recibido.quantize(Decimal("0.01")):
+        raise ValueError("Ingresá un monto recibido válido, con hasta 2 decimales.")
+    if recibido < monto:
+        raise ValueError(f"El monto recibido no puede ser menor a lo que se cobra (${monto}).")
+    vuelto = recibido - monto
+    if vuelto > 0 and not metodo.permite_cambio:
+        raise ValueError(
+            f"{metodo.nombre_metodo_pago} no permite dar vuelto: "
+            f"el monto recibido tiene que ser exactamente ${monto}."
+        )
+    return vuelto
+
+
+def registrar_pago(id_comanda, tipo_pago, metodo_pago_id, monto_texto, empleado,
+                   recibido_texto=""):
     """Registra un pago asociado a una caja abierta.
 
+    recibido_texto es opcional: lo que entregó el cliente. Si supera el monto,
+    la diferencia es el vuelto (solo con un método que permita cambio).
+
     Debe llamarse dentro de transaction.atomic().
-    Devuelve (comanda, monto, saldo_restante).
+    Devuelve (comanda, monto, saldo_restante, vuelto).
     """
 
     # Bloquear la comanda para evitar cobros simultáneos.
@@ -80,6 +108,8 @@ def registrar_pago(id_comanda, tipo_pago, metodo_pago_id, monto_texto, empleado)
     if monto <= 0:
         raise ValueError("La comanda no tiene un saldo pendiente para pagar.")
 
+    vuelto = calcular_vuelto(metodo, monto, recibido_texto)
+
     # Buscar y bloquear la caja abierta.
     caja_abierta = caja.objects.select_for_update().filter(
         estado_caja="abierto"
@@ -109,7 +139,8 @@ def registrar_pago(id_comanda, tipo_pago, metodo_pago_id, monto_texto, empleado)
             f"Comanda: #{comanda.id_comanda}, "
             f"Monto: ${pago.monto}, "
             f"Método de pago: {metodo.nombre_metodo_pago}, "
-            f"Caja: #{caja_abierta.pk}, "
+            + (f"Recibido: ${monto + vuelto}, Vuelto: ${vuelto}, " if vuelto else "")
+            + f"Caja: #{caja_abierta.pk}, "
             f"Empleado: {empleado}"
         ),
         empleado=empleado,
@@ -144,7 +175,7 @@ def registrar_pago(id_comanda, tipo_pago, metodo_pago_id, monto_texto, empleado)
         empleado=empleado,
     )
 
-    return comanda, monto, saldo_restante
+    return comanda, monto, saldo_restante, vuelto
 
 def _leer_items(items):
     """Convierte [{"tipo": "plato", "id": 3, "cantidad": 2}] en {producto: cantidad}."""

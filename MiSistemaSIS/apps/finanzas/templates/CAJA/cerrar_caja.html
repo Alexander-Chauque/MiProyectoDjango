@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
 <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
 {% endblock %}
@@ -13,16 +14,16 @@
 <div class="contenedor-comanda">
 
     <nav class="breadcrumb">
-        <a href="{% url 'home' %}">
+        <a href="{% url 'home' %}" class="breadcrumb-item">
             <span class="material-symbols-outlined">home</span>
             Inicio
         </a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <a href="{% url 'finanzas:finanzas_home' %}">Finanzas</a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <a href="{% url 'finanzas:listar_cajas' %}">Cajas</a>
-        <span class="material-symbols-outlined">chevron_right</span>
-        <span>Cerrar caja</span>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">Finanzas</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="{% url 'finanzas:listar_cajas' %}" class="breadcrumb-item">Cajas</a>
+        <span class="breadcrumb-separator">&gt;</span>
+        <span class="breadcrumb-item active">Cerrar caja</span>
     </nav>
 
     <header class="page-header">
@@ -44,13 +45,7 @@
         </div>
     </header>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mensaje {{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+
 
     <div class="layout-comanda">
 
@@ -115,54 +110,7 @@
                 </div>
 
                 <div class="cuerpo-tarjeta">
-                    <div class="grupo-campo">
-                        <label>Saldo inicial</label>
-                        <input type="text" class="form-control"
-                               value="$ {{ caja.saldo_inicial|floatformat:2 }}"
-                               readonly>
-                    </div>
-
-                    <div class="grupo-campo">
-                        <label>Total de egresos</label>
-                        <input type="text" class="form-control"
-                               value="$ {{ total_egresos|floatformat:2 }}"
-                               readonly>
-                    </div>
-
-                    <div class="grupo-campo">
-                        <label>Saldo esperado</label>
-                        <input type="text" class="form-control"
-                               value="$ {{ caja.saldo_esperado|floatformat:2 }}"
-                               readonly>
-                    </div>
-
-                    <div class="grupo-campo">
-                        <label>Saldo contado</label>
-                        <input type="text" class="form-control"
-                               value="$ {{ caja.saldo_contado|floatformat:2 }}"
-                               readonly>
-                    </div>
-
-                    <div class="grupo-campo">
-                        <label>Diferencia de caja</label>
-                        <input type="text" class="form-control"
-                               value="$ {{ caja.diferencia_caja|floatformat:2 }}"
-                               readonly>
-                    </div>
-
-                    {% if caja.fecha_arqueo %}
-                        <div class="grupo-campo">
-                            <label>Fecha del último arqueo</label>
-                            <input type="text" class="form-control"
-                                   value="{{ caja.fecha_arqueo|date:'d/m/Y H:i' }}"
-                                   readonly>
-                        </div>
-                    {% else %}
-                        <div class="alerta-info">
-                            Todavía no se registró un arqueo para esta caja.
-                            Debés realizarlo antes de cerrar la caja.
-                        </div>
-                    {% endif %}
+                    {% include 'CAJA/_resumen_saldos.html' %}
                 </div>
             </section>
 

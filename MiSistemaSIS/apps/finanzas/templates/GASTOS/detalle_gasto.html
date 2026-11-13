@@ -50,23 +50,14 @@
             </div>
 
             <div class="page-header-texto">
-                <h1>Detalle del gasto #{{ gasto_actual.pk }}</h1>
+                <h1>Detalle del gasto #{{ gasto.pk }}</h1>
                 <p>Consulta la información del gasto registrado.</p>
             </div>
 
         </div>
     </div>
 
-    <!-- Mensajes -->
-    {% if messages %}
-        <div class="mensajes">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+
 
     <!-- Información del gasto -->
     <div class="tarjeta-formulario">
@@ -106,11 +97,11 @@
             <div class="grupo-campo">
                 <label>Monto</label>
                 <div class="input-con-prefijo">
-                    
+                    <span>$</span>
                     <input
                         type="text"
                         class="form-control"
-                        value="{{ gasto.monto_gasto }}"
+                        value="{{ gasto.monto_gasto|floatformat:2 }}"
                         readonly
                     >
                 </div>
@@ -122,7 +113,7 @@
                 <input
                     type="text"
                     class="form-control"
-                    value="Caja #{{ gasto.caja_gasto_id }} - {{ gasto.caja_gasto.estado_caja }}"
+                    value="Caja #{{ gasto.caja_gasto_id }} ({% if gasto.caja_gasto.estado_caja == 'abierto' %}abierta{% else %}cerrada{% endif %})"
                     readonly
                 >
             </div>
@@ -133,7 +124,7 @@
                 <input
                     type="text"
                     class="form-control"
-                    value="{{ gasto.empleado_gasto }}"
+                    value="{{ gasto.empleado_gasto.get_full_name|default:'No disponible' }}"
                     readonly
                 >
             </div>
@@ -178,7 +169,7 @@
             modificarse desde aquí.
         </p>
 
-        {% if gasto_actual.caja_gasto.estado_caja == 'abierto' %}
+        {% if gasto.caja_gasto.estado_caja == 'abierto' %}
             <p>
                 La caja asociada se encuentra abierta.
             </p>
@@ -200,8 +191,8 @@
             Volver a gastos
         </a>
 
-        {% if gasto_actual.caja_gasto.estado_caja == 'abierto' %}
-            <a href="{% url 'finanzas:editar_gasto' gasto_actual.pk %}"
+        {% if gasto.caja_gasto.estado_caja == 'abierto' %}
+            <a href="{% url 'finanzas:editar_gasto' gasto.pk %}"
                class="btn-primario">
                 <span class="material-symbols-outlined">edit</span>
                 Editar gasto

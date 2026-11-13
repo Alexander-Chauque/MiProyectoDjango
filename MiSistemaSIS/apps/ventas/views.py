@@ -11,6 +11,7 @@ from django.forms import inlineformset_factory
 from .forms import MesaForm, ComandaForm, DetalleComandaForm
 from inventario.models import Plato, Bebida, CategoriaPlato, TipoBebida 
 from auditoria.models import LogAuditoria
+from core.mensajes import error_campo
 from finanzas.models import caja, metodo_pago as MetodoPago
 from empleados.decorators import permiso_requerido, tiene_permiso
 from django.db import transaction
@@ -686,7 +687,13 @@ def comanda_anular(request, pk):
         return redirect("ventas:comanda_listar")
 
     if request.method == "POST":
-        motivo = request.POST.get("motivo")
+        motivo = (request.POST.get("motivo") or "").strip()
+        if not motivo:
+            error_campo(request, "motivo", "Escribí el motivo de la anulación.")
+            return render(request, "comandas/comanda_anular.html", {"comanda": comanda})
+        if len(motivo) > 250:
+            error_campo(request, "motivo", "El motivo no puede superar los 250 caracteres.")
+            return render(request, "comandas/comanda_anular.html", {"comanda": comanda})
 
         try:
             with transaction.atomic():
@@ -774,6 +781,7 @@ def comanda_consultar(request):
 def comanda_comprobante(request, pk):
     comanda = get_object_or_404(Comanda, id_comanda=pk)
     detalles = comanda.detalles.all().select_related("plato", "bebida")
+    pagos = comanda.pagos.select_related("metodo_pago").order_by("fecha_hora")
 
     return render(
         request,
@@ -781,6 +789,9 @@ def comanda_comprobante(request, pk):
         {
             "comanda": comanda,
             "detalles": detalles,
+            "pagos": pagos,
+            "subtotal_platos": sum(d.subtotal_plato for d in detalles),
+            "subtotal_bebidas": sum(d.subtotal_bebida for d in detalles),
         },
     )
 
@@ -853,22 +864,24 @@ def comanda_cobrar(request):
 def _registrar_pago(request):
     """Registra el pago y cierra la comanda si queda sin saldo."""
     metodo_pago_id = request.POST.get("metodo_pago")
-    comanda, monto, saldo_restante = registrar_pago(
+    comanda, monto, saldo_restante, vuelto = registrar_pago(
         request.POST.get("comanda_id"),
         request.POST.get("tipo_pago"),
         metodo_pago_id,
         request.POST.get("monto_abonado", ""),
         request.user.empleado,
+        request.POST.get("monto_recibido", "").strip(),
     )
+    texto_vuelto = f" Vuelto a entregar: ${vuelto}." if vuelto else ""
 
     if saldo_restante == 0:
         messages.success(
             request,
-            f"Comanda #{comanda.id_comanda} pagada en su totalidad."
+            f"Comanda #{comanda.id_comanda} pagada en su totalidad.{texto_vuelto}"
         )
     else:
         messages.success(
             request,
             f"Pago de ${monto} registrado en la comanda "
-            f"#{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}."
+            f"#{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}.{texto_vuelto}"
         )

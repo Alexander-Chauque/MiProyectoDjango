@@ -1,4 +1,3 @@
-```django
 {% extends 'base.html' %}
 {% load static %}
 
@@ -59,16 +58,7 @@
     </div>
   </div>
 
-  <!-- Mensajes -->
-  {% if messages %}
-    <div class="mensajes">
-      {% for message in messages %}
-        <div class="mensaje {{ message.tags }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+
 
   <!-- Información del método -->
   <div class="tarjeta-formulario">
@@ -99,12 +89,19 @@
     </div>
 
     <div class="grupo-campo" style="margin-top: 20px;">
+      <label>Permite dar vuelto</label>
+      <div class="form-control">
+        {% if metodo.permite_cambio %}Sí{% else %}No{% endif %}
+      </div>
+    </div>
+
+    <div class="grupo-campo" style="margin-top: 20px;">
       <label>Estado</label>
       <div>
         {% if metodo.estado_metodo_pago %}
-          <span class="estado-activo">Activo</span>
+          <span class="badge badge-activo">Activo</span>
         {% else %}
-          <span class="estado-inactivo">Inactivo</span>
+          <span class="badge badge-inactivo">Inactivo</span>
         {% endif %}
       </div>
     </div>
@@ -130,4 +127,3 @@
 
 </div>
 {% endblock %}
-```

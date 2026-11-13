@@ -236,9 +236,18 @@ class FinanzasTests(BaseApi):
 
     def test_venta_cobra_comanda_entregada(self):
         self.cliente.post("/api/cajas/", {"saldo_inicial": "0"}, format="json")
-        metodo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo")
+        metodo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        tarjeta = metodo_pago.objects.create(nombre_metodo_pago="Tarjeta")
         mesa = Mesa.objects.create(numero_mesa=1, ubicacion="salon", estado_mesa=False)
         comanda = Comanda.objects.create(mesa=mesa, empleado=self.admin, estado_comanda="entregado", total_comanda=500)
+
+        # La tarjeta no da vuelto: con más de lo que se cobra, se rechaza
+        r = self.cliente.post(
+            "/api/ventas/",
+            {"comanda": comanda.pk, "metodo_pago": tarjeta.pk, "monto_recibido": "600"},
+            format="json",
+        )
+        self.assertEqual(r.status_code, 400)
 
         pendientes = self.cliente.get("/api/ventas/").data["comandas_pendientes"]
         self.assertEqual([c["id_comanda"] for c in pendientes], [comanda.pk])

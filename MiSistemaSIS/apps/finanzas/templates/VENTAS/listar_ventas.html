@@ -71,42 +71,20 @@
 
     <!-- Estado de caja -->
     {% if caja_abierta %}
-        <div class="tarjeta-formulario">
-            <div class="tarjeta-titulo">
-                <span class="material-symbols-outlined icono-naranja">
-                    point_of_sale
-                </span>
-                <h2>Caja abierta</h2>
-            </div>
-
-            <p>
-                Hay una caja abierta disponible para registrar nuevas ventas.
-            </p>
+        <div class="aviso-caja">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span><strong>Caja abierta</strong> Los cobros nuevos se registran en esta caja.</span>
+            <a href="{% url 'finanzas:detalle_caja' caja_abierta.pk %}">Ver caja</a>
         </div>
     {% else %}
-        <div class="tarjeta-formulario">
-            <div class="tarjeta-titulo">
-                <span class="material-symbols-outlined icono-naranja">
-                    warning
-                </span>
-                <h2>No hay una caja abierta</h2>
-            </div>
-
-            <p>
-                Para registrar nuevas ventas, primero debes abrir una caja.
-                Puedes consultar las ventas históricas desde este listado.
-            </p>
+        <div class="aviso-caja cerrada">
+            <span class="material-symbols-outlined">lock</span>
+            <span><strong>Sin caja abierta</strong> Para cobrar comandas, primero abrí una caja. Las ventas anteriores se pueden consultar igual.</span>
+            <a href="{% url 'finanzas:abrir_caja' %}">Abrir caja</a>
         </div>
     {% endif %}
 
-    <!-- Mensajes -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+
 
     <div class="listado-layout">
 
@@ -187,7 +165,7 @@
         <main class="tabla-panel">
 
             <div class="tabla-header">
-                <h3>Gastos registrados</h3>
+                <h3>Ventas registradas</h3>
 
                 <div class="mostrar">
                     <label for="por-pagina">Mostrar</label>
@@ -249,18 +227,16 @@
                                         {% endif %}
                                     </td>
 
-                                    <td>#{{ pago.caja.id_caja }}</td>
+                                    <td>{% if pago.caja %}#{{ pago.caja.id_caja }}{% else %}<span class="text-gris">—</span>{% endif %}</td>
 
                                     <td>{{ pago.metodo_pago.nombre_metodo_pago|default:"No disponible" }}</td>
 
-                                    <td>
-                                        $ {{ pago.monto|floatformat:2 }}
-                                    </td>
+                                    <td><strong>${{ pago.monto|floatformat:2 }}</strong></td>
                                 </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="7" class="sin-rsulatdos">
-                                    No hay gastos registrados.
+                                <td colspan="7" class="sin-resultados">
+                                    No hay ventas registradas.
                                 </td>
                             </tr>
                             {% endfor %}
@@ -295,7 +271,7 @@
                                             </td>
 
                                             <td>
-                                                $ {{ venta.total|floatformat:2 }}
+                                                ${{ venta.total|floatformat:2 }}
                                             </td>
                                         </tr>
                                     {% endfor %}

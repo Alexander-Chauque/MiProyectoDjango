@@ -1,56 +1,96 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Eliminar Gasto{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="contenedor">
-    <h1 class="titulo">Eliminar Gasto</h1>
 
-    <div class="card">
-        <div class="card-body text-center">
-            <p>
-                ¿Estás seguro de eliminar el gasto
-                <strong>#{{ gasto.pk }}</strong>?
-            </p>
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">Finanzas</a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">Gastos</a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <span class="breadcrumb-item active">Eliminar gasto</span>
+  </nav>
 
-            <p>
-                <strong>Categoría:</strong>
-                {{ gasto.cat_gasto.nombre_categoria_gasto }}
-            </p>
-
-            <p>
-                <strong>Descripción:</strong>
-                {{ gasto.descripcion_gasto|default:"Sin descripción" }}
-            </p>
-
-            <p>
-                <strong>Monto:</strong>
-                ${{ gasto.monto_gasto }}
-            </p>
-
-            <p>
-                <strong>Fecha:</strong>
-                {{ gasto.fecha_hora_gasto|date:"d/m/Y H:i" }}
-            </p>
-
-            <p class="text-muted">
-                Esta acción no se puede deshacer.
-            </p>
-
-            <form method="POST">
-                {% csrf_token %}
-                <div class="derecha_boton">
-                    <a href="{% url 'finanzas:listar_gastos' %}"
-                       class="btn btn-secundario">
-                        Cancelar
-                    </a>
-
-                    <button type="submit" class="btn-danger">
-                        Sí, eliminar
-                    </button>
-                </div>
-            </form>
-        </div>
+  <div class="page-header">
+    <div class="page-header-info">
+      <a href="{% url 'finanzas:listar_gastos' %}" class="btn-volver-flecha" title="Volver a gastos">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">delete</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>Eliminar gasto #{{ gasto.pk }}</h1>
+        <p>Confirmá la eliminación del gasto seleccionado.</p>
+      </div>
     </div>
+  </div>
+
+  <div class="tarjeta-formulario">
+    <div class="tarjeta-titulo">
+      <span class="material-symbols-outlined icono-naranja">warning</span>
+      <h2>Confirmar eliminación</h2>
+    </div>
+
+    <p>¿Estás seguro de que querés eliminar este gasto? Esta acción no se puede deshacer.</p>
+
+    <div class="grid-formulario">
+      <div class="grupo-campo">
+        <label>Categoría</label>
+        <input type="text" class="form-control" value="{{ gasto.cat_gasto.nombre_categoria_gasto }}" readonly>
+      </div>
+
+      <div class="grupo-campo">
+        <label>Monto</label>
+        <div class="input-con-prefijo">
+          <span>$</span>
+          <input type="text" class="form-control" value="{{ gasto.monto_gasto|floatformat:2 }}" readonly>
+        </div>
+      </div>
+
+      <div class="grupo-campo">
+        <label>Fecha y hora</label>
+        <input type="text" class="form-control" value="{{ gasto.fecha_hora_gasto|date:'d/m/Y H:i' }}" readonly>
+      </div>
+
+      <div class="grupo-campo">
+        <label>Caja</label>
+        <input type="text" class="form-control" value="Caja #{{ gasto.caja_gasto_id }}" readonly>
+      </div>
+    </div>
+
+    <div class="grupo-campo">
+      <label>Descripción</label>
+      <textarea class="form-control" rows="3" readonly>{{ gasto.descripcion_gasto|default:"Sin descripción" }}</textarea>
+    </div>
+
+    <div class="acciones-formulario">
+      <a href="{% url 'finanzas:listar_gastos' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">close</span>
+        Cancelar
+      </a>
+
+      <form method="POST" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">delete</span>
+          Confirmar eliminación
+        </button>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

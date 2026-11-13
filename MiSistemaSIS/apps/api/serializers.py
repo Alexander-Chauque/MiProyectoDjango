@@ -359,7 +359,7 @@ class ComandaDetalleSerializer(ComandaSerializer):
             {
                 "id_pago": pago.id_pago,
                 "monto": str(pago.monto),
-                "metodo": pago.get_metodo_pago_display(),
+                "metodo": pago.metodo_pago.nombre_metodo_pago if pago.metodo_pago_id else "",
                 "fecha_hora": pago.fecha_hora,
             }
             for pago in comanda.pagos.all()

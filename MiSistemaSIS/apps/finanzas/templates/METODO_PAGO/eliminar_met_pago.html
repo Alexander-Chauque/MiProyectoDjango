@@ -57,15 +57,7 @@
     </div>
   </div>
 
-  {% if messages %}
-    <div class="mensajes">
-      {% for message in messages %}
-        <div class="mensaje {{ message.tags }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+
 
   <div class="tarjeta-formulario">
 
@@ -103,9 +95,9 @@
       <label>Estado</label>
       <div>
         {% if metodo.estado_metodo_pago %}
-          <span class="estado-activo">Activo</span>
+          <span class="badge badge-activo">Activo</span>
         {% else %}
-          <span class="estado-inactivo">Inactivo</span>
+          <span class="badge badge-inactivo">Inactivo</span>
         {% endif %}
       </div>
     </div>

@@ -6,7 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-<link rel="stylesheet" href="{% static 'css/comandas.css' %}">
+<link rel="stylesheet" href="{% static 'css/finanzas.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -17,7 +17,9 @@
         <a href="{% url 'home' %}" class="breadcrumb-item">
             <span class="material-symbols-outlined">home</span> Inicio
         </a>
-        <span class="breadcrumb-separator">›</span>
+        <span class="breadcrumb-separator">&gt;</span>
+        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">Finanzas</a>
+        <span class="breadcrumb-separator">&gt;</span>
         <span class="breadcrumb-item active">Cajas</span>
     </nav>
 
@@ -25,7 +27,7 @@
     <div class="page-header">
         <div class="page-header-info">
             <div class="page-header-icono">
-                <span class="material-symbols-outlined">receipt_long</span>
+                <span class="material-symbols-outlined">point_of_sale</span>
             </div>
             <div class="page-header-texto">
                 <h1>Cajas</h1>
@@ -34,8 +36,8 @@
         </div>
 
         <div class="page-header-acciones">
-            <a href="{% url 'finanzas:listar_cajas' %}" class="btn-secundario">
-                <span class="material-symbols-outlined">search</span> Consultar
+            <a href="{% url 'finanzas:finanzas_home' %}" class="btn-secundario">
+                <span class="material-symbols-outlined">arrow_back</span> Volver a Finanzas
             </a>
             <a href="{% url 'finanzas:abrir_caja' %}" class="btn-primario">
                 <span class="material-symbols-outlined">add</span> Abrir Caja
@@ -191,9 +193,9 @@
 
                         <td>
                             {% if caja.estado_caja == 'abierto' %}
-                                <span class="badge badge-abierta">Abierta</span>
+                                <span class="badge badge-activo">Abierta</span>
                             {% else %}
-                                <span class="badge badge-cerrada">Cerrada</span>
+                                <span class="badge badge-inactivo">Cerrada</span>
                             {% endif %}
                         </td>
 
@@ -214,23 +216,19 @@
                                     <!-- Arqueo -->
                                     <a
                                         href="{% url 'finanzas:arqueo_caja' caja.pk %}"
-                                        class="btn-accion"
+                                        class="btn-icon btn-editar"
                                         title="Arqueo de caja"
                                     >
-                                        <span class="material-symbols-outlined">
-                                            account_balance_wallet
-                                        </span>
+                                        <span class="material-symbols-outlined">fact_check</span>
                                     </a>
 
                                     <!-- Cerrar caja -->
                                     <a
                                         href="{% url 'finanzas:cerrar_caja' caja.pk %}"
-                                        class="btn-accion"
+                                        class="btn-icon btn-baja"
                                         title="Cerrar caja"
                                     >
-                                        <span class="material-symbols-outlined">
-                                            lock
-                                        </span>
+                                        <span class="material-symbols-outlined">lock</span>
                                     </a>
 
                                 {% endif %}
