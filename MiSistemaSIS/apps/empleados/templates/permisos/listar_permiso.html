@@ -70,7 +70,7 @@
         <label>Módulo</label>
         <div class="checkboxes">
           <label class="checkbox-item">
-            <input type="checkbox" id="mod-todos" onchange="toggleModulos(this)">
+            <input type="checkbox" id="mod-todos" onchange="toggleModulos(this)" {% if not modulos_seleccionados %}checked{% endif %}>
             <span>Todos</span>
           </label>
           {% for modulo in modulos %}
@@ -87,7 +87,7 @@
         <label>Acción</label>
         <div class="checkboxes">
           <label class="checkbox-item">
-            <input type="checkbox" id="acc-todos" onchange="toggleAcciones(this)">
+            <input type="checkbox" id="acc-todos" onchange="toggleAcciones(this)" {% if not acciones_seleccionadas %}checked{% endif %}>
             <span>Todas</span>
           </label>
           {% for accion in acciones %}

@@ -16,98 +16,33 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
     />
     <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/colores.css' %}" />
   </head>
   <body>
     <div class="login-container">
-      <div class="login-imagen">
-        <div class="img-paisaje"></div>
-        <div class="img-empanadas"></div>
-
-      <svg class="onda-svg"
-     viewBox="0 0 500 900"
-     preserveAspectRatio="none"
-     xmlns="http://www.w3.org/2000/svg"
-     aria-hidden="true">
-
-    <!-- DEFINICIÓN DE LOS DEGRADADOS VERTICALES -->
-    <defs>
-        <!-- Degradado para la onda naranja superior (Arriba oscuro, abajo claro) -->
-        <linearGradient id="gradNaranjaSup" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#E0951A" />  <!-- Naranja oscuro arriba -->
-            <stop offset="100%" stop-color="#F5A623" /> <!-- Naranja claro abajo -->
-        </linearGradient>
-
-        <!-- Degradado para la onda naranja inferior 1 (Arriba claro, abajo oscuro) -->
-        <linearGradient id="gradNaranjaInf1" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#F5A623" />  <!-- Naranja claro arriba -->
-            <stop offset="100%" stop-color="#E0951A" /> <!-- Naranja oscuro abajo -->
-        </linearGradient>
-
-        <!-- Degradado para la onda naranja inferior 2 (Más oscura) -->
-        <linearGradient id="gradNaranjaInf2" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#E0951A" />
-            <stop offset="100%" stop-color="#C06C0F" /> <!-- Naranja más oscuro -->
-        </linearGradient>
-
-        <!-- Degradado blanco (Blanco arriba, gris muy claro abajo) -->
-        <linearGradient id="gradBlanco" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#FFFFFF" />
-            <stop offset="100%" stop-color="#F3F4F6" />
-        </linearGradient>
-    </defs>
-
-    <!-- Onda naranja superior -->
-    <path
-        d="M0 210 C90 170 155 195 235 220 C330 250 410 315 500 325 L500 365 C400 350 325 290 235 260 C145 230 75 225 0 270 Z"
-        fill="url(#gradNaranjaSup)"/>
-
-    <!-- Línea clara superior -->
-    <path
-        d="M0 270 C75 225 145 230 235 260 C325 290 400 350 500 365"
-        fill="none"
-        stroke="#FFF8EC"
-        stroke-width="5"/>
-
-    <!-- Zona blanca central -->
-    <path
-        d="M0 270 C75 225 145 230 235 260 C325 290 400 350 500 365 L500 650 C405 685 330 725 245 690 C155 655 80 610 0 645 Z"
-        fill="url(#gradBlanco)"/>
-
-    <!-- Primera onda inferior -->
-    <path
-        d="M0 645 C80 610 155 655 245 690 C330 725 405 685 500 650 L500 690 C405 730 330 770 245 735 C155 700 80 655 0 690 Z"
-        fill="url(#gradNaranjaInf1)"/>
-
-    <!-- Segunda onda inferior oscura -->
-    <path
-        d="M0 690 C80 655 155 700 245 735 C330 770 405 730 500 690 L500 725 C405 770 330 805 245 770 C155 735 80 690 0 730 Z"
-        fill="url(#gradNaranjaInf2)"/>
-
-    <!-- Línea crema inferior -->
-    <path
-        d="M0 730 C80 690 155 735 245 770 C330 805 405 770 500 725"
-        fill="none"
-        stroke="#FFF8EC"
-        stroke-width="4"/>
-
-</svg>
-
-        <div class="contenido-logo">
-          <img
-            src="{% static 'img/logo/logo.png' %}"
-            alt="Los Cardones"
-            class="logo-onda"
-          />
-
-          <p class="slogan">SABORES QUE NOS UNEN</p>
-        </div>
+      <!-- Lado izquierdo: la marca sobre la foto de la peña -->
+      <div class="login-marca">
+        <img
+          src="{% static 'img/logo/logo.png' %}"
+          alt="Los Cardones"
+          class="logo-marca"
+        />
+        <p class="slogan">SABORES QUE NOS UNEN</p>
+        <p class="marca-frase">Tradición, música y gastronomía del norte argentino</p>
       </div>
 
+      <!-- Lado derecho: la tarjeta con el formulario -->
       <div class="login-formulario">
-        <div class="form-contenido">
-          <h1>Iniciar sesión</h1>
+        <div class="tarjeta-login">
+          <div class="tarjeta-aviso">
+            <span class="material-symbols-outlined">verified_user</span>
+            Acceso exclusivo para el personal de la peña.
+          </div>
+
+          <div class="form-contenido">
+          <h1>¡Bienvenido de nuevo!</h1>
           <p class="subtitulo">
-            Accedé a tu cuenta para continuar con Los Cardones.
+            Ingresá tus datos para continuar con Los Cardones.
           </p>
           <div class="linea-naranja"></div>
           <form method="POST">
@@ -135,8 +70,7 @@
                   value="{{ identificador }}"
                   placeholder="ejemplo@correo.com"
                   required
-                  {% if not identificador %}autofocus{% endif %}
-                />
+                  {% if not identificador %}autofocus{% endif %} maxlength="254" />
               </div>
             </div>
 
@@ -185,8 +119,15 @@
               sistema.
             </p>
           </div>
+          </div>
         </div>
       </div>
+
+      <!-- Dirección abajo a la izquierda -->
+      <p class="login-direccion">
+        <span class="material-symbols-outlined">location_on</span>
+        Balcarce 922 · Salta
+      </p>
     </div>
 
     <!-- Script para mostrar/ocultar contraseña -->
@@ -203,5 +144,6 @@
         }
       }
     </script>
+    <script src="{% static 'js/validacion_campos.js' %}"></script>
   </body>
 </html>

@@ -4,8 +4,6 @@ from functools import wraps
 from empleados.models import Empleado, PermisoXCargo
 
 NIVEL_ADMINISTRADOR = 5
-
-
 def nivel_de(user):
     """Nivel de acceso del usuario, o 0 si no tiene empleado o cargo."""
     try:

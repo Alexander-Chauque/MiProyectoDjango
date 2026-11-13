@@ -52,20 +52,41 @@ class Empleado(models.Model):
         if self.apellido_empleado:
             self.apellido_empleado = self.apellido_empleado.title()
         
-        if not self.pk:
+        # El usuario se regenera si es nuevo o si ya no corresponde al nombre actual.
+        # Se compara con el nombre, no con el guardado anterior: así también se
+        # corrige un usuario que quedó desactualizado en un cambio viejo.
+        if not self.pk or not self.usuario_corresponde_al_nombre():
             self.user_auto = self.generate_user_auto()
-        else:
-            original = Empleado.objects.get(pk=self.pk)
-            if (original.nombre_empleado != self.nombre_empleado or 
-                original.apellido_empleado != self.apellido_empleado):
-                
-                self.user_auto = self.generate_user_auto()
-                if self.user:
-                    self.user.username = self.user_auto
-                    self.user.first_name = self.nombre_empleado
-                    self.user.last_name = self.apellido_empleado
-                    self.user.save()
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None and "user_auto" not in update_fields:
+                kwargs["update_fields"] = [*update_fields, "user_auto"]
+
         super().save(*args, **kwargs)
+
+        # La cuenta para iniciar sesión siempre lleva el mismo usuario y nombre
+        if self.user_id:
+            cuenta = self.user
+            if (cuenta.username != self.user_auto
+                    or cuenta.first_name != self.nombre_empleado
+                    or cuenta.last_name != self.apellido_empleado):
+                cuenta.username = self.user_auto
+                cuenta.first_name = self.nombre_empleado
+                cuenta.last_name = self.apellido_empleado
+                cuenta.save(update_fields=["username", "first_name", "last_name"])
+
+    def base_usuario(self):
+        """Apellido + primera letra del nombre, en minúsculas. Ej.: Teo Cruz -> cruzt."""
+        nombre = (self.nombre_empleado or "").lower().strip()
+        apellido = (self.apellido_empleado or "").lower().strip()
+        return f"{apellido}{nombre[:1]}"
+
+    def usuario_corresponde_al_nombre(self):
+        """True si user_auto es la base o la base con un número (cruzt, cruzt1, cruzt2...)."""
+        base = self.base_usuario()
+        if not self.user_auto or not self.user_auto.startswith(base):
+            return False
+        resto = self.user_auto[len(base):]
+        return resto == "" or resto.isdigit()
 
     def generate_user_auto(self):
         if self.nombre_empleado and self.apellido_empleado:

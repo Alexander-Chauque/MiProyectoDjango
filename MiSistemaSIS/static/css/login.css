@@ -9,135 +9,133 @@
 
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
-  background-color: #FFFFFF;
+  background-color: #14100C;
   min-height: 100vh;
-  width: 100vw;
-  /* Ocupa todo el ancho de la ventana */
   overflow-x: hidden;
-  /* Evita scroll horizontal */
 }
 
 /* =========================================
-   2. CONTENEDOR PRINCIPAL (Borde a borde)
+   2. CONTENEDOR: FOTO DE LA PEÑA DE FONDO
+   El degradado oscurece la izquierda para que
+   el logo se lea bien sobre la foto.
    ========================================= */
 .login-container {
+  position: relative;
   display: flex;
-  width: 100vw;
-  /* Todo el ancho */
-  height: 100vh;
-  /* Todo el alto de la pantalla */
-  background-color: #FFFFFF;
-  overflow: hidden;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px 6vw;
+  gap: 40px;
+  background-image:
+    linear-gradient(90deg, rgba(20, 16, 12, 0.85) 0%, rgba(20, 16, 12, 0.55) 50%, rgba(20, 16, 12, 0.35) 100%),
+    url('../img/fondo-login.jpeg');
+  background-size: cover;
+  background-position: center;
 }
 
 /* =========================================
-   3. COLUMNA IZQUIERDA (Imágenes y Onda)
+   3. LADO IZQUIERDO: LOGO Y FRASES
    ========================================= */
-.login-imagen {
+.login-marca {
   flex: 1;
-  /* Ocupa la mitad de la pantalla */
-  position: relative;
-  background-color: #FFFFFF;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Recortamos la foto del paisaje con la forma de la onda */
-.img-paisaje {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 40%;
-  background-image: url('../img/paisaje.png');
-  /* <-- TU FOTO */
-  background-size: cover;
-  background-position: center;
-  z-index: 1;
-}
-
-/* Recortamos la foto de las empanadas con la forma de la onda */
-.img-empanadas {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 30%;
-  background-image: url('../img/empanadas.png');
-  background-size: 120%;
-  background-position: center 70%;
-  z-index: 1;
-}
-
-/* La onda SVG (Se dibuja por encima de las fotos) */
-.onda-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-}
-
-/* El logo y el slogan (Por encima de todo) */
-.contenido-logo {
-  position: relative;
-  z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  /* Lo centramos verticalmente */
-  margin-top: -40px;
+  animation: entrar-izquierda 0.7s ease backwards;
 }
 
-.logo-onda {
-  max-width: 300px;
-  /* Tamaño más grande para pantalla completa */
-  margin-bottom: 10px;
+.logo-marca {
+  width: 100%;
+  max-width: 440px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
 }
 
 .slogan {
   font-family: 'Oswald', sans-serif;
   color: #F5A623;
-  font-size: 16px;
-  letter-spacing: 3px;
+  font-size: 18px;
+  letter-spacing: 4px;
   font-weight: 600;
+  margin-top: 10px;
+}
+
+.marca-frase {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  color: #FFE3B0;
+  font-size: 20px;
+  margin-top: 8px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.login-direccion {
+  position: absolute;
+  left: 24px;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #D9D4CC;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.login-direccion .material-symbols-outlined {
+  font-size: 18px;
+  color: #F5A623;
 }
 
 /* =========================================
-   4. COLUMNA DERECHA (Formulario Centrado)
+   4. LADO DERECHO: TARJETA BLANCA
    ========================================= */
 .login-formulario {
   flex: 1;
-  /* Ocupa la otra mitad */
+  display: flex;
+  justify-content: center;
+}
+
+.tarjeta-login {
+  width: 100%;
+  max-width: 480px;
+  background-color: #FFFFFF;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  animation: entrar-abajo 0.6s ease 0.15s backwards;
+}
+
+/* Franja de color de arriba de la tarjeta */
+.tarjeta-aviso {
   display: flex;
   align-items: center;
-  /* Centra verticalmente el form */
-  justify-content: center;
-  /* Centra horizontalmente el form */
-  background-color: #FFFFFF;
-  padding: 40px;
+  gap: 10px;
+  background-color: #F5A623;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 14px 24px;
+}
+
+.tarjeta-aviso .material-symbols-outlined {
+  font-size: 20px;
 }
 
 .form-contenido {
-  width: 100%;
-  max-width: 450px;
-  /* Evita que el form sea demasiado ancho en pantallas gigantes */
+  padding: 36px 40px 32px;
 }
 
 h1 {
   font-family: 'Oswald', sans-serif;
-  font-size: 40px;
+  font-size: 34px;
   color: #2D3748;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .subtitulo {
   color: #718096;
-  font-size: 16px;
+  font-size: 15px;
   margin-bottom: 15px;
 }
 
@@ -145,8 +143,24 @@ h1 {
   width: 60px;
   height: 4px;
   background-color: #F5A623;
-  margin-bottom: 30px;
+  margin-bottom: 26px;
   border-radius: 2px;
+}
+
+/* Animaciones de entrada */
+@keyframes entrar-izquierda {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes entrar-abajo {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-marca,
+  .tarjeta-login { animation: none; }
 }
 
 /* =========================================
@@ -335,29 +349,20 @@ h1 {
 @media (max-width: 900px) {
   .login-container {
     flex-direction: column;
-    height: auto;
-    min-height: 100vh;
+    justify-content: center;
+    padding: 30px 16px 60px;
+    gap: 24px;
   }
 
-  .login-imagen {
-    height: 40vh;
-    /* La imagen ocupa el 40% de la pantalla en celular */
-    min-height: 250px;
-  }
+  .logo-marca { max-width: 260px; }
+  .slogan { font-size: 14px; }
+  .marca-frase { font-size: 16px; }
 
-  .contenido-logo {
-    margin-top: 0;
-  }
+  .form-contenido { padding: 28px 22px 24px; }
+  h1 { font-size: 28px; }
 
-  .logo-onda {
-    max-width: 200px;
-  }
-
-  .slogan {
-    font-size: 14px;
-  }
-
-  .login-formulario {
-    padding: 40px 20px;
+  .opciones-extra {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 }

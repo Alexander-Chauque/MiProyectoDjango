@@ -37,7 +37,7 @@
       {% csrf_token %}
       <div class="grupo-campo" style="margin-bottom: 20px;">
         <label>Nombre del Turno <span class="req">*</span></label>
-        <input type="text" name="nombre_tipo_asis" class="form-control" value="{{ tipo.nombre_tipo_asis }}" required>
+        <input type="text" name="nombre_tipo_asis" class="form-control" value="{{ tipo.nombre_tipo_asis }}" required maxlength="50">
       </div>
       <div class="grupo-campo">
         <label>Descripcion (Opcional)</label>
