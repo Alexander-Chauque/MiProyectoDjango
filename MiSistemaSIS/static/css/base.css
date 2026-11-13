@@ -1555,3 +1555,192 @@ body {
 .modal-alerta-peligro li {
   margin-bottom: 4px;
 }
+/* Búsqueda en vivo: la tabla se atenúa un instante mientras llegan los resultados */
+.tabla-panel table,
+.tabla-panel .paginacion {
+  transition: opacity 0.15s;
+}
+
+.tabla-panel.buscando table,
+.tabla-panel.buscando .paginacion {
+  opacity: 0.5;
+}
+
+/* ==========================================
+   TARJETAS DE MÓDULO CON COLOR (Inventario, Empleados, Finanzas)
+   Mismos colores y animaciones que las tarjetas del inicio.
+   Cada tarjeta guarda su color en --c (clase color-*).
+   ========================================== */
+.color-verde    { --c: #2E9E6A; }
+.color-azul     { --c: #3B7DD8; }
+.color-naranja  { --c: #F5A623; }
+.color-rojo     { --c: #D9534F; }
+.color-violeta  { --c: #8E5CC4; }
+.color-turquesa { --c: #1FA2B5; }
+.color-cafe     { --c: #A0673A; }
+
+@keyframes tarjeta-aparecer {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes icono-saltito {
+  0%, 100% { transform: translateX(-50%) rotate(0) scale(1); }
+  30%      { transform: translateX(-50%) rotate(-10deg) scale(1.15); }
+  60%      { transform: translateX(-50%) rotate(8deg) scale(1.1); }
+}
+
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"] {
+  /* "backwards": la animación no bloquea el movimiento del :hover */
+  animation: tarjeta-aparecer 0.5s ease backwards;
+  border-bottom: 4px solid var(--c);
+}
+
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"]:nth-child(2) { animation-delay: 0.1s; }
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"]:nth-child(3) { animation-delay: 0.2s; }
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"]:nth-child(4) { animation-delay: 0.3s; }
+
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"]:hover {
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--c) 35%, transparent);
+}
+
+/* Ícono redondo sobre la foto, del color de la tarjeta */
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"] .card-icono-superpuesto {
+  background-color: var(--c);
+}
+
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"]:hover .card-icono-superpuesto {
+  animation: icono-saltito 0.6s ease;
+}
+
+/* Línea de color bajo el título que se estira al pasar el mouse */
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"] .card-contenido h3::after {
+  content: "";
+  display: block;
+  width: 30px;
+  height: 3px;
+  margin: 8px auto 0;
+  border-radius: 2px;
+  background-color: var(--c);
+  transition: width 0.35s ease;
+}
+
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"]:hover .card-contenido h3::after {
+  width: 70px;
+}
+
+/* Botón "Ingresar" del color de la tarjeta */
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"] .btn-ingresar {
+  background-color: var(--c);
+}
+
+:is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"] .btn-ingresar:hover {
+  background-color: color-mix(in srgb, var(--c) 85%, black);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--c) 40%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"],
+  :is(.inventario-card, .empleados-card, .finanzas-card)[class*="color-"]:hover .card-icono-superpuesto {
+    animation: none;
+  }
+}
+
+/* ==========================================
+   FILTROS ACTIVOS (etiquetas arriba de la tabla)
+   ========================================== */
+.filtros-activos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.chip-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 4px;
+  background-color: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+  font-size: 13px;
+  text-decoration: none;
+  line-height: 1.4;
+  animation: chip-aparecer 0.2s ease;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.chip-filtro .chip-grupo {
+  color: #9CA3AF;
+  font-size: 12px;
+}
+
+.chip-filtro .chip-icono {
+  font-size: 15px;
+  color: #9CA3AF;
+}
+
+.chip-filtro .chip-cerrar {
+  font-size: 16px;
+  color: #6B7280;
+  transition: color 0.2s;
+}
+
+.chip-filtro:hover {
+  background-color: #FFF3DF;
+  border-color: #F5A623;
+  color: #9A5B00;
+}
+
+.chip-filtro:hover .chip-cerrar {
+  color: #D9534F;
+}
+
+.chip-quitar-todos {
+  margin-left: 4px;
+  color: #E0951A;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chip-quitar-todos:hover {
+  text-decoration: underline;
+}
+
+@keyframes chip-aparecer {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-filtro { animation: none; }
+}
+
+[data-tema="oscuro"] .chip-filtro {
+  background-color: #3A3A3A;
+  border-color: #4A4A4A;
+  color: #E5E5E5;
+}
+
+[data-tema="oscuro"] .chip-filtro .chip-grupo,
+[data-tema="oscuro"] .chip-filtro .chip-icono {
+  color: #A8A8A8;
+}
+
+[data-tema="oscuro"] .chip-filtro .chip-cerrar {
+  color: #C8C8C8;
+}
+
+[data-tema="oscuro"] .chip-filtro:hover {
+  background-color: #3A2F18;
+  border-color: #F5A623;
+  color: #FFD48A;
+}
+
+[data-tema="oscuro"] .chip-quitar-todos {
+  color: #F5A623;
+}

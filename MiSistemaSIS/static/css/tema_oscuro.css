@@ -346,6 +346,19 @@
   color: #D4D4D4;
 }
 
+/* Igual que en el modo claro: al pasar el mouse, borde y número naranjas */
+[data-tema="oscuro"] .paginacion-btn:hover {
+  border-color: #F5A623;
+  color: #F5A623;
+}
+
+/* Igual que en el modo claro: la página actual, naranja con número blanco */
+[data-tema="oscuro"] .paginacion-btn.pagina-activa {
+  background-color: #F5A623;
+  border-color: #F5A623;
+  color: #FFFFFF;
+}
+
 [data-tema="oscuro"] .modal-contenido {
   background-color: #2A2A2A;
 }
@@ -1671,4 +1684,8 @@
 [data-tema="oscuro"] .buscador-ingredientes input {
   background-color: transparent !important;
 }
+}
+
+[data-tema="oscuro"] .estadisticas-grid .stat-card {
+  background: color-mix(in srgb, var(--c) 12%, #2A2A2A);
 }

@@ -34,6 +34,8 @@
     <link rel="stylesheet" href="{% static 'vendor/flatpickr/flatpickr.min.css' %}" />
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/calendario.css' %}" />
+    <!-- Paleta única de textos y avisos: va última para que le gane a cada módulo -->
+    <link rel="stylesheet" href="{% static 'css/colores.css' %}" />
   </head>
   <body>
     <aside class="sidebar" id="sidebar">
@@ -188,7 +190,7 @@
       <!-- CONTENIDO DE CADA PÁGINA -->
       <main class="contenido">
         {% if messages %} {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        <div class="alert alert-{{ message.level_tag }}"{% if 'campo:' in message.extra_tags %} data-campo="{{ message.extra_tags|cut:'campo:' }}"{% endif %}>{{ message }}</div>
         {% endfor %} {% endif %} {% block content %}{% endblock %}
       </main>
     </div>
@@ -304,6 +306,10 @@
     <script src="{% static 'vendor/flatpickr/flatpickr.min.js' %}"></script>
     <script src="{% static 'vendor/flatpickr/es.js' %}"></script>
     <script src="{% static 'js/filtros_fecha.js' %}"></script>
+    <script src="{% static 'js/buscar_en_vivo.js' %}"></script>
+    <script src="{% static 'js/filtros_activos.js' %}"></script>
+    <script src="{% static 'js/validacion_campos.js' %}"></script>
+    <script src="{% static 'js/mayusculas.js' %}"></script>
     {% block extra_js %}{% endblock %}
   </body>
 </html>
