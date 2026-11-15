@@ -1,96 +1,160 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Mi perfil{% endblock %}
 
-{% block content %}
-<div class="cuenta-pagina">
-  <header class="cuenta-encabezado">
-    <span class="material-symbols-outlined">person</span>
-    <div>
-      <h1>Mi perfil</h1>
-      <p>Consulta y administra tu información personal.</p>
-    </div>
-  </header>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/perfil.css' %}">
+{% endblock %}
 
-  <section class="cuenta-tarjeta">
-    <div class="perfil-cabecera">
-      <span class="user-avatar perfil-avatar">
-        {{ user.empleado.nombre_empleado|first|default:user.username|first }}{{ user.empleado.apellido_empleado|first }}
-      </span>
-      <div>
-        <h2>{{ empleado.get_full_name|default:user.username }}</h2>
-        <span class="cuenta-etiqueta">
-          <span class="material-symbols-outlined">workspace_premium</span>
+{% block content %}
+<div class="contenedor perfil">
+
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}" class="breadcrumb-item">
+      <span class="material-symbols-outlined">home</span> Inicio
+    </a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <span class="breadcrumb-item active">Mi perfil</span>
+  </nav>
+
+  <!-- Quién soy -->
+  <section class="perfil-hero" aria-labelledby="perfil-nombre">
+    <span class="perfil-hero-avatar" aria-hidden="true">
+      {% if empleado %}{{ empleado.nombre_empleado|first }}{{ empleado.apellido_empleado|first }}{% else %}{{ user.username|first }}{% endif %}
+    </span>
+    <div class="perfil-hero-texto">
+      <h1 id="perfil-nombre">{% if empleado %}{{ empleado.nombre_empleado }} {{ empleado.apellido_empleado }}{% else %}{{ user.username }}{% endif %}</h1>
+      <div class="perfil-hero-meta">
+        <span class="perfil-cargo">
+          <span class="material-symbols-outlined" aria-hidden="true">workspace_premium</span>
           {{ empleado.cargo.nombre_cargo|default:"Usuario" }}
         </span>
+        <span>@{{ user.username }}</span>
+        {% if empleado %}<span>En Los Cardones desde {{ empleado.fecha_ingreso|date:"F \d\e Y"|lower }}</span>{% endif %}
       </div>
     </div>
+    <a href="{% url 'empleados:cambiar_contrasena' %}" class="btn-secundario perfil-hero-accion">
+      <span class="material-symbols-outlined">key</span> Cambiar contraseña
+    </a>
+  </section>
 
-    {% if form %}
-    <form method="POST" action="{% url 'empleados:mi_perfil' %}" class="cuenta-formulario" novalidate>
-      {% csrf_token %}
-      <div class="cuenta-campo">
-        <label for="{{ form.correo.id_for_label }}">
-          <span class="material-symbols-outlined">mail</span> Correo electrónico
-        </label>
-        <div>
+  {% if empleado.debe_cambiar_contrasena %}
+  <div class="perfil-aviso">
+    <span class="material-symbols-outlined" aria-hidden="true">lock_reset</span>
+    <span><strong>Tenés una contraseña temporal.</strong> Cambiala por una propia para proteger tu cuenta.</span>
+    <a href="{% url 'empleados:cambiar_contrasena' %}">Cambiar ahora</a>
+  </div>
+  {% endif %}
+
+  {% if mi_dia %}
+  <!-- Mi día -->
+  <section class="perfil-dia" aria-label="Tu actividad de hoy">
+    <div class="perfil-dato-dia">
+      <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+      <div><strong>{{ mi_dia.comandas }}</strong><span>Comanda{{ mi_dia.comandas|pluralize }} tomada{{ mi_dia.comandas|pluralize }} hoy</span></div>
+    </div>
+    <div class="perfil-dato-dia">
+      <span class="material-symbols-outlined" aria-hidden="true">table_restaurant</span>
+      <div><strong>{{ mi_dia.abiertas }}</strong><span>Mesa{{ mi_dia.abiertas|pluralize }} abierta{{ mi_dia.abiertas|pluralize }} ahora</span></div>
+    </div>
+    <div class="perfil-dato-dia">
+      <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+      <div><strong>${{ mi_dia.cobrado|floatformat:0 }}</strong><span>Cobrado por vos hoy</span></div>
+    </div>
+  </section>
+  {% endif %}
+
+  <div class="perfil-grilla">
+
+    <!-- Contacto: lo único que cada uno puede cambiar -->
+    <section class="perfil-tarjeta" aria-labelledby="perfil-contacto">
+      <header class="perfil-tarjeta-cabecera">
+        <h2 id="perfil-contacto"><span class="material-symbols-outlined" aria-hidden="true">contact_mail</span> Datos de contacto</h2>
+        {% if empleado and not form %}
+        <a href="?editar=1" class="perfil-editar">
+          <span class="material-symbols-outlined" aria-hidden="true">edit</span> Editar
+        </a>
+        {% endif %}
+      </header>
+
+      {% if form %}
+      <form method="POST" action="{% url 'empleados:mi_perfil' %}" class="perfil-formulario" novalidate>
+        {% csrf_token %}
+        <div class="grupo-campo">
+          <label for="{{ form.correo.id_for_label }}">Correo electrónico <span class="req">*</span></label>
           {{ form.correo }}
           {% for error in form.correo.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
+          <span class="texto-ayuda">Se usa para recuperar la contraseña.</span>
         </div>
-      </div>
-      <div class="cuenta-campo">
-        <label for="{{ form.telefono.id_for_label }}">
-          <span class="material-symbols-outlined">call</span> Teléfono
-        </label>
-        <div>
+        <div class="grupo-campo">
+          <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
           {{ form.telefono }}
           {% for error in form.telefono.errors %}<span class="cuenta-error">{{ error }}</span>{% endfor %}
         </div>
-      </div>
-      <div class="cuenta-botones">
-        <a href="{% url 'empleados:mi_perfil' %}" class="cuenta-btn cuenta-btn-secundario">
-          <span class="material-symbols-outlined">close</span> Cancelar
-        </a>
-        <button type="submit" class="cuenta-btn cuenta-btn-primario">
-          <span class="material-symbols-outlined">save</span> Guardar cambios
-        </button>
-      </div>
-    </form>
-    {% else %}
-    <dl class="perfil-datos">
-      <div>
-        <dt><span class="material-symbols-outlined">person</span> Usuario</dt>
-        <dd>{{ user.username }}</dd>
-      </div>
-      <div>
-        <dt><span class="material-symbols-outlined">mail</span> Correo electrónico</dt>
-        <dd>{{ empleado.correo|default:user.email|default:"Sin cargar" }}</dd>
-      </div>
-      {% if empleado %}
-      <div>
-        <dt><span class="material-symbols-outlined">badge</span> Nombre completo</dt>
-        <dd>{{ empleado.get_full_name }}</dd>
-      </div>
-      <div>
-        <dt><span class="material-symbols-outlined">call</span> Teléfono</dt>
-        <dd>{{ empleado.telefono|default:"Sin cargar" }}</dd>
-      </div>
+        <div class="perfil-botones">
+          <a href="{% url 'empleados:mi_perfil' %}" class="btn-secundario">Cancelar</a>
+          <button type="submit" class="btn-primario">
+            <span class="material-symbols-outlined">save</span> Guardar
+          </button>
+        </div>
+      </form>
+      {% else %}
+      <dl class="perfil-datos-lista">
+        <div>
+          <dt>Correo electrónico</dt>
+          <dd>{{ empleado.correo|default:user.email|default:"Sin cargar" }}</dd>
+        </div>
+        <div>
+          <dt>Teléfono</dt>
+          <dd>{% if empleado.telefono %}{{ empleado.telefono }}{% else %}<span class="perfil-vacio">Sin cargar</span>{% endif %}</dd>
+        </div>
+      </dl>
+      {% if not empleado %}
+      <p class="perfil-nota">
+        <span class="material-symbols-outlined" aria-hidden="true">info</span>
+        Tu usuario no tiene un empleado asociado, así que estos datos no se pueden editar desde acá.
+      </p>
       {% endif %}
-    </dl>
-    {% if empleado %}
-    <div class="cuenta-botones">
-      <a href="?editar=1" class="cuenta-btn cuenta-btn-secundario">
-        <span class="material-symbols-outlined">edit</span> Editar datos
-      </a>
-    </div>
-    {% else %}
-    <p class="cuenta-aviso">
-      <span class="material-symbols-outlined">info</span>
-      Tu usuario no tiene un empleado asociado, así que estos datos no se pueden editar desde acá.
-    </p>
-    {% endif %}
-    {% endif %}
-  </section>
+      {% endif %}
+    </section>
 
+    <!-- Datos laborales: los carga el administrador -->
+    {% if empleado %}
+    <section class="perfil-tarjeta" aria-labelledby="perfil-laboral">
+      <header class="perfil-tarjeta-cabecera">
+        <h2 id="perfil-laboral"><span class="material-symbols-outlined" aria-hidden="true">badge</span> Datos laborales</h2>
+      </header>
+      <dl class="perfil-datos-lista">
+        <div><dt>Cargo</dt><dd>{{ empleado.cargo.nombre_cargo|default:"Sin cargo" }}</dd></div>
+        <div><dt>DNI</dt><dd>{{ empleado.dni }}</dd></div>
+        <div><dt>Fecha de ingreso</dt><dd>{{ empleado.fecha_ingreso|date:"d/m/Y" }}</dd></div>
+      </dl>
+      <p class="perfil-nota">
+        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+        Estos datos los carga el administrador. Si hay un error, avisale.
+      </p>
+    </section>
+    {% endif %}
+
+    <!-- Seguridad -->
+    <section class="perfil-tarjeta" aria-labelledby="perfil-seguridad">
+      <header class="perfil-tarjeta-cabecera">
+        <h2 id="perfil-seguridad"><span class="material-symbols-outlined" aria-hidden="true">shield_person</span> Seguridad</h2>
+      </header>
+      <dl class="perfil-datos-lista">
+        <div><dt>Usuario para ingresar</dt><dd>{{ user.username }}</dd></div>
+        <div>
+          <dt>Contraseña</dt>
+          <dd class="perfil-fila-accion">
+            <span aria-label="Oculta">••••••••</span>
+            <a href="{% url 'empleados:cambiar_contrasena' %}">Cambiar</a>
+          </dd>
+        </div>
+        <div><dt>Último ingreso</dt><dd>{% if user.last_login %}{{ user.last_login|date:"d/m/Y H:i" }}{% else %}<span class="perfil-vacio">Primera vez</span>{% endif %}</dd></div>
+      </dl>
+    </section>
+
+  </div>
 </div>
 {% endblock %}

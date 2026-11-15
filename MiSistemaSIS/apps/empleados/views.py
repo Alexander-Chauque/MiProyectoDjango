@@ -544,8 +544,30 @@ def mi_perfil(request):
         form = MiPerfilForm(instance=empleado)
 
     return render(
-        request, "cuenta/mi_perfil.html", {"empleado": empleado, "form": form}
+        request,
+        "cuenta/mi_perfil.html",
+        {"empleado": empleado, "form": form, "mi_dia": _mi_dia(empleado)},
     )
+
+
+def _mi_dia(empleado):
+    """Lo que hizo hoy la persona: comandas tomadas, mesas abiertas y lo que cobró."""
+    if not empleado:
+        return None
+    from datetime import datetime, time
+
+    from django.db.models import Sum
+    from ventas.models import Comanda, Pago
+    from ventas.servicios import ESTADOS_ABIERTOS
+
+    desde = timezone.make_aware(datetime.combine(timezone.localdate(), time.min))
+    return {
+        "comandas": Comanda.objects.filter(empleado=empleado, fecha_hora__gte=desde)
+        .exclude(estado_comanda="anulado").count(),
+        "abiertas": Comanda.objects.filter(empleado=empleado, estado_comanda__in=ESTADOS_ABIERTOS).count(),
+        "cobrado": Pago.objects.filter(empleado=empleado, fecha_hora__gte=desde)
+        .aggregate(total=Sum("monto"))["total"] or 0,
+    }
 
 
 @login_required

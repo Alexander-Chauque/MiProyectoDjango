@@ -93,3 +93,45 @@ class AccesoPorCargoTests(TestCase):
         bachero = Empleado.objects.get(dni="37888999")
         self.assertFalse(bachero.puede_ingresar)
         self.assertFalse(bachero.user.has_usable_password())
+
+
+class MiPerfilTests(TestCase):
+    """La pantalla Mi perfil: datos propios, el día de trabajo y la edición del contacto."""
+
+    def setUp(self):
+        cargo = Cargo.objects.create(nombre_cargo="Mozo Prueba", nivel_acceso=1, acceso_sistema=True)
+        self.usuario = User.objects.create_user("lu.perfil", password="Clave-Prueba-123")
+        self.empleado = Empleado.objects.create(
+            nombre_empleado="Lucía", apellido_empleado="Perfil", dni="99000020",
+            correo="lu@prueba.com", telefono="3871234567", user=self.usuario, cargo=cargo,
+        )
+        self.client.force_login(self.usuario)
+
+    def test_muestra_quien_soy_y_mis_datos(self):
+        respuesta = self.client.get(reverse("empleados:mi_perfil"))
+        self.assertContains(respuesta, "Lucía Perfil")
+        self.assertContains(respuesta, "Mozo Prueba")
+        self.usuario.refresh_from_db()  # el usuario se sincroniza con el empleado al guardarlo
+        self.assertContains(respuesta, f"@{self.usuario.username}")
+        self.assertContains(respuesta, "99000020")
+        self.assertContains(respuesta, reverse("empleados:cambiar_contrasena"))
+
+    def test_muestra_lo_que_hice_hoy(self):
+        from decimal import Decimal
+
+        from ventas.models import Comanda, Mesa
+
+        mesa = Mesa.objects.create(numero_mesa=1, ubicacion="salon")
+        Comanda.objects.create(mesa=mesa, empleado=self.empleado, total_comanda=Decimal("100"))
+        respuesta = self.client.get(reverse("empleados:mi_perfil"))
+        self.assertEqual(respuesta.context["mi_dia"]["comandas"], 1)
+        self.assertEqual(respuesta.context["mi_dia"]["abiertas"], 1)
+        self.assertContains(respuesta, "Comanda tomada hoy")
+
+    def test_editar_el_contacto_en_la_misma_tarjeta(self):
+        pantalla = self.client.get(reverse("empleados:mi_perfil") + "?editar=1")
+        self.assertContains(pantalla, 'name="correo"')
+        self.client.post(reverse("empleados:mi_perfil"), {"correo": "lucia@prueba.com", "telefono": "3879999999"})
+        self.empleado.refresh_from_db()
+        self.assertEqual(self.empleado.correo, "lucia@prueba.com")
+        self.assertEqual(self.empleado.telefono, "3879999999")
