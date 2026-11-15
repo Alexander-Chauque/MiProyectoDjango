@@ -17,14 +17,12 @@ urlpatterns = [
         path('ingredientes/crear/', views.crear_ingrediente, name='crear_ingrediente'),
         path('ingredientes/editar/<int:pk>/', views.editar_ingrediente, name='editar_ingrediente'),
         path('ingredientes/eliminar/<int:pk>/', views.eliminar_ingrediente, name='eliminar_ingrediente'),
-        path('ingredientes/detalle/<int:pk>/', views.detalle_ingrediente, name='detalle_ingrediente'),
         path('ingredientes/estado/<int:pk>/', views.estado_ingrediente, name="estado_ingrediente"),
     #rutas para listar, crear, editar y eliminar categorias
         path('categorias/', views.listar_categorias, name='listar_categorias'),
         path('categorias/crear/', views.crear_categoria, name='crear_categoria'),
         path('categorias/editar/<int:pk>/', views.editar_categoria, name='editar_categoria'),
         path('categorias/eliminar/<int:pk>/', views.eliminar_categoria, name='eliminar_categoria'),
-        path('categorias/detalle/<int:pk>/', views.detalle_categoria, name='detalle_categoria'),
         path('categorias/estado/<int:pk>/', views.estado_categoria, name='estado_categoria'),
 
     #TIPOS BEBIDAS
@@ -39,6 +37,5 @@ urlpatterns = [
     path('bebidas/crear/', views.bebida_crear, name='crear_bebida'),
     path('bebidas/editar/<int:pk>/', views.bebida_editar, name='editar_bebida'),
     path('bebidas/eliminar/<int:pk>/', views.bebida_eliminar, name='eliminar_bebida'),
-    path('bebidas/detalle/<int:pk>/', views.bebida_detalle, name='detalle_bebida'),
     path('bebidas/estado/<int:pk>/', views.bebida_estado, name='estado_bebida'),
 ]

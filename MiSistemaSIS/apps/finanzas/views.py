@@ -576,14 +576,6 @@ def eliminar_met_pago(request, pk):
         {'metodo': metodo}
     )
 
-@login_required
-@permiso_requerido('caja', 'leer')
-def detalle_met_pago(request, pk):
-    metodo = get_object_or_404(metodo_pago, pk=pk)
-    return render(request, 'METODO_PAGO/detalle_met_pago.html', {
-        'metodo': metodo
-    })
-
 
 @login_required
 @permiso_requerido('caja', 'modificar')
