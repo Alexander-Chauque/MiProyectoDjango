@@ -1,0 +1,59 @@
+<!-- La cuenta del cajón: solo entra el efectivo -->
+<ul class="resumen-cuenta">
+    <li>
+        <span>Saldo inicial</span>
+        <span>${{ caja.saldo_inicial|floatformat:2 }}</span>
+    </li>
+    <li class="suma">
+        <span>+ Cobros en efectivo</span>
+        <span>${{ ventas_efectivo|floatformat:2 }}</span>
+    </li>
+    <li class="resta">
+        <span>− Gastos</span>
+        <span>${{ total_egresos|floatformat:2 }}</span>
+    </li>
+    <li class="total">
+        <span>Saldo esperado en caja</span>
+        <span>${{ saldo_esperado|floatformat:2 }}</span>
+    </li>
+</ul>
+
+<p class="resumen-nota">
+    <span class="material-symbols-outlined">credit_card</span>
+    <span>
+        Cobros con otros medios (tarjeta, transferencia...):
+        <strong>${{ ventas_otros_medios|floatformat:2 }}</strong>.
+        No se suman porque no están en el cajón.
+    </span>
+</p>
+
+<ul class="resumen-cuenta">
+    <li>
+        <span>Total cobrado</span>
+        <span><strong>${{ total_ventas|floatformat:2 }}</strong></span>
+    </li>
+    {% if caja.fecha_arqueo %}
+    <li>
+        <span>Saldo contado en el arqueo</span>
+        <span>${{ caja.saldo_contado|floatformat:2 }}</span>
+    </li>
+    <li>
+        <span>Diferencia del arqueo</span>
+        <span class="{% if caja.diferencia_caja < 0 %}diferencia-negativa{% else %}diferencia-positiva{% endif %}">
+            {% if caja.diferencia_caja > 0 %}+{% endif %}${{ caja.diferencia_caja|floatformat:2 }}
+            {% if caja.diferencia_caja < 0 %}(falta){% elif caja.diferencia_caja > 0 %}(sobra){% else %}(cuadra){% endif %}
+        </span>
+    </li>
+    {% else %}
+    <li>
+        <span>Arqueo</span>
+        <span class="text-gris">Sin arqueo registrado</span>
+    </li>
+    {% endif %}
+    {% if caja.estado_caja != 'abierto' %}
+    <li>
+        <span>Saldo final al cierre</span>
+        <span><strong>${{ caja.saldo_final|floatformat:2 }}</strong></span>
+    </li>
+    {% endif %}
+</ul>

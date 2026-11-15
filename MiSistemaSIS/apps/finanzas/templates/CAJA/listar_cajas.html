@@ -35,10 +35,31 @@
             </div>
         </div>
 
+        <div class="page-header-acciones">
+            {% if caja_abierta %}
+            <a href="{% url 'finanzas:detalle_caja' caja_abierta.pk %}" class="btn-primario">
+                <span class="material-symbols-outlined">lock_open</span> Ver caja abierta
+            </a>
+            {% else %}
+            <a href="{% url 'finanzas:abrir_caja' %}" class="btn-primario">
+                <span class="material-symbols-outlined">add</span> Abrir caja
+            </a>
+            {% endif %}
+        </div>
     </div>
 
-    {% include 'CAJA/_caja_actual.html' %}
-
+    <!-- Estado de caja -->
+    {% if caja_abierta %}
+        <div class="aviso-caja">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span><strong>Caja #{{ caja_abierta.pk }} abierta</strong> Los cobros y gastos nuevos se registran en ella. Al terminar el turno, hacé el arqueo y cerrala.</span>
+        </div>
+    {% else %}
+        <div class="aviso-caja cerrada">
+            <span class="material-symbols-outlined">lock</span>
+            <span><strong>Sin caja abierta</strong> Para cobrar comandas o registrar gastos, primero abrí una caja con el botón de arriba.</span>
+        </div>
+    {% endif %}
 
     <div class="listado-layout listado-layout--barra">
 
@@ -144,7 +165,7 @@
         <!-- Tabla -->
         <main class="tabla-panel">
             <div class="tabla-header">
-                <h3>Historial de cajas</h3>
+                <h3>Resultados</h3>
 
                 <div class="mostrar">
                     <label for="por-pagina">Mostrar</label>
@@ -160,13 +181,12 @@
             <table class="tabla">
                 <thead>
                     <tr>
-                        <th>Caja</th>
-                        <th>Abierta</th>
-                        <th>Cerrada</th>
-                        <th>Abrió</th>
-                        <th>Debería haber</th>
-                        <th>Se contó</th>
-                        <th>Resultado</th>
+                        <th>#</th>
+                        <th>Fecha de apertura</th>
+                        <th>Empleado responsable</th>
+                        <th>Saldo inicial</th>
+                        <th>Saldo esperado</th>
+                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -174,29 +194,24 @@
                 <tbody>
                     {% for caja in cajas %}
                     <tr>
-                        <td><strong>#{{ caja.id_caja }}</strong></td>
-                        <td class="celda-fecha">{{ caja.fecha_apertura|date:"d/m/y H:i" }}</td>
+                        <td><strong>{{ caja.id_caja }}</strong></td>
+
+                        <td>{{ caja.fecha_apertura|date:"d/m/Y H:i" }}</td>
+
+                        <td>
+                            {{ caja.empleado_apertura.nombre_empleado }}
+                            {{ caja.empleado_apertura.apellido_empleado }}
+                        </td>
+
+                        <td>${{ caja.saldo_inicial|floatformat:2 }}</td>
+
+                        <td>${{ caja.calcular_saldo_esperado|floatformat:2 }}</td>
+
                         <td>
                             {% if caja.estado_caja == 'abierto' %}
-                                <span class="badge badge-activo">En curso</span>
+                                <span class="badge badge-activo">Abierta</span>
                             {% else %}
-                                {{ caja.fecha_cierre|date:"d/m/y H:i" }}
-                            {% endif %}
-                        </td>
-                        <td>{{ caja.empleado_apertura.nombre_empleado }} {{ caja.empleado_apertura.apellido_empleado }}</td>
-                        <td>
-                            {% if caja.estado_caja == 'abierto' %}${{ caja.calcular_saldo_esperado|floatformat:2 }}{% else %}${{ caja.saldo_final|floatformat:2 }}{% endif %}
-                        </td>
-                        <td>{% if caja.estado_caja != 'abierto' and caja.fecha_arqueo %}${{ caja.saldo_contado|floatformat:2 }}{% else %}<span class="text-gris">—</span>{% endif %}</td>
-                        <td>
-                            {% if caja.estado_caja == 'abierto' or not caja.fecha_arqueo %}
-                                <span class="text-gris">—</span>
-                            {% elif caja.diferencia_caja == 0 %}
-                                <span class="resultado-caja cuadra">Cuadró</span>
-                            {% elif caja.diferencia_caja < 0 %}
-                                <span class="resultado-caja falta">Faltó ${{ caja.diferencia_caja|floatformat:2|cut:'-' }}</span>
-                            {% else %}
-                                <span class="resultado-caja sobra">Sobró ${{ caja.diferencia_caja|floatformat:2 }}</span>
+                                <span class="badge badge-inactivo">Cerrada</span>
                             {% endif %}
                         </td>
 
@@ -218,7 +233,7 @@
                                     <a
                                         href="{% url 'finanzas:arqueo_caja' caja.pk %}"
                                         class="btn-icon btn-editar"
-                                        title="Contar efectivo"
+                                        title="Arqueo de caja"
                                     >
                                         <span class="material-symbols-outlined">fact_check</span>
                                     </a>
@@ -239,7 +254,7 @@
 
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="sin-resultados">
+                        <td colspan="7" class="sin-resultados">
                             No hay cajas que coincidan con los filtros seleccionados.
                         </td>
                     </tr>
