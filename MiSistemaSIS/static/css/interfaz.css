@@ -11,24 +11,24 @@
  *     Las insignias de estado (Disponible, Ocupada, Pagado...) no cambian.
  *   - Foco visible al moverse con el teclado.
  *
- * Quedan afuera, como en el Documento Oficial: el inicio (.estadisticas-grid)
- * y los reportes (.tabs-reportes). También el ticket y el comprobante, que
- * tienen su propio diseño de impresión.
+ * Quedan afuera los reportes (.tabs-reportes), que siguen como en el
+ * Documento Oficial, y el ticket y el comprobante, que tienen su propio
+ * diseño de impresión.
  */
 
 /* ---------- Tipografía ---------- */
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid, .comprobante, .ticket))
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket))
   :not(.material-symbols-outlined, h1, h1 *) {
   font-family: var(--fuente-ui) !important;
 }
 
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid, .comprobante, .ticket)) h1 {
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) h1 {
   font-family: var(--fuente-titulos);
   letter-spacing: 0.01em;
 }
 
 /* ---------- Sin mayúsculas forzadas ---------- */
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid, .comprobante, .ticket))
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket))
   :is(label, legend, button, a, th, td, span, p, small, strong, li, div, h2, h3, h4, h5, h6)
   :not([class*="badge"], [class*="estado"]) {
   text-transform: none !important;

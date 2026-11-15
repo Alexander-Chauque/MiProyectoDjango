@@ -8,8 +8,8 @@
  * Así el texto común se engrosa y las negritas se siguen distinguiendo.
  *
  * Se carga desde base.html, login y recuperar contraseña. Los reportes del
- * Documento Oficial y la pantalla de inicio no lo cargan (block fuente_gruesa
- * vacío), para que sigan iguales a las capturas del documento.
+ * Documento Oficial no lo cargan (block fuente_gruesa vacío), para que sigan
+ * iguales a las capturas del documento.
  */
 @font-face {
     font-family: 'Segoe UI';

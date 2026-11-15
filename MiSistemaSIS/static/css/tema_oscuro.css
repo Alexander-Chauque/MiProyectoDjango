@@ -1046,14 +1046,6 @@
   color: #A8A8A8;
 }
 
-[data-tema="oscuro"] .home-header .titulo {
-  color: #E8E8E8;
-}
-
-[data-tema="oscuro"] .home-header .subtitulo {
-  color: #A8A8A8;
-}
-
 [data-tema="oscuro"] .fecha-hora {
   background-color: #2A2A2A;
 }
@@ -1683,8 +1675,4 @@
 [data-tema="oscuro"] .buscador-ingredientes input {
   background-color: transparent !important;
 }
-}
-
-[data-tema="oscuro"] .estadisticas-grid .stat-card {
-  background: color-mix(in srgb, var(--c) 12%, #2A2A2A);
 }

@@ -1,189 +1,228 @@
 {% extends 'base.html' %}
 {% load static %}
-{# Igual que en el Documento Oficial: sin el texto más grueso #}
-{% block fuente_gruesa %}{% endblock %}
+{# Inicio: panel con la información del día. Cada bloque se muestra según los permisos del cargo (ver core/views.py) #}
 {% block extra_css %}
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="home-container home-container-banner">
-  <div class="home-header home-banner">
-        <div>
-            <span class="banner-etiqueta">Peña folclórica · Restaurante · Salta</span>
-            <h1 class="titulo">
-                <span class="material-symbols-outlined" style="color: #F5A623;">waving_hand</span>
-                ¡Bienvenido, {{ user.empleado.nombre_empleado|default:user.username }}!
-            </h1>
-            <p class="banner-frase">Tradición, música y gastronomía del norte argentino</p>
-            <p class="subtitulo">
-                <span class="material-symbols-outlined">info</span>
-                Aquí puedes gestionar todas las operaciones del restaurante.
-            </p>
-        </div>
-        <div class="fecha-hora">
-            <span class="fecha">
-                <span class="material-symbols-outlined">calendar_today</span>
-                {% now "l, d \d\e F \d\e Y" %}
-            </span>
-            <span class="hora">
-                <span class="material-symbols-outlined">schedule</span>
-                {% now "H:i" %}
-            </span>
-        </div>
+<div class="inicio">
+
+  {# Saludo con la foto del local #}
+  <header class="inicio-banner">
+    <div class="inicio-banner-texto">
+      <span class="inicio-banner-etiqueta">Peña folclórica · Restaurante · Salta</span>
+      <h1>¡Hola, {{ user.empleado.nombre_empleado|default:user.username }}!</h1>
+      <p>Así está el restaurante en este momento.</p>
     </div>
-</div>
-
-<!-- Estadisticas -->
-{% if user.empleado.cargo.nivel_acceso >= 4 %}
-    <div class="estadisticas-grid">
-        <!-- Tarjeta 1: Productos -->
-        <div class="stat-card color-verde">
-            <div class="stat-icono">
-                <span class="material-symbols-outlined">inventory_2</span>
-            </div>
-            <div class="stat-info">
-                <h3>{{ total_productos }}</h3>
-                <p>Productos en inventario</p>
-            </div>
-          </div>
-
-        <!-- Tarjeta 2: Mesas -->
-        <a href="{% url 'ventas:listar_mesa' %}" class="stat-card color-naranja">
-            <div class="stat-icono">
-                <span class="material-symbols-outlined">table_restaurant</span>
-            </div>
-            <div class="stat-info">
-                <h3>{{ mesas_ocupadas }} / {{ mesas_totales }}</h3>
-                <p>Mesas ocupadas</p>
-                <div class="progress-bar">
-                    <div class="progress" data-width="{{ porcentaje_mesas }}"></div>
-                </div>
-                <span class="stat-subtexto">{{ porcentaje_mesas }}%</span>
-            </div>
-        </a>
-
-        <!-- Tarjeta 3: Comandas -->
-        <a href="{% url 'ventas:comanda_listar' %}" class="stat-card color-rojo">
-            <div class="stat-icono">
-                <span class="material-symbols-outlined">receipt_long</span>
-            </div>
-            <div class="stat-info">
-                <h3>{{ comandas_pendientes }}</h3>
-                <p>Comandas pendientes</p>
-                <span class="stat-subtexto">{{ comandas_en_preparacion }} en preparación</span>
-            </div>
-        </a>
+    <div class="inicio-banner-fecha">
+      <span class="material-symbols-outlined" aria-hidden="true">calendar_today</span>
+      <span>{% now "l j \d\e F" %} · {% now "H:i" %}</span>
     </div>
+  </header>
+
+  {# Indicadores #}
+  {% if ver_productos or mesas or comandas or caja %}
+  <section class="inicio-indicadores" aria-label="Indicadores del día">
+    {% if ver_productos %}
+    <a href="{% url 'inventario:inventario_home' %}" class="inicio-indicador">
+      <span class="inicio-indicador-icono material-symbols-outlined" aria-hidden="true">inventory_2</span>
+      <span class="inicio-indicador-nombre">Productos en inventario</span>
+      <strong class="inicio-indicador-valor">{{ total_productos }}</strong>
+      <span class="inicio-indicador-detalle">Platos y bebidas disponibles</span>
+    </a>
     {% endif %}
 
+    {% if mesas %}
+    <a href="{% url 'ventas:listar_mesa' %}" class="inicio-indicador">
+      <span class="inicio-indicador-icono material-symbols-outlined" aria-hidden="true">table_restaurant</span>
+      <span class="inicio-indicador-nombre">Mesas ocupadas</span>
+      <strong class="inicio-indicador-valor">{{ mesas.ocupadas }} <small>de {{ mesas.total }}</small></strong>
+      <span class="inicio-indicador-detalle">{{ mesas.porcentaje }}% de ocupación</span>
+    </a>
+    {% endif %}
 
-    <!-- Modulos -->
-    <div class="seccion-header">
-        <h2 class="titulo-seccion">
-            <span class="material-symbols-outlined">apps</span>
-            Módulos del sistema
-        </h2>
-        <p class="subtitulo-seccion">Accede a las diferentes opciones de gestión</p>
-    </div>
+    {% if comandas %}
+    <a href="{% url 'ventas:comanda_listar' %}?estado=pendiente&amp;estado=en_preparacion" class="inicio-indicador">
+      <span class="inicio-indicador-icono material-symbols-outlined" aria-hidden="true">receipt_long</span>
+      <span class="inicio-indicador-nombre">Comandas pendientes</span>
+      <strong class="inicio-indicador-valor">{{ comandas.pendientes }}</strong>
+      <span class="inicio-indicador-detalle">{{ comandas.en_preparacion }} en preparación</span>
+    </a>
+    {% endif %}
 
-    <div class="modulos-grid">
-        
-        <!-- INVENTARIO -->
-        {% if user.empleado.cargo.nivel_acceso >= 2 %}
-            <a href="{% url 'inventario:inventario_home' %}" class="modulo-card color-verde">
-                <div class="modulo-icon">
-                    <span class="material-symbols-outlined">inventory</span>
-                </div>
-                <h3>Inventario</h3>
-                <p>Gestiona platos, ingredientes y bebidas</p>
-                <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
-            </a>
-        {% endif %}
-        
-        <!-- EMPLEADOS -->
-        {% if user.empleado.cargo.nivel_acceso >= 5 %}
-            <a href="{% url 'empleados:empleados_home' %}" class="modulo-card color-azul">
-                <div class="modulo-icon">
-                    <span class="material-symbols-outlined">badge</span>
-                </div>
-                <h3>Empleados</h3>
-                <p>Gestiona el personal del restaurante</p>
-                <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
-            </a>
-        {% endif %}
+    {% if caja %}
+    <a href="{% url 'finanzas:listar_ventas' %}" class="inicio-indicador">
+      <span class="inicio-indicador-icono material-symbols-outlined" aria-hidden="true">point_of_sale</span>
+      {% if caja.cobros_hoy %}
+        <span class="inicio-indicador-nombre">Ventas de hoy</span>
+        <strong class="inicio-indicador-valor">${{ caja.ventas_hoy|floatformat:0 }}</strong>
+        <span class="inicio-indicador-detalle">
+          {{ caja.cobros_hoy }} cobro{{ caja.cobros_hoy|pluralize }} ·
+          {% if caja.abierta %}caja abierta{% else %}caja cerrada{% endif %}
+        </span>
+      {% else %}
+        <span class="inicio-indicador-nombre">Caja</span>
+        <strong class="inicio-indicador-valor">{% if caja.abierta %}Abierta{% else %}Cerrada{% endif %}</strong>
+        <span class="inicio-indicador-detalle">
+          {% if caja.abierta %}Desde las {{ caja.abierta.fecha_apertura|date:"H:i" }} · sin ventas hoy{% else %}Sin ventas hoy{% endif %}
+        </span>
+      {% endif %}
+    </a>
+    {% endif %}
+  </section>
+  {% endif %}
 
-        <!-- MESAS -->
-        <a href="{% url 'ventas:listar_mesa' %}" class="modulo-card color-naranja">
-            <div class="modulo-icon">
-                <span class="material-symbols-outlined">table_restaurant</span>
-            </div>
-            <h3>Mesas</h3>
-            <p>Control de mesas y su estado</p>
-            <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
+  <div class="inicio-cuerpo{% if not comandas %} inicio-cuerpo--simple{% endif %}">
+
+    {# Comandas activas #}
+    {% if comandas %}
+    <section class="inicio-panel inicio-comandas" aria-labelledby="titulo-comandas">
+      <div class="inicio-panel-cabecera">
+        <div>
+          <h2 id="titulo-comandas">Comandas activas</h2>
+          <p>
+            {% if comandas.activas > comandas.recientes|length %}
+              Las {{ comandas.recientes|length }} más recientes de {{ comandas.activas }} sin cobrar
+            {% else %}
+              {{ comandas.activas }} sin cobrar
+            {% endif %}
+          </p>
+        </div>
+        <a href="{% url 'ventas:comanda_listar' %}" class="inicio-enlace">
+          Ver todas <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
         </a>
-        
-        <!-- COMANDAS -->
-        {% if user.empleado.cargo.nivel_acceso >= 2 %}
-            <a href="{% url 'ventas:comanda_listar' %}" class="modulo-card color-rojo">
-                <div class="modulo-icon">
-                    <span class="material-symbols-outlined">receipt_long</span>
-                </div>
-                <h3>Comandas</h3>
-                <p>Gestión de pedidos/comandas</p>
-                <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
-            </a>
-        {% endif %}
-        
-        <!-- FINANZAS -->
-        {% if user.empleado.cargo.nivel_acceso >= 4 %}
-            <a href="{% url 'finanzas:finanzas_home' %}" class="modulo-card color-violeta">
-                <div class="modulo-icon">
-                    <span class="material-symbols-outlined">point_of_sale</span>
-                </div>
-                <h3>Finanzas</h3>
-                <p>Gestion de finanzas</p>
-                <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
-            </a>
-        {% endif %}
+      </div>
 
-        <!-- REPORTES -->
-        {% if user.empleado.cargo.nivel_acceso >= 3 %}
-          <a href="{% url 'reportes:ventas' %}" class="modulo-card color-turquesa">
-              <div class="modulo-icon">
-                  <span class="material-symbols-outlined">bar_chart</span>
-              </div>
-              <h3>Reportes</h3>
-              <p>Estadísticas y análisis de ventas</p>
-              <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
+      {% if comandas.recientes %}
+      <div class="inicio-tabla-contenedor">
+        <table class="inicio-tabla">
+          <thead>
+            <tr>
+              <th scope="col">Mesa</th>
+              <th scope="col">Mozo</th>
+              <th scope="col">Hora</th>
+              <th scope="col" class="inicio-num">Total</th>
+              <th scope="col">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for comanda in comandas.recientes %}
+            <tr>
+              <td>
+                <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="inicio-mesa">
+                  Mesa {{ comanda.mesa.numero_mesa }}
+                </a>
+                <span class="inicio-secundario">{{ comanda.mesa.get_ubicacion_display }} · N.º {{ comanda.id_comanda }}</span>
+              </td>
+              <td>{{ comanda.empleado.nombre_empleado }} {{ comanda.empleado.apellido_empleado }}</td>
+              <td>{{ comanda.fecha_hora|date:"d/m H:i" }}</td>
+              <td class="inicio-num">${{ comanda.total_comanda|floatformat:0 }}</td>
+              <td>
+                <span class="inicio-estado inicio-estado--{{ comanda.estado_comanda }}">{{ comanda.get_estado_comanda_display }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="inicio-vacio">
+        <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>
+        <strong>No hay comandas activas</strong>
+        <p>Cuando se tome un pedido va a aparecer acá hasta que se cobre.</p>
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <div class="inicio-lateral">
+
+      {# Estado de mesas #}
+      {% if mesas %}
+      <section class="inicio-panel" aria-labelledby="titulo-mesas">
+        <div class="inicio-panel-cabecera">
+          <div>
+            <h2 id="titulo-mesas">Estado de mesas</h2>
+            <p>{{ mesas.ocupadas }} ocupada{{ mesas.ocupadas|pluralize }} · {{ mesas.disponibles }} disponible{{ mesas.disponibles|pluralize }}</p>
+          </div>
+          <a href="{% url 'ventas:listar_mesa' %}" class="inicio-enlace">
+            Ver mesas <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
           </a>
-        {% endif %}
+        </div>
 
-        <!-- AUDITORÍA -->
-        {% if user.empleado.cargo.nivel_acceso >= 3 %}
-            <a href="{% url 'auditoria:log_auditoria_listar' %}" class="modulo-card color-cafe">
-                <div class="modulo-icon">
-                    <span class="material-symbols-outlined">history</span>
-                </div>
-                <h3>Auditoría</h3>
-                <p>Historial de movimientos y cambios</p>
-                <span class="btn-ingresar">Ingresar <span class="material-symbols-outlined">arrow_forward</span></span>
-            </a>
+        {% if mesas.total %}
+        <ul class="inicio-zonas">
+          {% for zona in mesas.zonas %}
+          <li>
+            <div class="inicio-zona-titulo">
+              <strong>{{ zona.nombre }}</strong>
+              <span>
+                {% if zona.total %}{{ zona.ocupadas }} de {{ zona.total }} ocupadas{% else %}Sin mesas{% endif %}
+              </span>
+            </div>
+            <div class="inicio-barra" role="img"
+                 aria-label="{{ zona.nombre }}: {{ zona.ocupadas }} ocupadas y {{ zona.disponibles }} disponibles">
+              <div class="inicio-barra-relleno" style="width: {{ zona.porcentaje }}%"></div>
+            </div>
+            <div class="inicio-zona-detalle">
+              <span><i class="inicio-punto inicio-punto--ocupada"></i>{{ zona.ocupadas }} ocupada{{ zona.ocupadas|pluralize }}</span>
+              <span><i class="inicio-punto"></i>{{ zona.disponibles }} disponible{{ zona.disponibles|pluralize }}</span>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="inicio-vacio">
+          <span class="material-symbols-outlined" aria-hidden="true">table_restaurant</span>
+          <strong>Todavía no hay mesas cargadas</strong>
+        </div>
         {% endif %}
+      </section>
+      {% endif %}
 
-        
+      {# Avisos: notificaciones sin leer del cargo del usuario #}
+      <section class="inicio-panel" aria-labelledby="titulo-avisos">
+        <div class="inicio-panel-cabecera">
+          <div>
+            <h2 id="titulo-avisos">Avisos</h2>
+            <p>
+              {% if notificaciones_sin_leer %}
+                {{ notificaciones_sin_leer }} sin leer
+              {% else %}
+                Notificaciones sin leer
+              {% endif %}
+            </p>
+          </div>
+          <a href="{% url 'notificaciones:bandeja' %}" class="inicio-enlace">
+            Ver todos <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+
+        {% if avisos %}
+        <ul class="inicio-avisos">
+          {% for aviso in avisos %}
+          <li>
+            <span class="inicio-aviso-icono material-symbols-outlined" aria-hidden="true">
+              {% if aviso.tipo == 'COMANDA_DEMORADA' %}timer{% elif aviso.tipo == 'CAJA_ABIERTA' %}point_of_sale{% else %}trending_up{% endif %}
+            </span>
+            <div>
+              <strong>{{ aviso.get_tipo_display }}</strong>
+              <p>{{ aviso.mensaje|truncatechars:110 }}</p>
+              <span class="inicio-secundario">{{ aviso.fecha|date:"d/m H:i" }}</span>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="inicio-vacio">
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+          <strong>No hay avisos sin leer</strong>
+        </div>
+        {% endif %}
+      </section>
+
     </div>
+  </div>
 </div>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function(){
-    document.querySelectorAll('.progress').forEach(function(bar){
-      var width=bar.dataset.width;
-      setTimeout(function(){
-        bar.style.width = width + '%'
-      }, 100);
-    });
-  });
-</script>
 {% endblock %}
