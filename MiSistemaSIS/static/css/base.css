@@ -1817,12 +1817,18 @@ button {
 
 /* ==========================================
    FILTROS EN BARRA (arriba de la tabla)
-   Se activa con .listado-layout--barra; los desplegables los arma
-   static/js/filtros_barra.js. Sin esa clase, los filtros siguen a la izquierda.
+   Lo usan todos los listados (.listado-layout--barra); los desplegables
+   los arma static/js/filtros_barra.js.
    ========================================== */
 .listado-layout--barra {
   grid-template-columns: minmax(0, 1fr);
   gap: var(--espacio-4);
+}
+
+/* Cuando el panel es un <aside>, su formulario no cuenta como caja:
+   los campos pasan a ser los elementos de la barra */
+.listado-layout--barra .filtros-panel > form {
+  display: contents;
 }
 
 .listado-layout--barra .filtros-panel {
@@ -1870,6 +1876,21 @@ button {
   border-width: 1px;
   border-color: var(--borde);
   border-radius: var(--radio-sm);
+  font-size: 14px;
+}
+
+/* Listas de una sola opción (Tabla, Acción, Usuario...): quedan como están, en la barra */
+.listado-layout--barra .filtro-select {
+  width: auto;
+  max-width: 200px;
+  height: 38px;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
   font-size: 14px;
 }
 
@@ -1948,7 +1969,8 @@ button {
 }
 
 /* Las fechas necesitan lugar para "Desde" y "Hasta" y su calendario */
-.filtro-desplegable-lista.filtro-fecha {
+.filtro-desplegable-lista.filtro-fecha,
+.filtro-desplegable-lista.filtro-fechas {
   min-width: 260px;
   overflow: visible;
 }
@@ -1996,8 +2018,14 @@ button {
   }
 
   /* Plegada: solo se ve el título */
-  .listado-layout--barra .filtros-panel:not(.filtros-abiertos) > :not(.filtros-header) {
+  .listado-layout--barra form.filtros-panel:not(.filtros-abiertos) > :not(.filtros-header),
+  .listado-layout--barra .filtros-panel:not(.filtros-abiertos) > form > :not(.filtros-header) {
     display: none;
+  }
+
+  .listado-layout--barra .filtro-select {
+    width: 100%;
+    max-width: none;
   }
 
   .listado-layout--barra .filtro-grupo:has(.input-buscar) {

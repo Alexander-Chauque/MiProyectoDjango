@@ -8,7 +8,8 @@
  * Funciona en todos los listados que tienen .filtros-panel y .tabla-panel.
  */
 (function () {
-  const form = document.querySelector('form.filtros-panel');
+  // El panel es el formulario mismo o un <aside> que lo contiene
+  const form = document.querySelector('form.filtros-panel, .filtros-panel form');
   if (!form || !document.querySelector('.tabla-panel')) return;
 
   // Parámetros que no son filtros

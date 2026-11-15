@@ -44,7 +44,7 @@
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     <!-- FILTROS -->
     <form method="GET" class="filtros-panel">
       <div class="filtros-header">
@@ -61,19 +61,23 @@
       </div>
 
       <div class="filtro-grupo">
-        <label>Desde</label>
-        <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="filtro-select" max="{{ hoy_iso}}">
-      </div>
-      
-      <div class="filtro-grupo">
-        <label>Hasta</label>
-        <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="filtro-select" max="{{ hoy_iso }}">
+        <label>Rango de fecha</label>
+        <div class="filtro-fecha">
+          <div class="input-buscar-fecha">
+            <label>Desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}" max="{{ hoy_iso }}">
+          </div>
+          <div class="input-buscar-fecha">
+            <label>Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" max="{{ hoy_iso }}">
+          </div>
+        </div>
       </div>
 
       <div class="filtro-grupo">
         <label>Tipo de Turno</label>
         <select name="tipo_asistencia" class="filtro-select">
-          <option value="">Todos</option>
+          <option value="">Todos los turnos</option>
           {% for t in tipos %}
             <option value="{{ t.id_tipo_asistencia }}" {% if t.id_tipo_asistencia|stringformat:"s" == tipo_seleccionado %}selected{% endif %}>
               {{ t.nombre_tipo_asis }}

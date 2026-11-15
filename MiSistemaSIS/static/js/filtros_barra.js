@@ -1,6 +1,6 @@
 /*
- * Filtros en barra: en los listados marcados con .listado-layout--barra, el
- * formulario de filtros va arriba de la tabla en una sola fila.
+ * Filtros en barra: en los listados (.listado-layout--barra), el panel de
+ * filtros va arriba de la tabla en una sola fila.
  *
  * Este archivo convierte cada grupo de casillas o de fechas en un desplegable
  * (un botón que abre su lista), sin cambiar los campos del formulario: se
@@ -8,7 +8,8 @@
  * del título "Filtros".
  */
 (function () {
-  const form = document.querySelector('.listado-layout--barra form.filtros-panel');
+  // El panel es el formulario mismo o un <aside> que lo contiene
+  const form = document.querySelector('.listado-layout--barra .filtros-panel');
   if (!form) return;
 
   const desplegables = [];
@@ -34,7 +35,7 @@
 
   function convertir(grupo, indice) {
     const titulo = grupo.querySelector(':scope > label');
-    const contenido = grupo.querySelector(':scope > .checkboxes, :scope > .filtro-fecha');
+    const contenido = grupo.querySelector(':scope > .checkboxes, :scope > .filtro-fecha, :scope > .filtro-fechas');
     if (!titulo || !contenido) return;
 
     grupo.classList.add('filtro-desplegable');
