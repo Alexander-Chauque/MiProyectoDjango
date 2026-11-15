@@ -93,6 +93,20 @@
         {% endif %}
       </div>
 
+      <!-- Acceso al sistema -->
+      <div class="grupo-campo">
+        <label class="casilla-cargo">
+          {{ form.acceso_sistema }}
+          <span>
+            <strong>Puede ingresar al sistema</strong>
+            <small>Marcalo solo para los cargos que usan el sistema (Mozo y Administrador). El resto del personal queda registrado, pero no puede iniciar sesión.</small>
+          </span>
+        </label>
+        {% if form.acceso_sistema.errors %}
+        <span class="error-mensaje">{{ form.acceso_sistema.errors.0 }}</span>
+        {% endif %}
+      </div>
+
       <div class="acciones-formulario">
         <a href="{% url 'empleados:listar_cargo' %}" class="btn-secundario">
           <span class="material-symbols-outlined">close</span> Cancelar

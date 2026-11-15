@@ -7,8 +7,16 @@ from .models import Empleado, Cargo, TipoPermiso, PermisoXCargo, Asistencia
 import re
 class EmpleadoAltaForm(forms.ModelForm):
 
-    contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Ingrese la contraseña', 'class': 'form-control'}), label='Contraseña', required=True, min_length=8)
-    confirmar_contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirme la contraseña', 'class': 'form-control'}), label='Confirmar Contraseña', required=True, min_length=8)
+    contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Ingrese la contraseña', 'class': 'form-control'}), label='Contraseña', required=False, min_length=8)
+    confirmar_contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirme la contraseña', 'class': 'form-control'}), label='Confirmar Contraseña', required=False, min_length=8)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # La plantilla muestra los datos de acceso solo para estos cargos
+        con_acceso = Cargo.objects.filter(acceso_sistema=True).values_list('pk', flat=True)
+        self.fields['cargo'].widget.attrs['data-cargos-con-acceso'] = ','.join(str(pk) for pk in con_acceso)
+        self.fields['cargo'].required = True
+        self.fields['cargo'].error_messages['required'] = 'Elegí el cargo del empleado.'
 
     class Meta:
         model = Empleado
@@ -51,13 +59,28 @@ class EmpleadoAltaForm(forms.ModelForm):
         return apellido
 
     def clean_contrasena(self):
-        return validar_clave_segura(self.cleaned_data['contrasena'])
+        clave = self.cleaned_data['contrasena']
+        return validar_clave_segura(clave) if clave else clave
 
     # Django ejecuta este método solo si se llama clean: con otro nombre, nunca se comparaban
     def clean(self):
         cleaned_data = super().clean()
         contrasena = cleaned_data.get("contrasena")
         confirmar_contrasena = cleaned_data.get("confirmar_contrasena")
+        cargo = cleaned_data.get("cargo")
+
+        if cargo and cargo.acceso_sistema:
+            # Va a ingresar al sistema: necesita contraseña
+            if not contrasena and 'contrasena' not in self.errors:
+                self.add_error('contrasena', f'El cargo {cargo.nombre_cargo} ingresa al sistema: la contraseña es obligatoria.')
+            if not confirmar_contrasena and 'confirmar_contrasena' not in self.errors:
+                self.add_error('confirmar_contrasena', 'Confirmá la contraseña.')
+        elif cargo:
+            # Sin acceso al sistema: la contraseña no se usa
+            cleaned_data['contrasena'] = cleaned_data['confirmar_contrasena'] = ''
+            self.errors.pop('contrasena', None)
+            self.errors.pop('confirmar_contrasena', None)
+            return cleaned_data
 
         if contrasena and confirmar_contrasena and contrasena != confirmar_contrasena:
             self.add_error('confirmar_contrasena', "Las contraseñas no coinciden.")
@@ -67,7 +90,9 @@ class EmpleadoAltaForm(forms.ModelForm):
     def save(self, commit=True):
         empleado = super().save(commit=False) #no guardar aún el empleado
         empleado.user_auto = empleado.generate_user_auto()
-        user = User.objects.create_user(username=empleado.user_auto, email=empleado.correo, password=self.cleaned_data['contrasena'])
+        # Sin contraseña (cargo sin acceso) la cuenta queda creada pero no permite ingresar.
+        # Si después pasa a un cargo con acceso, se le asigna con "Restablecer contraseña".
+        user = User.objects.create_user(username=empleado.user_auto, email=empleado.correo, password=self.cleaned_data.get('contrasena') or None)
 
         user.first_name = empleado.nombre_empleado
         user.last_name = empleado.apellido_empleado
@@ -194,8 +219,9 @@ class RestablecerContrasenaForm(forms.Form):
 class CargoForm(forms.ModelForm):
     class Meta:
         model = Cargo
-        fields = ['nombre_cargo', 'descripcion_cargo', 'nivel_acceso', 'sueldo_cargo']
+        fields = ['nombre_cargo', 'descripcion_cargo', 'nivel_acceso', 'sueldo_cargo', 'acceso_sistema']
         widgets = {
+            'acceso_sistema': forms.CheckboxInput(),
             'nombre_cargo': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion_cargo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'nivel_acceso': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
@@ -229,6 +255,9 @@ class CargoForm(forms.ModelForm):
             otro_admin = Empleado.objects.filter(estado=True, cargo__nivel_acceso__gte=5).exclude(cargo=self.instance)
             if not otro_admin.exists():
                 self.add_error('nivel_acceso', 'Debe quedar al menos un empleado activo con nivel de administrador.')
+        # El administrador siempre puede ingresar: si no, nadie podría habilitar a los demás
+        if nivel and int(nivel) >= 5 and not cleaned_data.get('acceso_sistema'):
+            self.add_error('acceso_sistema', 'El nivel 5 (Administrador) siempre tiene acceso al sistema.')
         return cleaned_data
 
     NIVELES_ACCESO = [

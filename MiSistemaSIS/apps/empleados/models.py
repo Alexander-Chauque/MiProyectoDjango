@@ -11,13 +11,23 @@ class Cargo(models.Model):
     nombre_cargo = models.CharField(max_length=100, unique=True)
     descripcion_cargo = models.TextField(blank=True)
     nivel_acceso = models.BigIntegerField(default=1)
-    sueldo_cargo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00) 
+    sueldo_cargo = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    # Solo algunos cargos usan el sistema (Mozo y Administrador). El resto del
+    # personal (cocina, barra, limpieza...) se registra, pero no puede ingresar.
+    acceso_sistema = models.BooleanField(default=False, verbose_name="Puede ingresar al sistema")
+
     def __str__(self):
         return self.nombre_cargo
 
     def save(self, *args, **kwargs):
         if self.nombre_cargo:
             self.nombre_cargo=self.nombre_cargo.title()
+        # El administrador (nivel 5) siempre ingresa: si no, nadie podría habilitar a los demás
+        if self.nivel_acceso is not None and int(self.nivel_acceso) >= 5 and not self.acceso_sistema:
+            self.acceso_sistema = True
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None and "acceso_sistema" not in update_fields:
+                kwargs["update_fields"] = [*update_fields, "acceso_sistema"]
         super().save(*args, **kwargs)
 
 #Empleado
@@ -139,6 +149,11 @@ class Empleado(models.Model):
 
     def get_full_name(self):
         return f"{self.nombre_empleado} {self.apellido_empleado}"
+
+    @property
+    def puede_ingresar(self):
+        """Activo y con un cargo habilitado para usar el sistema."""
+        return bool(self.estado and self.cargo and self.cargo.acceso_sistema)
     
 #Tipo permiso
 class TipoPermiso(models.Model):

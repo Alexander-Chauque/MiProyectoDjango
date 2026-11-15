@@ -5,6 +5,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from empleados.decorators import motivo_sin_acceso
 from empleados.models import Empleado
 
 MENSAJE_DATOS_INCORRECTOS = "Usuario, correo o contraseña incorrectos."
@@ -32,6 +33,10 @@ class LoginSerializer(TokenObtainPairSerializer):
         empleado = Empleado.objects.filter(user=self.user, estado=True).first()
         if not empleado:
             raise AuthenticationFailed(MENSAJE_DATOS_INCORRECTOS)
+        # Solo los cargos habilitados (Mozo y Administrador) usan el sistema
+        motivo = motivo_sin_acceso(self.user)
+        if motivo:
+            raise AuthenticationFailed({"detail": motivo, "codigo": "cargo_sin_acceso"})
         # No entrega tokens hasta que cambie la contraseña temporal en /api/token/cambiar-clave/.
         # "codigo" le indica a la web que muestre el formulario de cambio.
         if empleado.debe_cambiar_contrasena:

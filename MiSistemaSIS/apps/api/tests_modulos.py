@@ -28,7 +28,8 @@ class BaseApi(TestCase):
 
     def _empleado(self, nombre, nivel=1, permisos=()):
         user = User.objects.create_user(f"{nombre}.prueba", password=CONTRASENA)
-        cargo = Cargo.objects.create(nombre_cargo=f"Cargo {nombre}", nivel_acceso=nivel)
+        # Estas pruebas revisan los permisos por módulo: el cargo puede ingresar al sistema
+        cargo = Cargo.objects.create(nombre_cargo=f"Cargo {nombre}", nivel_acceso=nivel, acceso_sistema=True)
         for modulo, accion in permisos:
             tipo, _ = TipoPermiso.objects.get_or_create(modulo=modulo, accion=accion)
             PermisoXCargo.objects.create(cargo=cargo, tipo_permiso=tipo)

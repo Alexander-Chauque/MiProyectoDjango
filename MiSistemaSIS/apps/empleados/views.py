@@ -27,7 +27,14 @@ from .forms import (
 )
 from django.contrib.auth import authenticate, login
 from django.core.cache import cache
-from empleados.decorators import NIVEL_ADMINISTRADOR, nivel_de, permiso_requerido, puede_gestionar, tiene_permiso
+from empleados.decorators import (
+    NIVEL_ADMINISTRADOR,
+    motivo_sin_acceso,
+    nivel_de,
+    permiso_requerido,
+    puede_gestionar,
+    tiene_permiso,
+)
 from empleados.servicios import asignar_permisos_a_cargo, es_administrador
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -42,6 +49,11 @@ from core.mensajes import error_campo
 
 _SIN_NIVEL_EMPLEADO = "No podés gestionar a un empleado con un nivel de acceso igual o superior al tuyo."
 _SIN_NIVEL_CARGO = "No podés gestionar un cargo con un nivel de acceso igual o superior al tuyo."
+
+
+def _describir_cargo(cargo):
+    acceso = "Sí" if cargo.acceso_sistema else "No"
+    return f"Nombre: {cargo.nombre_cargo}, Nivel: {cargo.nivel_acceso}, Acceso al sistema: {acceso}"
 
 
 def _nivel_empleado(empleado):
@@ -401,6 +413,11 @@ def login_view(request):
             user = authenticate(request, username=username_real, password=password)
             if user is not None:
                 cache.delete(_clave_intentos(request, identificador))
+                # La clave es correcta, pero solo algunos cargos pueden usar el sistema
+                motivo = motivo_sin_acceso(user)
+                if motivo:
+                    messages.error(request, motivo)
+                    return render(request, "login.html", {"identificador": identificador})
                 login(request, user)
                 if not request.POST.get("remember"):
                     # Sin "Recordar sesión", la sesión termina al cerrar el navegador
@@ -645,7 +662,7 @@ def cargo_crear(request):
                 accion="CREAR",
                 registro_id=cargo.id_cargo,
                 valores_anteriores="",
-                valores_actuales=f"Cargo creado: {cargo.nombre_cargo}",
+                valores_actuales=f"Cargo creado: {_describir_cargo(cargo)}",
                 empleado=request.user.empleado,
             )
 
@@ -670,14 +687,15 @@ def cargo_editar(request, pk):
         messages.error(request, _SIN_NIVEL_CARGO)
         return redirect("empleados:listar_cargo")
     if request.method == "POST":
+        # Antes de validar: al validar, el formulario ya carga los datos nuevos en el cargo
+        valores_viejos = _describir_cargo(cargo)
         form = CargoForm(request.POST, instance=cargo)
         if form.is_valid():
             if not puede_gestionar(request.user, int(form.cleaned_data["nivel_acceso"])):
                 messages.error(request, _SIN_NIVEL_CARGO)
                 return redirect("empleados:editar_cargo", pk=pk)
-            valores_viejos = f"Nombre: {cargo.nombre_cargo}"
             form.save()
-            valores_nuevos = f"Nombre: {cargo.nombre_cargo}"
+            valores_nuevos = _describir_cargo(cargo)
 
             LogAuditoria.objects.create(
                 tabla="Cargo",
