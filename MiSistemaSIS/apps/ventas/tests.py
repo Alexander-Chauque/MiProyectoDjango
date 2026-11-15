@@ -292,7 +292,7 @@ class TomarPedidoTests(TestCase):
         respuesta = self.client.get(reverse("ventas:comanda_crear"))
 
         self.assertContains(respuesta, "plano-mesa--demorada")
-        self.assertContains(respuesta, "45'</span>")
+        self.assertContains(respuesta, "45&#x27;</span>")
         # La comanda es del usuario actual: aparece en "Tus mesas"
         self.assertContains(respuesta, 'data-abre-mesa="1"')
 
@@ -305,3 +305,29 @@ class TomarPedidoTests(TestCase):
         self.assertEqual(comanda.detalles.get().observacion, "sin sal")
         ticket = self.client.get(reverse("ventas:comanda_ticket", args=[comanda.pk]))
         self.assertContains(ticket, "sin sal")
+
+    def test_cada_estacion_ve_lo_suyo_y_lo_marca_listo(self):
+        tipo = TipoBebida.objects.create(nombre_tipo_bebida="Gaseosa")
+        gaseosa = Bebida.objects.create(nombre_bebida="Cola", id_tipo_bebida=tipo, precio_bebida=50)
+        comanda = self._mesa_con_pedido()
+        DetalleComanda.objects.create(comanda=comanda, plato=self.locro, cant_plato=2, observacion="sin sal")
+        DetalleComanda.objects.create(comanda=comanda, bebida=gaseosa, cant_bebida=1)
+
+        cocina = self.client.get(reverse("ventas:estacion", args=["cocina"]))
+        self.assertContains(cocina, "Locro")
+        self.assertContains(cocina, "sin sal")
+        self.assertNotContains(cocina, "Cola")
+        self.assertContains(self.client.get(reverse("ventas:estacion", args=["bar"])), "Cola")
+        self.assertEqual(self.client.get(reverse("ventas:estacion", args=["sotano"])).status_code, 404)
+
+        self.client.post(reverse("ventas:estacion_listo", args=["cocina", comanda.pk]))
+        comanda.refresh_from_db()
+        self.assertEqual(comanda.estado_comanda, "en_preparacion")
+        self.assertNotContains(self.client.get(reverse("ventas:estacion", args=["cocina"])), "Locro")
+        # Falta el bar: la mesa todavía no está lista
+        self.assertNotContains(self.client.get(reverse("ventas:comanda_crear")), "plano-mesa--lista")
+
+        self.client.post(reverse("ventas:estacion_listo", args=["bar", comanda.pk]))
+        plano = self.client.get(reverse("ventas:comanda_crear"))
+        self.assertContains(plano, "plano-mesa--lista")
+        self.assertContains(plano, 'data-listo="1"')

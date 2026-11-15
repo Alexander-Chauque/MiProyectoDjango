@@ -442,10 +442,19 @@ def comanda_editar(request, pk):
                     comanda_guardada = form.save(commit=False)
                     comanda_guardada.mesa = form.cleaned_data["mesa"]
                     comanda_guardada.save()
+                    # Lo que la estación ya marcó como listo se conserva si su cantidad no aumentó
+                    ya_listos = {
+                        (d.plato_id, d.bebida_id): (d.listo, d.cant_plato, d.cant_bebida)
+                        for d in DetalleComanda.objects.filter(comanda_id=pk, listo__isnull=False)
+                    }
                     formset.save()
                     comanda_guardada.detalles.all().delete()
                     formset.instance = comanda_guardada
                     formset.save()
+                    for d in comanda_guardada.detalles.all():
+                        previo = ya_listos.get((d.plato_id, d.bebida_id))
+                        if previo and d.cant_plato <= previo[1] and d.cant_bebida <= previo[2]:
+                            DetalleComanda.objects.filter(pk=d.pk).update(listo=previo[0])
                     comanda_guardada.calcular_total()
                     if comanda_guardada.total_comanda < comanda_guardada.total_pagado:
                         raise ValueError(
@@ -898,6 +907,15 @@ def _registrar_pago(request):
             f"#{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}.{texto_vuelto}"
         )
 
+def texto_espera(minutos):
+    """Espera corta para el plano: 25', 3h o 2d."""
+    if minutos < 60:
+        return f"{minutos}'"
+    if minutos < 60 * 24:
+        return f"{minutos // 60}h"
+    return f"{minutos // (60 * 24)}d"
+
+
 # PLANO DEL SALÓN Y MOZOS (para tomar el pedido)
 def _plano_de_mesas(request, mesa_elegida_id=None):
     """El local con cada mesa en su lugar y su estado (ver ventas/plano_salon.py)."""
@@ -905,7 +923,7 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
 
     mesas = {mesa.numero_mesa: mesa for mesa in Mesa.objects.all()}
     # La comanda abierta más reciente de cada mesa (una sola consulta)
-    from django.db.models import Sum
+    from django.db.models import Count, Subquery, Sum
     from django.db.models.functions import Coalesce
 
     # Mismo límite que la alerta de "Comanda demorada" (configurable, 30 minutos por defecto)
@@ -918,13 +936,23 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
     for comanda in (
         Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS)
         .select_related("empleado")
+        .annotate(con_productos=Exists(DetalleComanda.objects.filter(comanda=OuterRef("pk"))))
+        .annotate(sin_preparar=Coalesce(Subquery(
+            DetalleComanda.objects.filter(comanda=OuterRef("pk"), listo__isnull=True)
+            .order_by().values("comanda").annotate(n=Count("pk")).values("n")[:1]
+        ), 0))
         .annotate(pagado=Coalesce(Sum("pagos__monto"), Decimal("0")))
         .order_by("fecha_hora")
     ):
         comanda.saldo = max(comanda.total_comanda - comanda.pagado, Decimal("0"))
         comanda.espera = max(int((ahora - comanda.fecha_hora).total_seconds() // 60), 0)
+        comanda.espera_texto = texto_espera(comanda.espera)
+        # Todo lo pedido está preparado y falta llevarlo a la mesa
+        comanda.listo_para_llevar = (
+            comanda.con_productos and comanda.sin_preparar == 0 and comanda.estado_comanda != "entregado"
+        )
         # Solo se demora lo que todavía no se entregó
-        comanda.demorada = (
+        comanda.demorada = not comanda.listo_para_llevar and (
             comanda.estado_comanda in ("pendiente", "en_preparacion")
             and comanda.espera >= limite_minutos
         )
@@ -1162,3 +1190,101 @@ def _productos_por_pedidos():
         for posicion, producto in enumerate(lista):
             producto.destacado = posicion < MAS_PEDIDOS_DESTACADOS and producto.pedidos > 0
     return {"platos": platos, "bebidas": bebidas}
+
+
+# PANTALLA POR ESTACIÓN (Cocina, Bar, Parrilla)
+def _estaciones_de(detalle):
+    """A qué estaciones va una línea: la misma regla que reparte los tickets."""
+    estaciones = []
+    if detalle.tiene_plato:
+        categoria = (detalle.categoria_del_plato or "").strip().lower()
+        estaciones.append("parrilla" if categoria == "parrilla" else "cocina")
+    if detalle.tiene_bebida:
+        estaciones.append("bar")
+    return estaciones
+
+
+def _estacion_o_404(clave):
+    from django.http import Http404
+
+    estacion = next((e for e in _ESTACIONES_TICKET if e["clave"] == clave), None)
+    if estacion is None:
+        raise Http404("Estación inexistente")
+    return estacion
+
+
+@login_required
+@permiso_requerido("comandas", "leer")
+def estacion(request, clave):
+    """Lo que tiene que preparar una estación: comandas abiertas con líneas sin terminar, la más vieja primero."""
+    from django.db.models import Prefetch
+    from notificaciones.reglas import leer_config
+
+    actual = _estacion_o_404(clave)
+    limite = int(leer_config("minutos_comanda_demorada", 30))
+    ahora = timezone.now()
+    pendientes = DetalleComanda.objects.filter(listo__isnull=True).select_related("plato__categoria", "bebida")
+    comandas = (
+        Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS, detalles__listo__isnull=True)
+        .distinct()
+        .select_related("mesa", "empleado")
+        .prefetch_related(Prefetch("detalles", queryset=pendientes, to_attr="sin_terminar"))
+        .order_by("fecha_hora")
+    )
+    pedidos = []
+    for comanda in comandas:
+        lineas = [d for d in comanda.sin_terminar if clave in _estaciones_de(d)]
+        if not lineas:
+            continue
+        espera = max(int((ahora - comanda.fecha_hora).total_seconds() // 60), 0)
+        productos = []
+        for d in lineas:
+            if clave == "bar":
+                productos.append({"nombre": d.nombre_de_la_bebida, "cantidad": d.cant_bebida, "nota": d.observacion})
+            else:
+                productos.append({"nombre": d.nombre_del_plato, "cantidad": d.cant_plato, "nota": d.observacion})
+        pedidos.append({
+            "comanda": comanda,
+            "productos": productos,
+            "espera": espera,
+            "espera_texto": texto_espera(espera),
+            "demorada": espera >= limite,
+        })
+    return render(request, "comandas/estacion.html", {
+        "estacion": actual,
+        "estaciones": _ESTACIONES_TICKET,
+        "pedidos": pedidos,
+        "limite_minutos": limite,
+        "puede_marcar": tiene_permiso(request.user, "comandas", "modificar"),
+    })
+
+
+@login_required
+@permiso_requerido("comandas", "modificar")
+def estacion_listo(request, clave, pk):
+    """La estación terminó su parte de una comanda: se marcan sus líneas como listas."""
+    _estacion_o_404(clave)
+    if request.method != "POST":
+        return redirect("ventas:estacion", clave=clave)
+    comanda = get_object_or_404(Comanda, pk=pk)
+    lineas = [
+        d for d in comanda.detalles.filter(listo__isnull=True).select_related("plato__categoria", "bebida")
+        if clave in _estaciones_de(d)
+    ]
+    if lineas:
+        ahora = timezone.now()
+        with transaction.atomic():
+            DetalleComanda.objects.filter(pk__in=[d.pk for d in lineas]).update(listo=ahora)
+            if comanda.estado_comanda == "pendiente":
+                comanda.estado_comanda = "en_preparacion"
+                comanda.save(update_fields=["estado_comanda"])
+            LogAuditoria.objects.create(
+                tabla="Comanda",
+                accion="MODIFICAR",
+                registro_id=comanda.id_comanda,
+                valores_anteriores="",
+                valores_actuales=f"{clave.capitalize()}: listo ({len(lineas)} producto(s)). Mesa: {comanda.mesa.numero_mesa}",
+                empleado=request.user.empleado,
+            )
+        messages.success(request, f"Mesa {comanda.mesa.numero_mesa}: listo en {clave}.")
+    return redirect("ventas:estacion", clave=clave)

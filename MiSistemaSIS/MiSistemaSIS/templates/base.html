@@ -103,6 +103,11 @@
         </a>
         {% endif %}
         {% if 'comandas' in menu_modulos %}
+        <a href="{% url 'ventas:estacion' 'cocina' %}" class="sidebar-item{% if un == 'estacion' %} activo{% endif %}"{% if un == 'estacion' %} aria-current="page"{% endif %}>
+          <span class="material-symbols-outlined" aria-hidden="true">soup_kitchen</span> Cocina, bar y parrilla
+        </a>
+        {% endif %}
+        {% if 'comandas' in menu_modulos %}
         <a href="{% if menu_tomar_pedido %}{% url 'ventas:comanda_crear' %}{% else %}{% url 'ventas:comanda_listar' %}{% endif %}" class="sidebar-item{% if ns == 'ventas' and 'comanda' in un %} activo{% endif %}"{% if ns == 'ventas' and 'comanda' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Comandas
         </a>

@@ -41,6 +41,16 @@
           </p>
           {% endif %}
         {% endif %}
+        {% if puede_cobrar %}
+        <form method="POST" action="{% url 'ventas:comanda_cambiar_estado' 0 %}" data-panel-entregar hidden>
+          {% csrf_token %}
+          <input type="hidden" name="estado" value="entregado">
+          <input type="hidden" name="next" value="{% url 'ventas:comanda_crear' %}">
+          <button type="submit" class="btn-secundario panel-mesa-boton">
+            <span class="material-symbols-outlined">room_service</span> Marcar como entregada
+          </button>
+        </form>
+        {% endif %}
         <a href="#" class="panel-mesa-ver" data-panel-ver>Ver la comanda completa</a>
       </div>
     </div>
@@ -70,7 +80,8 @@
       campo("mozo").textContent = actual.mozo;
       campo("hora").textContent = actual.hora + " h";
       campo("estado").textContent = actual.estadoTexto || "";
-      campo("espera").textContent = (actual.espera || "0") + " min";
+      const minutos = parseInt(actual.espera || "0", 10);
+      campo("espera").textContent = minutos < 60 ? minutos + " min" : (minutos < 1440 ? Math.floor(minutos / 60) + " h" : Math.floor(minutos / 1440) + " días");
       campo("espera").classList.toggle("panel-mesa-demorada", boton.classList.contains("plano-mesa--demorada"));
       campo("total").textContent = pesos(actual.total);
       campo("saldo").textContent = pesos(actual.saldo);
@@ -79,6 +90,12 @@
       ver.hidden = !actual.ver;
       ver.href = actual.ver || "#";
       if (cobrar) cobrar.hidden = !(parseFloat(actual.saldo) > 0);
+      // Todo preparado: el mozo la marca como entregada al llevarla a la mesa
+      const entregar = panel.querySelector("[data-panel-entregar]");
+      if (entregar) {
+        entregar.hidden = actual.listo !== "1";
+        entregar.action = entregar.action.replace(/\/\d+\/$/, "/" + actual.comanda + "/");
+      }
       panel.style.display = "flex";
       (agregar.hidden ? panel.querySelector("[data-panel-cerrar]") : agregar).focus();
     }

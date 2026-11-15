@@ -9,7 +9,7 @@
     <button type="button" class="mis-mesas-boton{% if lugar.comanda.demorada %} mis-mesas-boton--demorada{% endif %}"
       data-abre-mesa="{{ lugar.numero }}">
       <strong>Mesa {{ lugar.numero }}</strong>
-      <span>${{ lugar.comanda.total_comanda|floatformat:0 }} · {{ lugar.comanda.espera }} min</span>
+      <span>${{ lugar.comanda.total_comanda|floatformat:0 }} · {{ lugar.comanda.espera_texto }}</span>
     </button>
     {% endfor %}
   </div>
@@ -22,6 +22,7 @@
       <li><span class="plano-muestra plano-muestra--ocupada"></span> Con pedido ({{ plano.ocupadas }}): agregar o cobrar</li>
       {% if plano.sin_pedido %}<li><span class="plano-muestra plano-muestra--sin-pedido"></span> Ocupada sin pedido ({{ plano.sin_pedido }})</li>{% endif %}
       <li><span class="plano-muestra plano-muestra--elegida"></span> Elegida</li>
+      <li><span class="plano-muestra plano-muestra--lista"></span> Listo para llevar</li>
       <li><span class="plano-muestra plano-muestra--demorada"></span> Demorada: más de {{ plano.limite_minutos }} min sin entregar{% if plano.demoradas %} ({{ plano.demoradas }}){% endif %}</li>
     </ul>
   </div>
@@ -59,7 +60,8 @@
           <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
         </button>
         {% elif lugar.estado == 'ocupada' and lugar.comanda %}
-        <button type="button" class="plano-mesa plano-mesa--ocupada{% if lugar.comanda.demorada %} plano-mesa--demorada{% endif %}" data-mesa-panel
+        <button type="button" class="plano-mesa plano-mesa--ocupada{% if lugar.comanda.demorada %} plano-mesa--demorada{% endif %}{% if lugar.comanda.listo_para_llevar %} plano-mesa--lista{% endif %}" data-mesa-panel
+          data-listo="{% if lugar.comanda.listo_para_llevar %}1{% endif %}"
           data-desde="{{ lugar.comanda.fecha_hora|date:'c' }}" data-estado="{{ lugar.comanda.estado_comanda }}"
           data-estado-texto="{{ lugar.comanda.get_estado_comanda_display }}"
           data-mesa-numero="{{ lugar.numero }}" data-mesa-ubicacion="{{ lugar.mesa.get_ubicacion_display }}"
@@ -72,7 +74,8 @@
           style="left: {{ lugar.pos.left }}%; top: {{ lugar.pos.top }}%; width: {{ lugar.pos.width }}%; height: {{ lugar.pos.height }}%;"
           title="Mesa {{ lugar.numero }} · Con pedido · Comanda #{{ lugar.comanda.id_comanda }} · {{ lugar.comanda.get_estado_comanda_display }}">
           <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
-          <span class="plano-espera" data-espera aria-label="Esperando {{ lugar.comanda.espera }} minutos">{{ lugar.comanda.espera }}'</span>
+          <span class="plano-espera" data-espera aria-label="Esperando {{ lugar.comanda.espera }} minutos">{{ lugar.comanda.espera_texto }}</span>
+          {% if lugar.comanda.listo_para_llevar %}<span class="plano-listo" aria-label="Listo para llevar">Listo</span>{% endif %}
         </button>
         {% elif lugar.estado == 'ocupada' %}
         <a href="{{ lugar.url }}" class="plano-mesa plano-mesa--ocupada"
@@ -105,10 +108,11 @@
         const minutos = Math.max(0, Math.floor((Date.now() - Date.parse(mesa.dataset.desde)) / 60000));
         const etiqueta = mesa.querySelector("[data-espera]");
         if (etiqueta) {
-          etiqueta.textContent = minutos + "'";
+          etiqueta.textContent = minutos < 60 ? minutos + "'" : (minutos < 1440 ? Math.floor(minutos / 60) + "h" : Math.floor(minutos / 1440) + "d");
           etiqueta.setAttribute("aria-label", "Esperando " + minutos + " minutos");
         }
-        const sinEntregar = mesa.dataset.estado === "pendiente" || mesa.dataset.estado === "en_preparacion";
+        const sinEntregar = (mesa.dataset.estado === "pendiente" || mesa.dataset.estado === "en_preparacion")
+          && mesa.dataset.listo !== "1";
         mesa.classList.toggle("plano-mesa--demorada", sinEntregar && minutos >= limite);
         mesa.dataset.espera = minutos;
       });

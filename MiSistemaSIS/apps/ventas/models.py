@@ -178,6 +178,8 @@ class DetalleComanda(models.Model):
 
     # Indicación para la cocina sobre este producto (por ejemplo, "sin sal"); sale en su ticket
     observacion = models.CharField(max_length=120, blank=True, default="", verbose_name="Observación")
+    # Cuándo la estación (cocina, bar o parrilla) lo marcó como listo; vacío mientras se prepara
+    listo = models.DateTimeField(null=True, blank=True, verbose_name="Listo")
 
     class Meta:
         db_table = 'ventas_detallecomanda'

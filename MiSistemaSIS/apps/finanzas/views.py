@@ -23,7 +23,8 @@ from core.mensajes import error_campo
 from django.urls import reverse
 @login_required
 def finanzas_home(request):
-    return render(request, 'finanzas_home.html')
+    """El enlace "Finanzas" de las migas de pan lleva a Caja, la primera pantalla de Finanzas en el menú."""
+    return redirect("finanzas:listar_cajas")
 
 # FUNCIONES PARA CATEGORÍAS DE GASTOS
 @login_required
