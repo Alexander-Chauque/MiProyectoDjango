@@ -321,6 +321,12 @@ def comanda_crear(request):
         Comanda, DetalleComanda, form=DetalleComandaForm, extra=3, can_delete=True
     )
 
+    try:
+        mozo_actual = request.user.empleado
+    except Exception:
+        mozo_actual = None
+    mozo_id = request.POST.get("mozo") or (mozo_actual.pk if mozo_actual else "")
+
     if request.method == "POST":
         form = ComandaForm(request.POST)
         formset = DetalleFormSet(request.POST)
@@ -342,23 +348,16 @@ def comanda_crear(request):
                 return render(
                     request,
                     "comandas/comanda_crear.html",
-                    {
-                        "form": form,
-                        "formset": formset,
-                        "platos": Plato.objects.filter(estado_plato=True),
-                        "bebidas": Bebida.objects.filter(disponible_bebida=True),
-                        "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
-                        "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
-                    },
+                    _contexto_crear_comanda(request, form, formset, mozo_id),
                 )
             try:
                 with transaction.atomic():
                     # Crear la comanda (sin guardar aún)
                     comanda = form.save(commit=False)
-                    # Asignar el empleado logueado
-                    try:
-                        comanda.empleado = request.user.empleado
-                    except:
+                    # El mozo elegido en la pantalla; si no vino o no es válido, el usuario actual
+                    mozo = _mozos_disponibles().filter(pk=mozo_id).first() if str(mozo_id).isdigit() else None
+                    comanda.empleado = mozo or mozo_actual
+                    if comanda.empleado is None:
                         messages.error(request, "No tienes un empleado asociado.")
                         return redirect("ventas:comanda_listar")
                     # Guardar la comanda
@@ -404,14 +403,7 @@ def comanda_crear(request):
     return render(
         request,
         "comandas/comanda_crear.html",
-        {
-            "form": form,
-            "formset": formset,
-            "platos": Plato.objects.filter(estado_plato=True),
-            "bebidas": Bebida.objects.filter(disponible_bebida=True),
-            "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
-            "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
-        },
+        _contexto_crear_comanda(request, form, formset, mozo_id),
     )
 
 
@@ -887,11 +879,9 @@ def _registrar_pago(request):
             f"#{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}.{texto_vuelto}"
         )
 
-# PLANO DEL SALÓN
-@login_required
-@permiso_requerido("mesas", "leer")
-def plano_salon(request):
-    """Dibuja el local con cada mesa en su lugar y su estado (ver ventas/plano_salon.py)."""
+# PLANO DEL SALÓN Y MOZOS (para tomar el pedido)
+def _plano_de_mesas(request, mesa_elegida_id=None):
+    """El local con cada mesa en su lugar y su estado (ver ventas/plano_salon.py)."""
     from . import plano_salon as plano
 
     mesas = {mesa.numero_mesa: mesa for mesa in Mesa.objects.all()}
@@ -899,13 +889,10 @@ def plano_salon(request):
     abiertas = {}
     for comanda in Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS).order_by("fecha_hora"):
         abiertas[comanda.mesa_id] = comanda
-    puede_crear = tiene_permiso(request.user, "comandas", "escribir")
     puede_ver = tiene_permiso(request.user, "comandas", "leer")
 
     lugares = []
-    numeros_en_plano = set()
     for dato in plano.MESAS:
-        numeros_en_plano.add(dato["numero"])
         mesa = mesas.get(dato["numero"])
         lugar = {
             **dato,
@@ -913,13 +900,12 @@ def plano_salon(request):
             "mesa": mesa,
             "comanda": None,
             "url": "",
+            "elegida": bool(mesa and str(mesa.pk) == str(mesa_elegida_id)),
         }
         if mesa is None:
             lugar["estado"] = "sin-cargar"
         elif mesa.estado_mesa:
             lugar["estado"] = "libre"
-            if puede_crear:
-                lugar["url"] = f"{reverse('ventas:comanda_crear')}?mesa={mesa.pk}"
         else:
             lugar["estado"] = "ocupada"
             lugar["comanda"] = abiertas.get(mesa.pk)
@@ -927,30 +913,51 @@ def plano_salon(request):
                 lugar["url"] = reverse("ventas:comanda_detalle", args=[lugar["comanda"].pk])
             else:
                 lugar["url"] = reverse("ventas:mesa_ver_comandas", args=[mesa.pk])
-        lugar["otra_ubicacion"] = bool(mesa and mesa.ubicacion != dato["ubicacion"])
         lugares.append(lugar)
 
     def con_posicion(items):
         return [{**item, "pos": plano.a_porcentajes(item["x"], item["y"], item["ancho"], item["alto"])} for item in items]
 
-    pilares = [
-        plano.a_porcentajes(x - plano.PILAR_DIAMETRO / 2, y - plano.PILAR_DIAMETRO / 2, plano.PILAR_DIAMETRO, plano.PILAR_DIAMETRO)
-        for x, y in plano.PILARES
-    ]
-    resumen = {
-        clave: sum(1 for lugar in lugares if lugar["estado"] == estado)
-        for clave, estado in (("libre", "libre"), ("ocupada", "ocupada"), ("sin_cargar", "sin-cargar"))
-    }
-    return render(request, "mesas/plano_salon.html", {
+    return {
         "lugares": lugares,
         "zonas": con_posicion(plano.ZONAS),
         "elementos": con_posicion(plano.ELEMENTOS),
-        "pilares": pilares,
-        "resumen": resumen,
-        "capacidad_total": sum(lugar["capacidad"] for lugar in lugares),
-        "fuera_del_plano": sorted(
-            (mesa for numero, mesa in mesas.items() if numero not in numeros_en_plano),
-            key=lambda mesa: mesa.numero_mesa,
-        ),
-        "lienzo_proporcion": f"{plano.LIENZO[2]} / {plano.LIENZO[3]}",
-    })
+        "pilares": [
+            plano.a_porcentajes(x - plano.PILAR_DIAMETRO / 2, y - plano.PILAR_DIAMETRO / 2,
+                                plano.PILAR_DIAMETRO, plano.PILAR_DIAMETRO)
+            for x, y in plano.PILARES
+        ],
+        "libres": sum(1 for lugar in lugares if lugar["estado"] == "libre"),
+        "ocupadas": sum(1 for lugar in lugares if lugar["estado"] == "ocupada"),
+        "proporcion": f"{plano.LIENZO[2]} / {plano.LIENZO[3]}",
+    }
+
+
+def _mozos_disponibles():
+    """Empleados activos que pueden tomar pedidos: su cargo puede crear comandas, o es administrador."""
+    from empleados.decorators import NIVEL_ADMINISTRADOR
+    from empleados.models import Empleado, PermisoXCargo
+
+    cargos = PermisoXCargo.objects.filter(
+        tipo_permiso__modulo="comandas", tipo_permiso__accion="escribir"
+    ).values("cargo")
+    return (
+        Empleado.objects.filter(estado=True, user__is_active=True)
+        .filter(Q(cargo__in=cargos) | Q(cargo__nivel_acceso__gte=NIVEL_ADMINISTRADOR))
+        .select_related("cargo")
+        .order_by("nombre_empleado", "apellido_empleado")
+    )
+
+
+def _contexto_crear_comanda(request, form, formset, mozo_id):
+    return {
+        "form": form,
+        "formset": formset,
+        "plano": _plano_de_mesas(request, form["mesa"].value()),
+        "mozos": _mozos_disponibles(),
+        "mozo_elegido": str(mozo_id or ""),
+        "platos": Plato.objects.filter(estado_plato=True),
+        "bebidas": Bebida.objects.filter(disponible_bebida=True),
+        "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
+        "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
+    }

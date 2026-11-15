@@ -226,3 +226,141 @@ a.plano-mesa:hover {
     transition: none;
   }
 }
+
+/* =========================================
+   TOMAR PEDIDO (Nueva comanda)
+   ========================================= */
+
+/* Pasos numerados: 1 Mesa, 2 Datos del pedido, 3 Productos */
+.paso-numero {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tarjeta-plano {
+  margin-bottom: var(--espacio-5);
+}
+
+.plano-elegida {
+  margin: 0;
+  font-size: 15px;
+  color: var(--texto);
+}
+
+.plano-elegida strong {
+  color: var(--acento-texto);
+}
+
+/* Las mesas libres son botones: sin el estilo del navegador */
+button.plano-mesa {
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.plano-mesa:hover {
+  transform: scale(1.08);
+  box-shadow: var(--sombra);
+  z-index: 2;
+}
+
+.plano-mesa--elegida,
+.plano-muestra--elegida {
+  background-color: var(--exito-borde);
+  border-color: var(--exito-texto);
+  color: #fff;
+}
+
+.plano-mesa--elegida {
+  box-shadow: 0 0 0 3px var(--exito-fondo), 0 0 0 5px var(--exito-borde);
+  z-index: 3;
+}
+
+/* Mozo: un botón por mozo, se elige con un toque */
+.elegir-mozo {
+  margin: 0 0 var(--espacio-4);
+  padding: 0;
+  border: 0;
+}
+
+.elegir-mozo legend {
+  margin-bottom: var(--espacio-2);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.mozos-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+.mozo-opcion {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: 44px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.mozo-opcion input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mozo-iniciales {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--superficie-2);
+  color: var(--texto-suave);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mozo-opcion:hover {
+  border-color: var(--acento);
+}
+
+.mozo-opcion:has(input:checked) {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+  font-weight: 600;
+}
+
+.mozo-opcion:has(input:checked) .mozo-iniciales {
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}
+
+.mozo-opcion:has(input:focus-visible) {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* Le gana al estilo general de etiquetas de los formularios (display: block) */
+.elegir-mozo label.mozo-opcion {
+  display: inline-flex;
+  margin: 0;
+}

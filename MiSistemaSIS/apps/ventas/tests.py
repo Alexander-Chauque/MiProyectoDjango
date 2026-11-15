@@ -87,3 +87,66 @@ class TicketsDeComandaTests(TestCase):
         DetalleComanda.objects.create(comanda=comanda, plato=self.locro, cant_plato=1)
 
         self.assertNotContains(self.ver(comanda), "<script>alert(1)")
+
+
+class TomarPedidoTests(TestCase):
+    """Nueva comanda: la mesa se elige en el plano y el mozo con un botón."""
+
+    def setUp(self):
+        admin = Cargo.objects.create(nombre_cargo="Administrador Prueba", nivel_acceso=99)
+        self.usuario = User.objects.create_user("ana.prueba", password="Clave-Prueba-123")
+        self.cajera = Empleado.objects.create(
+            nombre_empleado="Ana", apellido_empleado="Prueba", dni="99000001",
+            correo="ana@prueba.com", user=self.usuario, cargo=admin,
+        )
+        otro = User.objects.create_user("teo.prueba", password="Clave-Prueba-123")
+        self.mozo = Empleado.objects.create(
+            nombre_empleado="Teo", apellido_empleado="Mozo", dni="99000002",
+            correo="teo@prueba.com", user=otro, cargo=admin,
+        )
+        self.client.force_login(self.usuario)
+        self.mesa = Mesa.objects.create(numero_mesa=1, ubicacion="salon")
+        categoria = CategoriaPlato.objects.create(nombre_categoria_plato="Entradas")
+        self.locro = Plato.objects.create(nombre_plato="Locro", precio_plato=100, categoria=categoria)
+
+    def datos(self, **extra):
+        return {
+            "mesa": self.mesa.pk,
+            "observaciones_comanda": "",
+            "detalles-TOTAL_FORMS": "1",
+            "detalles-INITIAL_FORMS": "0",
+            "detalles-MIN_NUM_FORMS": "0",
+            "detalles-MAX_NUM_FORMS": "1000",
+            "detalles-0-plato": self.locro.pk,
+            "detalles-0-cant_plato": "2",
+            "detalles-0-bebida": "",
+            "detalles-0-cant_bebida": "1",
+            **extra,
+        }
+
+    def test_la_pantalla_muestra_el_plano_y_los_mozos(self):
+        respuesta = self.client.get(reverse("ventas:comanda_crear"), {"mesa": self.mesa.pk})
+        self.assertContains(respuesta, 'data-mesa-numero="1"')
+        self.assertContains(respuesta, "plano-mesa--elegida")
+        self.assertContains(respuesta, 'name="mozo"', count=2)
+        self.assertContains(respuesta, f'value="{self.cajera.pk}" checked')
+
+    def test_guarda_la_comanda_con_el_mozo_elegido(self):
+        self.client.post(reverse("ventas:comanda_crear"), self.datos(mozo=self.mozo.pk))
+        comanda = Comanda.objects.get()
+        self.assertEqual(comanda.empleado, self.mozo)
+        self.mesa.refresh_from_db()
+        self.assertFalse(self.mesa.estado_mesa)
+
+    def test_sin_mozo_usa_el_usuario_actual(self):
+        self.client.post(reverse("ventas:comanda_crear"), self.datos())
+        self.assertEqual(Comanda.objects.get().empleado, self.cajera)
+
+    def test_un_mozo_que_no_puede_tomar_pedidos_no_se_acepta(self):
+        sin_permiso = Cargo.objects.create(nombre_cargo="Cocinero", nivel_acceso=1)
+        cocinero = Empleado.objects.create(
+            nombre_empleado="Rosa", apellido_empleado="Cocina", dni="99000003",
+            correo="rosa@prueba.com", cargo=sin_permiso,
+        )
+        self.client.post(reverse("ventas:comanda_crear"), self.datos(mozo=cocinero.pk))
+        self.assertEqual(Comanda.objects.get().empleado, self.cajera)

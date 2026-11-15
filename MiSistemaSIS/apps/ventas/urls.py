@@ -5,7 +5,6 @@ app_name = 'ventas'
 
 urlpatterns = [
     path('', views.mesa_listar, name='listar_mesa'),
-    path('plano/', views.plano_salon, name='plano_salon'),
     path('crear/', views.mesa_crear, name='crear_mesa'),
     path('editar/<int:pk>/', views.mesa_editar, name='editar_mesa'),
     path('eliminar/<int:pk>/', views.mesa_eliminar, name='eliminar_mesa'),

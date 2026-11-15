@@ -9,14 +9,18 @@ def menu(request):
     lo que su cargo tiene asignado. Es una sola consulta por página.
     """
     if not request.user.is_authenticated:
-        return {"menu_modulos": set()}
+        return {"menu_modulos": set(), "menu_tomar_pedido": False}
     if nivel_de(request.user) >= NIVEL_ADMINISTRADOR:
         modulos = {clave for clave, _ in TipoPermiso._meta.get_field("modulo").choices}
-    else:
-        modulos = set(
-            PermisoXCargo.objects.filter(
-                cargo__empleado__user=request.user,
-                tipo_permiso__accion="leer",
-            ).values_list("tipo_permiso__modulo", flat=True)
-        )
-    return {"menu_modulos": modulos}
+        return {"menu_modulos": modulos, "menu_tomar_pedido": True}
+    permisos = set(
+        PermisoXCargo.objects.filter(
+            cargo__empleado__user=request.user,
+            tipo_permiso__accion__in=["leer", "escribir"],
+        ).values_list("tipo_permiso__modulo", "tipo_permiso__accion")
+    )
+    return {
+        "menu_modulos": {modulo for modulo, accion in permisos if accion == "leer"},
+        # "Comandas" abre directamente la toma de pedido si el cargo puede crear comandas
+        "menu_tomar_pedido": ("comandas", "escribir") in permisos,
+    }

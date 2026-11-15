@@ -98,17 +98,12 @@
         {% if 'mesas' in menu_modulos or 'comandas' in menu_modulos %}
         <p class="sidebar-etiqueta">Salón</p>
         {% if 'mesas' in menu_modulos %}
-        <a href="{% url 'ventas:plano_salon' %}" class="sidebar-item{% if un == 'plano_salon' %} activo{% endif %}"{% if un == 'plano_salon' %} aria-current="page"{% endif %}>
-          <span class="material-symbols-outlined" aria-hidden="true">map</span> Plano del salón
-        </a>
-        {% endif %}
-        {% if 'mesas' in menu_modulos %}
         <a href="{% url 'ventas:listar_mesa' %}" class="sidebar-item{% if ns == 'ventas' and 'mesa' in un %} activo{% endif %}"{% if ns == 'ventas' and 'mesa' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">table_restaurant</span> Mesas
         </a>
         {% endif %}
         {% if 'comandas' in menu_modulos %}
-        <a href="{% url 'ventas:comanda_listar' %}" class="sidebar-item{% if ns == 'ventas' and 'comanda' in un %} activo{% endif %}"{% if ns == 'ventas' and 'comanda' in un %} aria-current="page"{% endif %}>
+        <a href="{% if menu_tomar_pedido %}{% url 'ventas:comanda_crear' %}{% else %}{% url 'ventas:comanda_listar' %}{% endif %}" class="sidebar-item{% if ns == 'ventas' and 'comanda' in un %} activo{% endif %}"{% if ns == 'ventas' and 'comanda' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Comandas
         </a>
         {% endif %}
