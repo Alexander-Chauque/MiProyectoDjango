@@ -90,6 +90,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "notificaciones.context_processors.sin_leer",
+                # Opciones del menú lateral según los permisos del cargo
+                "core.context_processors.menu",
             ],
         },
     },

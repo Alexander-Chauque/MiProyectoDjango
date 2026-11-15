@@ -65,69 +65,116 @@
           <span class="material-symbols-outlined" aria-hidden="true">home</span> Inicio
         </a>
 
+        {# Cada opción se muestra solo si el cargo puede leer ese módulo (core/context_processors.py) #}
+        {% if 'platos' in menu_modulos or 'categorias' in menu_modulos or 'bebidas' in menu_modulos or 'ingredientes' in menu_modulos %}
         <p class="sidebar-etiqueta">Inventario</p>
+        {% if 'platos' in menu_modulos %}
         <a href="{% url 'inventario:listar_platos' %}" class="sidebar-item{% if ns == 'inventario' and 'plato' in un %} activo{% endif %}"{% if ns == 'inventario' and 'plato' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">restaurant_menu</span> Platos
         </a>
+        {% endif %}
+        {% if 'categorias' in menu_modulos %}
         <a href="{% url 'inventario:listar_categorias' %}" class="sidebar-item{% if ns == 'inventario' and 'categoria' in un %} activo{% endif %}"{% if ns == 'inventario' and 'categoria' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">category</span> Categorías de platos
         </a>
+        {% endif %}
+        {% if 'bebidas' in menu_modulos %}
         <a href="{% url 'inventario:listar_bebida' %}" class="sidebar-item{% if ns == 'inventario' and 'bebida' in un and 'tipo' not in un %} activo{% endif %}"{% if ns == 'inventario' and 'bebida' in un and 'tipo' not in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">local_bar</span> Bebidas
         </a>
+        {% endif %}
+        {% if 'bebidas' in menu_modulos %}
         <a href="{% url 'inventario:listar_tipo_bebida' %}" class="sidebar-item{% if ns == 'inventario' and 'tipo_bebida' in un %} activo{% endif %}"{% if ns == 'inventario' and 'tipo_bebida' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">label</span> Tipos de bebida
         </a>
+        {% endif %}
+        {% if 'ingredientes' in menu_modulos %}
         <a href="{% url 'inventario:listar_ingredientes' %}" class="sidebar-item{% if ns == 'inventario' and 'ingrediente' in un %} activo{% endif %}"{% if ns == 'inventario' and 'ingrediente' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">grocery</span> Ingredientes
         </a>
+        {% endif %}
+        {% endif %}
 
+        {% if 'mesas' in menu_modulos or 'comandas' in menu_modulos %}
         <p class="sidebar-etiqueta">Salón</p>
+        {% if 'mesas' in menu_modulos %}
         <a href="{% url 'ventas:listar_mesa' %}" class="sidebar-item{% if ns == 'ventas' and 'mesa' in un %} activo{% endif %}"{% if ns == 'ventas' and 'mesa' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">table_restaurant</span> Mesas
         </a>
+        {% endif %}
+        {% if 'comandas' in menu_modulos %}
         <a href="{% url 'ventas:comanda_listar' %}" class="sidebar-item{% if ns == 'ventas' and 'comanda' in un %} activo{% endif %}"{% if ns == 'ventas' and 'comanda' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Comandas
         </a>
+        {% endif %}
+        {% endif %}
 
+        {% if 'caja' in menu_modulos %}
         <p class="sidebar-etiqueta">Finanzas</p>
+        {% if 'caja' in menu_modulos %}
         <a href="{% url 'finanzas:listar_cajas' %}" class="sidebar-item{% if ns == 'finanzas' and 'caja' in un %} activo{% endif %}"{% if ns == 'finanzas' and 'caja' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">point_of_sale</span> Caja
         </a>
+        {% endif %}
+        {% if 'caja' in menu_modulos %}
         <a href="{% url 'finanzas:listar_ventas' %}" class="sidebar-item{% if ns == 'finanzas' and un == 'listar_ventas' %} activo{% endif %}"{% if ns == 'finanzas' and un == 'listar_ventas' %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">payments</span> Ventas
         </a>
+        {% endif %}
+        {% if 'caja' in menu_modulos %}
         <a href="{% url 'finanzas:listar_gastos' %}" class="sidebar-item{% if ns == 'finanzas' and 'gasto' in un and 'cat' not in un %} activo{% endif %}"{% if ns == 'finanzas' and 'gasto' in un and 'cat' not in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">request_quote</span> Gastos
         </a>
+        {% endif %}
+        {% if 'caja' in menu_modulos %}
         <a href="{% url 'finanzas:listar_cat_gasto' %}" class="sidebar-item{% if ns == 'finanzas' and 'cat' in un %} activo{% endif %}"{% if ns == 'finanzas' and 'cat' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">sell</span> Categorías de gasto
         </a>
+        {% endif %}
+        {% if 'caja' in menu_modulos %}
         <a href="{% url 'finanzas:listar_met_pago' %}" class="sidebar-item{% if ns == 'finanzas' and 'pago' in un %} activo{% endif %}"{% if ns == 'finanzas' and 'pago' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">credit_card</span> Métodos de pago
         </a>
+        {% endif %}
+        {% endif %}
 
+        {% if 'empleados' in menu_modulos or 'cargos' in menu_modulos %}
         <p class="sidebar-etiqueta">Personal</p>
+        {% if 'empleados' in menu_modulos %}
         <a href="{% url 'empleados:empleado_listar' %}" class="sidebar-item{% if ns == 'empleados' and 'empleado' in un %} activo{% endif %}"{% if ns == 'empleados' and 'empleado' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">groups</span> Empleados
         </a>
+        {% endif %}
+        {% if 'cargos' in menu_modulos %}
         <a href="{% url 'empleados:listar_cargo' %}" class="sidebar-item{% if ns == 'empleados' and 'cargo' in un and 'permiso' not in un %} activo{% endif %}"{% if ns == 'empleados' and 'cargo' in un and 'permiso' not in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">badge</span> Cargos
         </a>
+        {% endif %}
+        {% if 'cargos' in menu_modulos %}
         <a href="{% url 'empleados:listar_permiso' %}" class="sidebar-item{% if ns == 'empleados' and 'permiso' in un and un != 'mis_permisos' %} activo{% endif %}"{% if ns == 'empleados' and 'permiso' in un and un != 'mis_permisos' %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">key</span> Permisos
         </a>
+        {% endif %}
+        {% if 'empleados' in menu_modulos %}
         <a href="{% url 'empleados:listar_asistencias' %}" class="sidebar-item{% if ns == 'empleados' and 'asistencia' in un %} activo{% endif %}"{% if ns == 'empleados' and 'asistencia' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">event_available</span> Asistencia
         </a>
+        {% endif %}
+        {% endif %}
 
+        {% if 'reportes' in menu_modulos or 'auditoria' in menu_modulos %}
         <p class="sidebar-etiqueta">Control</p>
+        {% if 'reportes' in menu_modulos %}
         <a href="{% url 'reportes:ventas' %}" class="sidebar-item{% if ns == 'reportes' %} activo{% endif %}"{% if ns == 'reportes' %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Reportes
         </a>
+        {% endif %}
+        {% if 'auditoria' in menu_modulos %}
         <a href="{% url 'auditoria:log_auditoria_listar' %}" class="sidebar-item{% if ns == 'auditoria' %} activo{% endif %}"{% if ns == 'auditoria' %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined" aria-hidden="true">history</span> Auditoría
         </a>
+        {% endif %}
+        {% endif %}
       </nav>
       {% endwith %}
     </aside>
