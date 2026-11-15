@@ -4,7 +4,11 @@ from urllib.parse import urlsplit
 CLAVE_SESION = "listados_recordados"
 
 # Rutas que no se tienen en cuenta
-RUTAS_EXCLUIDAS = ("/api/", "/admin/", "/static/", "/media/")
+RUTAS_EXCLUIDAS = (
+    "/api/", "/admin/", "/static/", "/media/",
+    # La toma de pedido no es un listado: con ?mesa= o ?comanda= no hay que volver ahí al guardar
+    "/ventas/comandas/crear/",
+)
 
 
 class RecordarListadoMiddleware:

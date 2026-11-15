@@ -51,7 +51,7 @@
           data-mozo="{{ lugar.comanda.empleado.nombre_empleado }} {{ lugar.comanda.empleado.apellido_empleado }}"
           data-hora="{{ lugar.comanda.fecha_hora|date:'H:i' }}"
           data-total="{{ lugar.comanda.total_comanda|unlocalize }}" data-saldo="{{ lugar.comanda.saldo|unlocalize }}"
-          data-agregar="{% if plano.puede_agregar %}{% url 'ventas:comanda_editar' lugar.comanda.id_comanda %}{% endif %}"
+          data-agregar="{% if plano.puede_agregar %}{% url 'ventas:comanda_crear' %}?comanda={{ lugar.comanda.id_comanda }}{% endif %}"
           data-ver="{% if plano.puede_ver %}{% url 'ventas:comanda_detalle' lugar.comanda.id_comanda %}{% endif %}"
           style="left: {{ lugar.pos.left }}%; top: {{ lugar.pos.top }}%; width: {{ lugar.pos.width }}%; height: {{ lugar.pos.height }}%;"
           title="Mesa {{ lugar.numero }} · Con pedido · Comanda #{{ lugar.comanda.id_comanda }}">

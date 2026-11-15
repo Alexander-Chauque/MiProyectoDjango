@@ -193,7 +193,7 @@ class TomarPedidoTests(TestCase):
         comanda = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera)
         Mesa.objects.filter(pk=self.mesa.pk).update(estado_mesa=False)
         respuesta = self.client.get(reverse("ventas:comanda_crear"))
-        self.assertContains(respuesta, reverse("ventas:comanda_editar", args=[comanda.pk]))
+        self.assertContains(respuesta, f'{reverse("ventas:comanda_crear")}?comanda={comanda.pk}')
         self.assertContains(respuesta, "Agregar productos")
 
     def test_al_guardar_vuelve_al_plano(self):
@@ -237,3 +237,31 @@ class TomarPedidoTests(TestCase):
         self.mesa.refresh_from_db()
         self.assertEqual(comanda.estado_comanda, "pagado")
         self.assertTrue(self.mesa.estado_mesa)
+
+    def test_agregar_a_una_mesa_usa_la_misma_pantalla(self):
+        comanda = self._mesa_con_pedido()
+        DetalleComanda.objects.create(comanda=comanda, plato=self.locro, cant_plato=1)
+
+        pantalla = self.client.get(reverse("ventas:comanda_crear"), {"comanda": comanda.pk})
+        self.assertContains(pantalla, "Agregar a la mesa 1")
+        self.assertContains(pantalla, "Ya pedido")
+        self.assertContains(pantalla, f'name="comanda_id" value="{comanda.pk}"')
+        self.assertNotContains(pantalla, 'name="mozo"')
+
+        datos = self.datos(comanda_id=comanda.pk)
+        respuesta = self.client.post(reverse("ventas:comanda_crear"), datos)
+
+        self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
+        self.assertEqual(Comanda.objects.count(), 1)
+        comanda.refresh_from_db()
+        # Lo que ya tenía (1 locro) sigue igual y se suma lo nuevo (2 locros): total 3 x 100
+        self.assertEqual(comanda.detalles.count(), 2)
+        self.assertEqual(comanda.total_comanda, 300)
+        self.mesa.refresh_from_db()
+        self.assertFalse(self.mesa.estado_mesa)
+
+    def test_no_se_agrega_a_una_comanda_cerrada(self):
+        comanda = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera, estado_comanda="pagado")
+        respuesta = self.client.post(reverse("ventas:comanda_crear"), self.datos(comanda_id=comanda.pk))
+        self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
+        self.assertEqual(comanda.detalles.count(), 0)

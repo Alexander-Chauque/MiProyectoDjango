@@ -328,6 +328,11 @@ def comanda_crear(request):
         mozo_actual = None
     mozo_id = request.POST.get("mozo") or (mozo_actual.pk if mozo_actual else "")
 
+    # Agregar productos a una mesa que ya tiene pedido: misma pantalla, sobre su comanda abierta
+    id_existente = request.POST.get("comanda_id") or request.GET.get("comanda")
+    if id_existente:
+        return _agregar_a_comanda(request, id_existente, DetalleFormSet, mozo_id)
+
     if request.method == "POST":
         form = ComandaForm(request.POST)
         formset = DetalleFormSet(request.POST)
@@ -973,6 +978,70 @@ def _mozos_disponibles():
         .select_related("cargo")
         .order_by("nombre_empleado", "apellido_empleado")
     )
+
+
+def _agregar_a_comanda(request, id_comanda, DetalleFormSet, mozo_id):
+    """Suma productos nuevos a una comanda abierta, desde la pantalla de toma de pedido.
+
+    Lo que la comanda ya tenía no se toca (sirve aunque tenga pagos): solo se agregan filas.
+    """
+    comanda = (
+        Comanda.objects.select_related("mesa", "empleado").filter(pk=id_comanda).first()
+        if str(id_comanda).isdigit() else None
+    )
+    if comanda is None or not comanda.esta_abierta:
+        messages.error(request, "Esa comanda ya está cerrada: elegí la mesa de nuevo en el plano.")
+        return redirect("ventas:comanda_crear")
+    if not tiene_permiso(request.user, "comandas", "modificar"):
+        messages.error(request, "Tu cargo no puede agregar productos a una comanda.")
+        return redirect("ventas:comanda_crear")
+
+    form = ComandaForm(initial={"mesa": comanda.mesa_id})
+    if request.method == "POST":
+        formset = DetalleFormSet(request.POST)
+        if formset.is_valid():
+            nuevos = [
+                f.cleaned_data for f in formset
+                if f.cleaned_data and not f.cleaned_data.get("DELETE")
+                and (f.cleaned_data.get("plato") or f.cleaned_data.get("bebida"))
+            ]
+            if not nuevos:
+                messages.error(request, "Sumá al menos un plato o una bebida para agregar a la comanda.")
+            else:
+                with transaction.atomic():
+                    for datos in nuevos:
+                        DetalleComanda.objects.create(
+                            comanda=comanda,
+                            plato=datos.get("plato"),
+                            cant_plato=datos.get("cant_plato") or 0,
+                            bebida=datos.get("bebida"),
+                            cant_bebida=datos.get("cant_bebida") or 0,
+                        )
+                    total_anterior = comanda.total_comanda
+                    comanda.calcular_total()
+                    LogAuditoria.objects.create(
+                        tabla="Comanda",
+                        accion="MODIFICAR",
+                        registro_id=comanda.id_comanda,
+                        valores_anteriores=f"Total: ${total_anterior}",
+                        valores_actuales=(
+                            f"Se agregaron {len(nuevos)} producto(s) a la comanda #{comanda.id_comanda}. "
+                            f"Mesa: {comanda.mesa.numero_mesa}. Total: ${comanda.total_comanda}"
+                        ),
+                        empleado=request.user.empleado,
+                    )
+                messages.success(
+                    request,
+                    f"Se agregaron productos a la mesa {comanda.mesa.numero_mesa} (comanda #{comanda.id_comanda}).",
+                )
+                return redirect(_despues_de_guardar(request))
+    else:
+        formset = DetalleFormSet()
+
+    contexto = _contexto_crear_comanda(request, form, formset, mozo_id)
+    contexto["comanda_existente"] = comanda
+    contexto["ya_pedido"] = list(comanda.detalles.select_related("plato", "bebida"))
+    return render(request, "comandas/comanda_crear.html", contexto)
 
 
 def _carrito_enviado(datos):

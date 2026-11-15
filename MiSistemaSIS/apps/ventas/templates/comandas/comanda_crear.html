@@ -31,8 +31,13 @@
         <span class="material-symbols-outlined">add</span>
       </div>
       <div class="page-header-texto">
+        {% if comanda_existente %}
+        <h1>Agregar a la mesa {{ comanda_existente.mesa.numero_mesa }}</h1>
+        <p>Lo que sumes se agrega a la comanda #{{ comanda_existente.id_comanda }}, sin tocar lo que ya pidió.</p>
+        {% else %}
         <h1>Nueva comanda</h1>
         <p>Elegí la mesa en el plano, el mozo y los productos.</p>
+        {% endif %}
       </div>
     </div>
     <div class="page-header-acciones">
@@ -58,6 +63,19 @@
 
   <form method="POST" id="form-comanda">
     {% csrf_token %}
+    {% if comanda_existente %}
+    <input type="hidden" name="comanda_id" value="{{ comanda_existente.id_comanda }}">
+    <div class="tarjeta-comanda resumen-mesa-agregar">
+      <span class="material-symbols-outlined resumen-mesa-icono" aria-hidden="true">table_restaurant</span>
+      <div>
+        <strong>Mesa {{ comanda_existente.mesa.numero_mesa }} · {{ comanda_existente.mesa.get_ubicacion_display }}</strong>
+        <span>Comanda #{{ comanda_existente.id_comanda }} · Mozo: {{ comanda_existente.empleado.nombre_empleado }} {{ comanda_existente.empleado.apellido_empleado }} · desde las {{ comanda_existente.fecha_hora|date:"H:i" }}</span>
+      </div>
+      <a href="{% url 'ventas:comanda_crear' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">map</span> Volver al plano
+      </a>
+    </div>
+    {% else %}
     <div class="tarjeta-comanda tarjeta-plano">
       <div class="titulo-tarjeta">
         <span class="paso-numero">1</span>
@@ -70,9 +88,11 @@
         {% endif %}
       </div>
     </div>
+    {% endif %}
 
     <div class="layout-comanda">
       <div class="columna-izquierda">
+        {% if not comanda_existente %}
         <!-- Datos del pedido -->
         <div class="tarjeta-comanda">
           <div class="titulo-tarjeta">
@@ -109,10 +129,11 @@
           </div>
         </div>
 
+        {% endif %}
         <!-- Agregar productos -->
         <div class="tarjeta-comanda">
           <div class="titulo-tarjeta">
-            <span class="paso-numero">3</span>
+            <span class="paso-numero">{% if comanda_existente %}2{% else %}3{% endif %}</span>
             <h3>Productos</h3>
             <span class="subtitulo">Tocá un producto para sumarlo. Primero aparece lo más pedido.</span>
           </div>
@@ -197,8 +218,22 @@
         <div class="tarjeta-carrito">
           <div class="titulo-carrito">
             <span class="material-symbols-outlined icono-naranja">shopping_cart</span>
-            <h3>Resumen del pedido</h3>
+            <h3>{% if comanda_existente %}Para agregar{% else %}Resumen del pedido{% endif %}</h3>
           </div>
+          {% if comanda_existente %}
+          <div class="ya-pedido">
+            <p class="ya-pedido-titulo">Ya pedido</p>
+            <ul>
+              {% for detalle in ya_pedido %}
+                {% if detalle.tiene_plato %}<li><span>{{ detalle.cant_plato }} × {{ detalle.nombre_del_plato }}</span></li>{% endif %}
+                {% if detalle.tiene_bebida %}<li><span>{{ detalle.cant_bebida }} × {{ detalle.nombre_de_la_bebida }}</span></li>{% endif %}
+              {% empty %}
+                <li><span>Sin productos todavía.</span></li>
+              {% endfor %}
+            </ul>
+            <p class="ya-pedido-total">Total actual: <strong>${{ comanda_existente.total_comanda|floatformat:0 }}</strong></p>
+          </div>
+          {% endif %}
           <div class="items-carrito" id="carrito-items">
             <div class="carrito-vacio" id="carrito-vacio">
               <span class="material-symbols-outlined">remove_shopping_cart</span>
@@ -206,7 +241,7 @@
             </div>
           </div>
           <div class="total-carrito">
-            <span>Total</span>
+            <span>{% if comanda_existente %}A agregar{% else %}Total{% endif %}</span>
             <strong id="total-comanda">$ 0.00</strong>
           </div>
           <div class="alerta-info">
@@ -214,8 +249,8 @@
             <p>Los precios se calculan automáticamente.</p>          
           </div>
           <div class="botones-carrito">
-            <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">Cancelar</a>
-            <button type="submit" class="btn-primario">Crear comanda</button>
+            <a href="{% if comanda_existente %}{% url 'ventas:comanda_crear' %}{% else %}{% url 'ventas:comanda_listar' %}{% endif %}" class="btn-secundario">Cancelar</a>
+            <button type="submit" class="btn-primario">{% if comanda_existente %}Agregar a la comanda{% else %}Crear comanda{% endif %}</button>
           </div>
         </div>
       </div>

@@ -554,3 +554,72 @@ button.plano-mesa:hover {
   background-color: var(--acento-suave);
   color: var(--acento-texto);
 }
+
+/* Agregar a una mesa con pedido: resumen de la mesa y lo ya pedido */
+.resumen-mesa-agregar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3) var(--espacio-4);
+  margin-bottom: var(--espacio-5);
+  padding: var(--espacio-4) var(--espacio-5);
+}
+
+.resumen-mesa-agregar > div {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resumen-mesa-agregar strong {
+  font-size: 17px;
+  color: var(--texto);
+}
+
+.resumen-mesa-agregar span:not(.material-symbols-outlined) {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.resumen-mesa-icono {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}
+
+.ya-pedido {
+  margin: 0 20px var(--espacio-3);
+  padding: var(--espacio-3);
+  border-radius: var(--radio-sm);
+  background-color: var(--superficie-2);
+}
+
+.ya-pedido-titulo {
+  margin: 0 0 var(--espacio-1);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.ya-pedido ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--texto);
+}
+
+.ya-pedido li {
+  padding: 2px 0;
+}
+
+.ya-pedido-total {
+  margin: var(--espacio-2) 0 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
