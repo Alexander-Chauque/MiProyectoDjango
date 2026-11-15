@@ -47,12 +47,6 @@
         </div>
 
         <div class="page-header-acciones">
-            <a href="{% url 'finanzas:listar_cat_gasto' %}"
-               class="btn-secundario">
-                <span class="material-symbols-outlined">category</span>
-                Categorías de gastos
-            </a>
-
             {% if caja_abierta %}
                 <a href="{% url 'finanzas:crear_gasto' %}"
                    class="btn-primario">
@@ -195,13 +189,13 @@
                 <table class="tabla">
                     <thead>
                         <tr>
-                            <th>N.º GASTO</th>
-                            <th>FECHA Y HORA</th>
-                            <th>CATEGORÍA</th>
-                            <th>DESCRIPCIÓN</th>
-                            <th>EMPLEADO</th>
-                            <th>MONTO</th>
-                            <th>ACCIONES</th>
+                            <th>N.º gasto</th>
+                            <th>Fecha y hora</th>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th>Empleado</th>
+                            <th>Monto</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
 

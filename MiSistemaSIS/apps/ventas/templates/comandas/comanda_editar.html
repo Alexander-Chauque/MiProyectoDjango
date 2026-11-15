@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Comanda{% endblock %}
+{% block title %}Editar comanda{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -25,14 +25,14 @@
   </nav>
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver-flecha" title="Volver a Comandas">
+      <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver-flecha" title="Volver a comandas">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
         <span class="material-symbols-outlined">receipt_long</span>
       </div>
       <div class="page-header-texto">
-        <h1>Editar Comanda # {{ comanda.id_comanda }}</h1>
+        <h1>Editar comanda # {{ comanda.id_comanda }}</h1>
       </div>
     </div>
   </div>
@@ -181,7 +181,7 @@
           <div class="botones-carrito">
             <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">Cancelar</a>
             <button type="submit" class="btn-primario">
-              <span class="material-symbols-outlined">save</span> Guardar Cambios
+              <span class="material-symbols-outlined">save</span> Guardar cambios
             </button>
           </div>
         </div>

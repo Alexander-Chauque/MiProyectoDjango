@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Tipo de Bebida{% endblock %}
+{% block title %}Editar tipo de bebida{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -21,9 +21,9 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'inventario:listar_bebida' %}" class="breadcrumb-item">Bebidas</a>
     <span class="breadcrumb-separator">></span>
-    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="breadcrumb-item">Tipo de Bebidas</a>
+    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="breadcrumb-item">Tipos de bebida</a>
     <span class="breadcrumb-separator">></span>
-    <span class="breadcrumb-item active">Editar Tipo de Bebida</span>
+    <span class="breadcrumb-item active">Editar tipo de bebida</span>
   </nav>
   <div class="page-header">
     <div class="page-header-info">
@@ -34,7 +34,7 @@
         <span class="material-symbols-outlined">edit</span>
       </div>
       <div class="page-header-texto">
-        <h1>Editar Tipo de Bebida: {{ tipo.nombre_tipo_bebida }}</h1>
+        <h1>Editar tipo de bebida: {{ tipo.nombre_tipo_bebida }}</h1>
       </div>
     </div>
   </div>
@@ -64,7 +64,7 @@
     <div class="acciones-formulario">
       <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Cambios
+        <span class="material-symbols-outlined">save</span> Guardar cambios
       </button>
     </div>
   </form>

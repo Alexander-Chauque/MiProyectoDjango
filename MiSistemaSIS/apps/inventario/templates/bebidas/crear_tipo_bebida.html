@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Crear Tipo de Bebida{% endblock %}
+{% block title %}Crear tipo de bebida{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -21,9 +21,9 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'inventario:listar_bebida' %}" class="breadcrumb-item">Bebidas</a>
     <span class="breadcrumb-separator">></span>
-    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="breadcrumb-item">Tipo de Bebidas</a>
+    <a href="{% url 'inventario:listar_tipo_bebida' %}" class="breadcrumb-item">Tipos de bebida</a>
     <span class="breadcrumb-separator">></span>
-    <span class="breadcrumb-item active">Crear Tipo de Bebida</span>
+    <span class="breadcrumb-item active">Crear tipo de bebida</span>
   </nav>
 
   <div class="page-header">
@@ -35,7 +35,7 @@
         <span class="material-symbols-outlined">add</span>
       </div>
       <div class="page-header-texto">
-        <h1>Crear Tipo de Bebida</h1>
+        <h1>Crear tipo de bebida</h1>
       </div>
     </div>
   </div>
@@ -65,7 +65,7 @@
     <div class="acciones-formulario">
       <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Tipo
+        <span class="material-symbols-outlined">save</span> Guardar tipo
       </button>
     </div>
   </form>

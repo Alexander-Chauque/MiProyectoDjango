@@ -34,7 +34,7 @@
     </div>
     <div class="page-header-acciones">
       <a href="{% url 'ventas:comanda_crear' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Nueva Comanda
+        <span class="material-symbols-outlined">add</span> Nueva comanda
       </a>
     </div>
   </div>
@@ -148,12 +148,12 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>MESA</th>
-            <th>MOZO</th>
-            <th>TOTAL</th>
-            <th>ESTADO</th>
-            <th>FECHA</th>
-            <th>ACCIONES</th>
+            <th>Mesa</th>
+            <th>Mozo</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -206,12 +206,12 @@
                       <hr class="dropdown-divider">
                       {% if comanda.total_pagado > 0 %}
                       <span class="dropdown-item" style="color: #A0AEC0; cursor: not-allowed;" title="La comanda tiene pagos registrados">
-                          <span class="punto-estado anulado"></span> Anular Comanda
+                          <span class="punto-estado anulado"></span> Anular comanda
                       </span>
                       {% else %}
                       <a href="#" class="dropdown-item texto-peligro"
                         onclick="event.preventDefault(); abrirModalAnular('{{ comanda.id_comanda }}', '{{ comanda.mesa.numero_mesa }}', '{{ comanda.mesa.ubicacion|default:"Salón" }}', '{{ comanda.fecha_hora|date:"d/m/Y H:i" }}', '{{ comanda.estado_comanda }}', '{{ comanda.empleado.get_full_name|default:"Sin asignar" }}', '{{ comanda.total_comanda }}');">
-                          <span class="punto-estado anulado"></span> Anular Comanda
+                          <span class="punto-estado anulado"></span> Anular comanda
                       </a>
                       {% endif %}
                     </div>
@@ -419,7 +419,7 @@
         <span class="material-symbols-outlined">payments</span>
       </div>
       <div>
-        <h3>Registrar Pago</h3>
+        <h3>Registrar pago</h3>
         <p class="text-gris">Comanda #<span id="pago-id-comanda"></span></p>
       </div>
       <button type="button" class="btn-cerrar-modal" onclick="cerrarModalPago()">
@@ -486,7 +486,7 @@
 
       <div class="modal-footer">
         <button type="button" class="btn-secundario" onclick="cerrarModalPago()">Cancelar</button>
-        <button type="submit" class="btn-primario">Confirmar Pago</button>
+        <button type="submit" class="btn-primario">Confirmar pago</button>
       </div>
     </form>
   </div>

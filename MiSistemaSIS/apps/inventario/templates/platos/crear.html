@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Crear Plato{% endblock %}
+{% block title %}Crear plato{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -26,14 +26,14 @@
   <!-- Header -->
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'inventario:listar_platos' %}" class="btn-volver-flecha" title="Volver a Platos">
+      <a href="{% url 'inventario:listar_platos' %}" class="btn-volver-flecha" title="Volver a platos">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
         <span class="material-symbols-outlined">add_circle</span>
       </div>
       <div class="page-header-texto">
-        <h1>Crear Nuevo Plato</h1>
+        <h1>Nuevo plato</h1>
       </div>
     </div>
   </div>
@@ -121,7 +121,7 @@
     <div class="acciones-formulario">
       <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Plato
+        <span class="material-symbols-outlined">save</span> Guardar plato
       </button>
     </div>
   </form>

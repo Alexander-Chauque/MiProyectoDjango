@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Listado de Tipo de Bebidas {% endblock %}
+{% block title %}Tipos de bebida{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -21,7 +21,7 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'inventario:listar_bebida' %}" class="breadcrumb-item">Bebidas</a>
     <span class="breadcrumb-separator">></span>
-    <span class="breadcrumb-item active">Tipo de Bebidas</span>
+    <span class="breadcrumb-item active">Tipos de bebida</span>
   </nav>
 
   <div class="page-header">
@@ -30,8 +30,8 @@
         <span class="material-symbols-outlined">category</span>
       </div>
       <div class="page-header-texto">
-        <h1>Tipo de Bebidas</h1>
-        <p>Adminstra las categorias de bebidas del restaurante.</p>
+        <h1>Tipos de bebida</h1>
+        <p>Administra los tipos de bebida del restaurante.</p>
       </div>
     </div>
     <div class="page-header-acciones">
@@ -108,10 +108,10 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>DESCRIPCIÓN</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>

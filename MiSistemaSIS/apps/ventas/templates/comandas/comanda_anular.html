@@ -1,7 +1,7 @@
 {% extends 'comandas/base_comandas.html' %}
 {% load static %}
 
-{% block title %}Anular Comanda{% endblock %}
+{% block title %}Anular comanda{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
@@ -9,7 +9,7 @@
 
 {% block contenido_simple %}
 <div class="contenedor-comanda">
-    <h1 class="titulo">Anular Comanda #{{ comanda.id_comanda }}</h1>
+    <h1 class="titulo">Anular comanda #{{ comanda.id_comanda }}</h1>
 
     <div class="tarjeta-confirmacion">
         <h2 class="tarjeta-titulo">¿Estás seguro de anular esta comanda?</h2>
@@ -61,7 +61,7 @@
                     Cancelar
                 </a>
                 <button type="submit" class="btn-danger">
-                    Sí, Anular Comanda
+                    Sí, anular comanda
                 </button>
             </div>
         </form>

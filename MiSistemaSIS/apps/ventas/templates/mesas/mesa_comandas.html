@@ -35,7 +35,7 @@
     </div>
     <div class="page-header-acciones">
       <a href="{% url 'ventas:listar_mesa' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">arrow_back</span> Volver a Mesas
+        <span class="material-symbols-outlined">arrow_back</span> Volver a mesas
       </a>
     </div>
   </div>
@@ -87,11 +87,11 @@
       <thead>
         <tr>
           <th># COMANDA</th>
-          <th>FECHA Y HORA</th>
-          <th>MOZO</th>
-          <th>TOTAL</th>
-          <th>ESTADO</th>
-          <th>ACCIONES</th>
+          <th>Fecha y hora</th>
+          <th>Mozo</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -116,7 +116,7 @@
           </td>
           <td>
             <div class="acciones-tabla">
-              <a href="{% url 'ventas:comanda_detalle' comanda.pk %}" class="btn-icon btn-detalle" title="Ver Detalle">
+              <a href="{% url 'ventas:comanda_detalle' comanda.pk %}" class="btn-icon btn-detalle" title="Ver detalle">
                 <span class="material-symbols-outlined">visibility</span>
               </a>
               <a href="{% url 'ventas:comanda_comprobante' comanda.pk %}" class="btn-icon btn-clave" title="Comprobante" target="_blank">

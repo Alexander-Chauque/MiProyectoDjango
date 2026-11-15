@@ -2,7 +2,7 @@
 
 {% block contenido_simple %}
 <div class="contenedor">
-    <h1 class="titulo">Eliminar Comanda</h1>
+    <h1 class="titulo">Eliminar comanda</h1>
 
     <div class="card">
         <div class="card-body text-center">
@@ -15,7 +15,7 @@
                 {% csrf_token %}
                 <div class="derecha_boton" style="justify-content: center;">
                     <a href="{% url 'ventas:comanda_listar' %}" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
                 </div>
             </form>
         </div>

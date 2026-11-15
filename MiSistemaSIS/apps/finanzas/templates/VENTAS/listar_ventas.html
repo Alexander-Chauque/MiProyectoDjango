@@ -47,12 +47,6 @@
         </div>
 
         <div class="page-header-acciones">
-            <a href="{% url 'finanzas:listar_met_pago' %}"
-               class="btn-secundario">
-                <span class="material-symbols-outlined">category</span>
-                Métodos de pago
-            </a>
-
             {% if caja_cerrada %}
                 <a href="{% url 'finanzas:abrir_caja' %}"
                    class="btn-primario">

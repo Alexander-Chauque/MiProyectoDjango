@@ -39,7 +39,7 @@
     </div>
     <div class="page-header-acciones">
       <a href="{% url 'empleados:crear_cargo' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Nuevo Cargo
+        <span class="material-symbols-outlined">add</span> Nuevo cargo
       </a>
     </div>
   </div>
@@ -90,13 +90,13 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>DESCRIPCIÓN</th>
-            <th>NIVEL</th>
-            <th>SUELDOS</th>
-            <th>ACCESO AL SISTEMA</th>
-            <th>PERMISOS</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Nivel</th>
+            <th>Sueldos</th>
+            <th>Acceso al sistema</th>
+            <th>Permisos</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -128,7 +128,7 @@
                 <a href="{% url 'empleados:eliminar_cargo' cargo.pk %}" class="btn-icon btn-clave" title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
                 </a>
-                <a href="{% url 'empleados:asignar_permisos' %}" class="btn-icon btn-detalle" title="Asignar Permisos">
+                <a href="{% url 'empleados:asignar_permisos' %}" class="btn-icon btn-detalle" title="Asignar permisos">
                   <span class="material-symbols-outlined">key</span>
                 </a>
               </div>

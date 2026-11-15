@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Crear Ingrediente{% endblock %}
+{% block title %}Crear ingrediente{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -27,7 +27,7 @@
 
     <a href="{% url 'inventario:listar_ingredientes' %}" class="breadcrumb-item"> Ingredientes</a>
     <span class="breadcrumb-separator">></span>
-    <span class="breadcrumb-item active">Crear un Ingrediente</span>
+    <span class="breadcrumb-item active">Crear un ingrediente</span>
   </nav>
   <div class="page-header">
     <div class="page-header-info">
@@ -38,7 +38,7 @@
         <span class="material-symbols-outlined">add</span>
       </div>
       <div class="page-header-texto">
-        <h1>Crear Ingrediente</h1>
+        <h1>Crear ingrediente</h1>
       </div>
     </div>
   </div>
@@ -81,7 +81,7 @@
     <div class="acciones-formulario">
       <a href="{% url 'inventario:listar_ingredientes' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Ingrediente
+        <span class="material-symbols-outlined">save</span> Guardar ingrediente
       </button>
     </div>
   </form>

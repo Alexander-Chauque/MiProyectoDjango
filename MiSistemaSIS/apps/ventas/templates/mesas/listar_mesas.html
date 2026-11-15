@@ -34,7 +34,7 @@
     </div>
     <div class="page-header-acciones">
       <a href="{% url 'ventas:crear_mesa' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Nueva Mesa
+        <span class="material-symbols-outlined">add</span> Nueva mesa
       </a>
     </div>
   </div>
@@ -124,9 +124,9 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>UBICACIÓN</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -149,7 +149,7 @@
                   <span class="material-symbols-outlined">add</span>
                 </a>
                 {% endif %}
-                <a href="{% url 'ventas:mesa_ver_comandas' mesa.id_mesa %}" class="btn-icon btn-clave" title="Ver Comandas">
+                <a href="{% url 'ventas:mesa_ver_comandas' mesa.id_mesa %}" class="btn-icon btn-clave" title="Ver comandas">
                   <span class="material-symbols-outlined">receipt_long</span>
                 </a>
                 <a href="{% url 'ventas:editar_mesa' mesa.pk %}" class="btn-icon btn-editar" title="Editar">

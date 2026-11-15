@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Detalle de la Bebida{% endblock %}
+{% block title %}Detalle de la bebida{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -28,14 +28,14 @@
   <!-- Header -->
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'inventario:listar_bebida' %}" class="btn-volver-flecha" title="Volver a Bebidas">
+      <a href="{% url 'inventario:listar_bebida' %}" class="btn-volver-flecha" title="Volver a bebidas">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
         <span class="material-symbols-outlined">local_drink</span>
       </div>
       <div class="page-header-texto">
-        <h1>Detalle de la Bebida</h1>
+        <h1>Detalle de la bebida</h1>
         <p>Información del producto</p>
       </div>
     </div>
@@ -45,7 +45,7 @@
   <div class="tarjeta-detalle-plato">
     <div class="detalle-header-top">
       <span class="detalle-label">NOMBRE DE LA BEBIDA</span>
-      <a href="{% url 'inventario:editar_bebida' bebida.pk %}" class="btn-icon btn-editar" title="Editar Bebida">
+      <a href="{% url 'inventario:editar_bebida' bebida.pk %}" class="btn-icon btn-editar" title="Editar bebida">
         <span class="material-symbols-outlined">edit</span>
       </a>
     </div>
