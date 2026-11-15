@@ -423,6 +423,7 @@ def comanda_editar(request, pk):
         return redirect("ventas:comanda_listar")
     tiene_pagos = comanda.pagos.exists()
     mesa_anterior = comanda.mesa
+    mozo_id = request.POST.get("mozo") or comanda.empleado_id
     DetalleFormSet = inlineformset_factory(
         Comanda,
         DetalleComanda,
@@ -441,6 +442,10 @@ def comanda_editar(request, pk):
                     _validar_cambios_detalle(pk, formset, tiene_pagos)
                     comanda_guardada = form.save(commit=False)
                     comanda_guardada.mesa = form.cleaned_data["mesa"]
+                    # El mozo elegido con los botones; si no vino o no es válido, queda el que tenía
+                    mozo = _mozos_disponibles().filter(pk=mozo_id).first() if str(mozo_id).isdigit() else None
+                    if mozo:
+                        comanda_guardada.empleado = mozo
                     comanda_guardada.save()
                     # Lo que la estación ya marcó como listo se conserva si su cantidad no aumentó
                     ya_listos = {
@@ -491,6 +496,9 @@ def comanda_editar(request, pk):
             "formset": formset,
             "comanda": comanda,
             "tiene_pagos": tiene_pagos,
+            "plano": _plano_de_mesas(request, form["mesa"].value(), comanda_editada=comanda),
+            "mozos": _mozos_disponibles(),
+            "mozo_elegido": str(mozo_id or ""),
             "productos_no_disponibles": _productos_no_disponibles(comanda),
             **_productos_por_pedidos(),
             "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
@@ -917,8 +925,12 @@ def texto_espera(minutos):
 
 
 # PLANO DEL SALÓN Y MOZOS (para tomar el pedido)
-def _plano_de_mesas(request, mesa_elegida_id=None):
-    """El local con cada mesa en su lugar y su estado (ver ventas/plano_salon.py)."""
+def _plano_de_mesas(request, mesa_elegida_id=None, comanda_editada=None):
+    """El local con cada mesa en su lugar y su estado (ver ventas/plano_salon.py).
+
+    comanda_editada: al editar, su mesa se puede volver a elegir y las demás ocupadas
+    solo se muestran (no se abren desde ahí).
+    """
     from . import plano_salon as plano
 
     mesas = {mesa.numero_mesa: mesa for mesa in Mesa.objects.all()}
@@ -935,6 +947,7 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
     abiertas = {}
     for comanda in (
         Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS)
+        .exclude(pk=getattr(comanda_editada, "pk", None))
         .select_related("empleado")
         .annotate(con_productos=Exists(DetalleComanda.objects.filter(comanda=OuterRef("pk"))))
         .annotate(sin_preparar=Coalesce(Subquery(
@@ -973,7 +986,7 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
         }
         if mesa is None:
             lugar["estado"] = "sin-cargar"
-        elif mesa.estado_mesa:
+        elif mesa.estado_mesa or (comanda_editada and mesa.pk == comanda_editada.mesa_id):
             lugar["estado"] = "libre"
         elif mesa.pk not in abiertas:
             # Marcada como ocupada a mano (clientes sentados), todavía sin comanda: se puede tomar el pedido
@@ -1016,6 +1029,7 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
             key=lambda lugar: lugar["comanda"].fecha_hora,
         ),
         "demoradas": sum(1 for lugar in lugares if lugar["comanda"] and lugar["comanda"].demorada),
+        "solo_elegir": comanda_editada is not None,
     }
 
 

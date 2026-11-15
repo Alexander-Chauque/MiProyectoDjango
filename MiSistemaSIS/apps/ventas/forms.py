@@ -68,8 +68,12 @@ class ComandaForm(forms.ModelForm):
 
         if self.instance and self.instance.pk:
             # Editar: mesa actual + disponibles
+            # Editar: la mesa actual y las que no tienen otra comanda abierta
+            otra_abierta = Comanda.objects.filter(
+                mesa=OuterRef("pk"), estado_comanda__in=ESTADOS_ABIERTOS
+            ).exclude(pk=self.instance.pk)
             self.fields["mesa"].queryset = Mesa.objects.filter(
-                Q(estado_mesa=True) | Q(id_mesa=self.instance.mesa.id_mesa)
+                Q(id_mesa=self.instance.mesa.id_mesa) | ~Exists(otra_abierta)
             ).order_by("numero_mesa")
         else:
             # Crear: mesas sin comanda abierta. Incluye las marcadas como ocupadas a mano

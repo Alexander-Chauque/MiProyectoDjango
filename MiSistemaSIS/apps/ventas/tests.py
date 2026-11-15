@@ -316,6 +316,65 @@ class TomarPedidoTests(TestCase):
         # La comanda es del usuario actual: aparece en "Tus mesas"
         self.assertContains(respuesta, 'data-abre-mesa="1"')
 
+    def _editar(self, comanda, **extra):
+        """Como lo manda la pantalla: la fila original borrada y el carrito como filas nuevas."""
+        detalle = comanda.detalles.get()
+        datos = {
+            "mesa": comanda.mesa.pk,
+            "observaciones_comanda": "",
+            "detalles-TOTAL_FORMS": "2",
+            "detalles-INITIAL_FORMS": "1",
+            "detalles-MIN_NUM_FORMS": "0",
+            "detalles-MAX_NUM_FORMS": "1000",
+            "detalles-0-id": detalle.pk,
+            "detalles-0-plato": self.locro.pk,
+            "detalles-0-cant_plato": "2",
+            "detalles-0-bebida": "",
+            "detalles-0-cant_bebida": "0",
+            "detalles-0-DELETE": "on",
+            "detalles-1-plato": self.locro.pk,
+            "detalles-1-cant_plato": "2",
+            "detalles-1-bebida": "",
+            "detalles-1-cant_bebida": "0",
+            **extra,
+        }
+        return self.client.post(reverse("ventas:comanda_editar", args=[comanda.pk]), datos)
+
+    def test_editar_muestra_el_plano_con_su_mesa_elegida_y_los_mozos(self):
+        self.client.post(reverse("ventas:comanda_crear"), self.datos(mozo=self.mozo.pk))
+        comanda = Comanda.objects.get()
+        otra = Mesa.objects.create(numero_mesa=2, ubicacion="salon", estado_mesa=False)
+        Comanda.objects.create(mesa=otra, empleado=self.cajera)
+
+        respuesta = self.client.get(reverse("ventas:comanda_editar", args=[comanda.pk]))
+        self.assertContains(respuesta, f'data-mesa-id="{self.mesa.pk}"')
+        self.assertContains(respuesta, "plano-mesa--elegida")
+        self.assertContains(respuesta, "plano-mesa--bloqueada")  # la mesa 2 es de otra comanda
+        self.assertNotContains(respuesta, '" data-mesa-panel')  # no abre el panel de otra mesa
+        self.assertContains(respuesta, f'value="{self.mozo.pk}" checked')
+
+    def test_editar_cambia_el_mozo_y_la_mesa(self):
+        self.client.post(reverse("ventas:comanda_crear"), self.datos(mozo=self.mozo.pk))
+        comanda = Comanda.objects.get()
+        nueva = Mesa.objects.create(numero_mesa=2, ubicacion="salon", estado_mesa=False)  # ocupada a mano
+
+        self._editar(comanda, mozo=self.cajera.pk, mesa=nueva.pk)
+        comanda.refresh_from_db()
+        self.assertEqual(comanda.empleado, self.cajera)
+        self.assertEqual(comanda.mesa, nueva)
+        self.mesa.refresh_from_db()
+        self.assertTrue(self.mesa.estado_mesa)
+
+    def test_editar_no_acepta_la_mesa_de_otra_comanda(self):
+        self.client.post(reverse("ventas:comanda_crear"), self.datos())
+        comanda = Comanda.objects.get()
+        otra = Mesa.objects.create(numero_mesa=2, ubicacion="salon", estado_mesa=False)
+        Comanda.objects.create(mesa=otra, empleado=self.cajera)
+
+        self._editar(comanda, mesa=otra.pk)
+        comanda.refresh_from_db()
+        self.assertEqual(comanda.mesa, self.mesa)
+
     def test_la_nota_de_un_producto_llega_al_ticket(self):
         datos = self.datos()
         datos["detalles-0-observacion"] = "sin sal"

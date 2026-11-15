@@ -980,3 +980,9 @@ button.plano-mesa:hover {
 .btn-separar:hover {
   text-decoration: underline;
 }
+
+/* Al editar: las mesas de otras comandas se ven, pero no se eligen */
+.plano-mesa--bloqueada {
+  cursor: not-allowed;
+  opacity: 0.55;
+}

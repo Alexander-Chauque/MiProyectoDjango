@@ -7,7 +7,6 @@
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
-<link rel="stylesheet" href="{% static 'css/selector_mesa.css' %}">
 <link rel="stylesheet" href="{% static 'css/plano_salon.css' %}">
 {% endblock %}
 
@@ -21,22 +20,42 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'ventas:comanda_listar' %}" class="breadcrumb-item">Comandas</a>
     <span class="breadcrumb-separator">></span>
-    </a>
     <span class="breadcrumb-item active">Editar</span>
   </nav>
+
   <div class="page-header">
     <div class="page-header-info">
       <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver-flecha" title="Volver a comandas">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
-        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="material-symbols-outlined">edit</span>
       </div>
       <div class="page-header-texto">
-        <h1>Editar comanda # {{ comanda.id_comanda }}</h1>
+        <h1>Editar comanda #{{ comanda.id_comanda }}</h1>
+        <p>Mesa {{ comanda.mesa.numero_mesa }} · desde las {{ comanda.fecha_hora|date:"H:i" }}. Cambiá la mesa, el mozo o los productos.</p>
       </div>
     </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">list</span> Ver comandas
+      </a>
+    </div>
   </div>
+
+  {% if form.non_field_errors or formset.non_form_errors %}
+    <div class="alert alert-error" style="margin-bottom: 20px; border-left: 4px solid #DC2626; background-color: #FEE2E2; color: #991B1B; padding: 15px; border-radius: 8px;">
+      <strong><span class="material-symbols-outlined" style="vertical-align: middle;">warning</span> Error en la comanda:</strong>
+      <ul style="margin-top: 10px; margin-bottom: 0; padding-left: 20px;">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+        {% for error in formset.non_form_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
 
   {% if tiene_pagos %}
   <div class="alert" id="aviso-pagos" style="margin-bottom: 20px; border-left: 4px solid #F5A623; background-color: #FFF8E7; color: #3D3D3D; padding: 15px; border-radius: 8px;">
@@ -52,40 +71,55 @@
     <span class="producto-retenido" hidden data-tipo="{{ producto.tipo }}" data-id="{{ producto.id }}"
       data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio|stringformat:".2f" }}"></span>
     {% endfor %}
+
+    <div class="tarjeta-comanda tarjeta-plano">
+      <div class="titulo-tarjeta">
+        <span class="paso-numero">1</span>
+        <h3>Mesa</h3>
+      </div>
+      <div class="cuerpo-tarjeta">
+        {% include "comandas/_plano_mesas.html" %}
+        {% if form.mesa.errors %}
+          <div class="error-mensaje">{% for error in form.mesa.errors %}<span>{{ error }}</span>{% endfor %}</div>
+        {% endif %}
+      </div>
+    </div>
+
     <div class="layout-comanda">
       <div class="columna-izquierda">
         <!-- Datos del pedido -->
         <div class="tarjeta-comanda">
           <div class="titulo-tarjeta">
-            <span class="material-symbols-outlined icono-naranja">receipt_long</span>
+            <span class="paso-numero">2</span>
             <h3>Datos del pedido</h3>
           </div>
           <div class="cuerpo-tarjeta">
-            <div class="grupo-campo">
-              <label>Mesa <span class="req">*</span></label>
-              {% include "comandas/_selector_mesa.html" %}
-              <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
-              {{ form.mesa.errors }}
-            </div>
-
-            <div class="fila-doble">
-              <div class="grupo-campo">
-                <label>Mozo</label>
-                <div class="mozo-info">
-                  <div class="avatar-mozo">
-                    <span class="material-symbols-outlined">person</span>
-                  </div>
-                  <div>
-                    <span class="nombre-mozo">{{comanda.get_full|default:request.user.username}}</span>
-                    <span class="rol-mozo-badge">{{ request.user.empleado.cargo.nombre_cargo|default:"Mozo" }}</span>
-                  </div>
-                </div>
+            <fieldset class="grupo-campo elegir-mozo">
+              <legend>Mozo</legend>
+              <div class="mozos-opciones">
+                {% for mozo in mozos %}
+                <label class="mozo-opcion">
+                  <input type="radio" name="mozo" value="{{ mozo.pk }}"{% if mozo_elegido == mozo.pk|stringformat:"s" %} checked{% endif %}>
+                  <span class="mozo-iniciales" aria-hidden="true">{{ mozo.nombre_empleado|first }}{{ mozo.apellido_empleado|first }}</span>
+                  <span class="mozo-nombre">{{ mozo.nombre_empleado }} {{ mozo.apellido_empleado }}</span>
+                </label>
+                {% empty %}
+                <p class="texto-ayuda">Queda el mozo que tomó el pedido.</p>
+                {% endfor %}
               </div>
-            </div>
+            </fieldset>
+
             <div class="grupo-campo">
               <label>Observaciones (opcional)</label>
               <textarea name="observaciones_comanda" class="form-control-textarea" rows="3"
-                placeholder="Ej:  sin cebolla, bien cocida ...">{{ form.observaciones_comanda.value|default:''}}</textarea>
+                placeholder="Ej: sin cebolla, bien cocida ...">{{ form.observaciones_comanda.value|default:''}}</textarea>
+              {% if form.observaciones_comanda.errors %}
+                <div class="error-mensaje" style="color: #DC2626; font-size: 12px; font-weight: 600; margin-top: 5px;">
+                  {% for error in form.observaciones_comanda.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -93,8 +127,8 @@
         <!-- Agregar productos -->
         <div class="tarjeta-comanda">
           <div class="titulo-tarjeta">
-            <span class="material-symbols-outlined icono-naranja">shopping_basket</span>
-            <h3>Agregar productos</h3>
+            <span class="paso-numero">3</span>
+            <h3>Productos</h3>
             <span class="subtitulo">Tocá un producto para sumarlo. Primero aparece lo más pedido.</span>
           </div>
           <div class="buscador-productos">
