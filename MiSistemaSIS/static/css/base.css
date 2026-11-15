@@ -2057,3 +2057,69 @@ button {
     justify-content: center;
   }
 }
+
+/* =========================================
+   TABLAS COMO FICHAS EN CELULAR
+   static/js/tabla_fichas.js copia el título de cada columna en sus celdas.
+   En pantallas chicas cada fila se ve como una ficha "Título: valor".
+   ========================================= */
+@media (max-width: 600px) {
+  .tabla-panel .tabla-fichas,
+  .tabla-panel .tabla-fichas tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tabla-panel .tabla-fichas thead {
+    display: none;
+  }
+
+  .tabla-panel .tabla-fichas tr {
+    display: block;
+    margin-bottom: var(--espacio-3);
+    padding: var(--espacio-2) var(--espacio-3);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    background-color: var(--superficie);
+  }
+
+  .tabla-panel .tabla-fichas td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacio-3);
+    padding: 6px 0;
+    border: 0;
+    border-bottom: 1px solid var(--borde-suave);
+    text-align: right;
+    white-space: normal;
+  }
+
+  .tabla-panel .tabla-fichas td:last-child {
+    border-bottom: 0;
+  }
+
+  .tabla-panel .tabla-fichas td[data-titulo]::before {
+    content: attr(data-titulo);
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    text-align: left;
+  }
+
+  /* La primera columna hace de título de la ficha */
+  .tabla-panel .tabla-fichas td:first-child {
+    font-weight: 600;
+  }
+
+  .tabla-panel .tabla-fichas td.celda-completa {
+    display: block;
+    text-align: center;
+  }
+
+  .tabla-panel .tabla-fichas tr:hover {
+    background-color: var(--superficie);
+  }
+}
