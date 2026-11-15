@@ -312,3 +312,66 @@
     transform: none;
   }
 }
+
+/* ---------- Botones naranjas (Nuevo, Crear, Aplicar): texto e ícono en blanco ---------- */
+.btn-primario,
+.btn-aplicar,
+.btn-primario .material-symbols-outlined,
+.btn-aplicar .material-symbols-outlined {
+  color: #FFFFFF;
+}
+
+.btn-primario:hover,
+.btn-aplicar:hover {
+  color: #FFFFFF;
+}
+
+/* ---------- Acciones de las tablas con su color de siempre ---------- */
+.btn-icon.btn-detalle,
+.btn-icon.btn-ver {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.btn-icon.btn-editar {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.btn-icon.btn-baja {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.btn-icon.btn-clave {
+  background-color: #F3F4F6;
+  color: #4B5563;
+}
+
+.btn-icon.btn-reactivar {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+/* Al pasar el mouse se rellena con el color fuerte */
+.btn-icon.btn-detalle:is(:hover, :focus-visible),
+.btn-icon.btn-ver:is(:hover, :focus-visible) { background-color: #1E40AF; color: #FFFFFF; }
+.btn-icon.btn-editar:is(:hover, :focus-visible) { background-color: #92400E; color: #FFFFFF; }
+.btn-icon.btn-baja:is(:hover, :focus-visible) { background-color: #991B1B; color: #FFFFFF; }
+.btn-icon.btn-clave:is(:hover, :focus-visible) { background-color: #4B5563; color: #FFFFFF; }
+.btn-icon.btn-reactivar:is(:hover, :focus-visible) { background-color: #065F46; color: #FFFFFF; }
+
+/* Tema oscuro: los mismos colores, sobre fondo oscuro */
+[data-tema="oscuro"] .btn-icon.btn-detalle,
+[data-tema="oscuro"] .btn-icon.btn-ver { background-color: rgba(59, 130, 246, 0.18); color: #93C5FD; }
+[data-tema="oscuro"] .btn-icon.btn-editar { background-color: rgba(245, 158, 11, 0.18); color: #FCD34D; }
+[data-tema="oscuro"] .btn-icon.btn-baja { background-color: rgba(239, 68, 68, 0.18); color: #FCA5A5; }
+[data-tema="oscuro"] .btn-icon.btn-clave { background-color: rgba(156, 163, 175, 0.18); color: #D1D5DB; }
+[data-tema="oscuro"] .btn-icon.btn-reactivar { background-color: rgba(16, 185, 129, 0.18); color: #6EE7B7; }
+
+/* Acción que no se puede usar en esa fila: sigue apagada */
+.btn-icon.btn-icon--bloqueado,
+.btn-icon.btn-icon--bloqueado:hover {
+  background-color: transparent;
+  color: var(--icono-neutro);
+}
