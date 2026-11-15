@@ -177,6 +177,7 @@
                     <tr>
                         <th>Nombre</th>
                         <th>Descripción</th>
+                        <th>Vuelto</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -193,6 +194,8 @@
                             {{ met_pago.descripcion_metodo_pago|default:'Sin descripción' }}
                         </td>
 
+                        <td>{% if met_pago.permite_cambio %}Sí{% else %}No{% endif %}</td>
+
                         <td>
                             {% if met_pago.estado_metodo_pago %}
                                 <span class="badge badge-activo">Activo</span>
@@ -203,13 +206,6 @@
 
                         <td>
                             <div class="acciones-tabla">
-
-                                <!-- Ver detalle -->
-                                <a href="{% url 'finanzas:detalle_met_pago' met_pago.pk %}"
-                                   class="btn-icon btn-detalle"
-                                   title="Ver detalle">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </a>
 
                                 <!-- Editar -->
                                 <a href="{% url 'finanzas:editar_met_pago' met_pago.pk %}"
@@ -238,7 +234,7 @@
 
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="sin-resultados">
+                        <td colspan="5" class="sin-resultados">
                             No hay métodos de pago que coincidan con los filtros.
                         </td>
                     </tr>
