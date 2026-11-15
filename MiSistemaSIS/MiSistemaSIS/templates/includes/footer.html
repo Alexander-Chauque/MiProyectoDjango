@@ -1,34 +1,4 @@
-{% load static %}
+{# Pie de página: una sola línea discreta. Se incluye desde base.html y las bases viejas de algunos módulos #}
 <footer class="footer">
-  <div class="footer-container">
-    <div class="footer-identidad">
-      <img src="{% static 'img/favicon/favicon.png' %}" alt="Los Cardones" class="footer-logo-img">
-      <div class="footer-logo-texto">
-        <h3>LOS CARDONES</h3>
-        <p>Sistema de Gestión Gastronómica</p>
-        <p class="footer-ubicacion">Salta · Argentina</p>
-      </div>
-    </div>
-
-    <div class="footer-modulo">
-      <div class="footer-modulo-header">
-        <span class="material-symbols-outlined">apps</span>
-        <span class="footer-modulo-label">MÓDULO ACTUAL</span>
-      </div>
-      <h4 class="footer-modulo-nombre">{{ modulo_actual }}</h4>
-      <p class="footer-modulo-descripcion">{{ descripcion }}</p>
-    </div>
-  </div>
-
-  <div class="footer-inferior">
-    <div class="footer-acceso">
-      <span class="material-symbols-outlined">verified_user</span>
-      <span>Acceso exclusivo para personal autorizado</span>
-    </div>
-    <div class="footer-copyright">
-      © 2026 Los Cardones · Todos los derechos reservados
-    </div>
-  </div>
-
-  <div class="footer-borde"></div>
+  <p>Los Cardones · Sistema de gestión gastronómica · 2026</p>
 </footer>

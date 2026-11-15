@@ -213,36 +213,7 @@
     </div>
     
 
-    {% block footer %}
-      {% with url_name=request.resolver_match.url_name|default:'' %}
-          
-          {% if url_name == 'home' or url_name == 'bienvenida' %}
-              {% include 'includes/footer.html' with modulo_actual="SISTEMA" descripcion="PANEL PRINCIPAL DEL SISTEMA" %}
-              
-          {% elif url_name in 'listar_mesas,crear_mesa,editar_mesa,detalle_mesa' %}
-              {% include 'includes/footer.html' with modulo_actual="MESAS" descripcion="GESTIÓN DE MESAS" %}
-              
-          {% elif url_name in 'inventario_home,listar_platos,crear_plato,editar_plato,detalle_plato,listar_bebidas,crear_bebida,editar_bebida,listar_ingredientes,listar_categorias' %}
-              {% include 'includes/footer.html' with modulo_actual="INVENTARIO" descripcion="GESTIÓN DE PRODUCTOS" %}
-              
-          {% elif url_name in 'comanda_listar,comanda_crear,comanda_editar,comanda_detalle' %}
-              {% include 'includes/footer.html' with modulo_actual="COMANDAS" descripcion="GESTIÓN DE PEDIDOS" %}
-              
-          {% elif url_name in 'empleados_home,empleado_listar,empleado_alta,empleado_modificacion,empleado_detalle' %}
-              {% include 'includes/footer.html' with modulo_actual="EMPLEADOS" descripcion="GESTIÓN DE PERSONAL" %}
-              
-          {% elif url_name in 'reportes_home' %}
-              {% include 'includes/footer.html' with modulo_actual="REPORTES" descripcion="ESTADÍSTICAS Y ANÁLISIS" %}
-              
-          {% elif url_name in 'log_auditoria_listar' %}
-              {% include 'includes/footer.html' with modulo_actual="AUDITORÍA" descripcion="HISTORIAL DE MOVIMIENTOS" %}
-              
-          {% else %}
-              {% include 'includes/footer.html' with modulo_actual="SISTEMA" descripcion="PANEL PRINCIPAL DEL SISTEMA" %}
-          {% endif %}
-          
-      {% endwith %}
-    {% endblock %}
+    {% block footer %}{% include 'includes/footer.html' %}{% endblock %}
     <script>
       
       function toggleSidebar() {
