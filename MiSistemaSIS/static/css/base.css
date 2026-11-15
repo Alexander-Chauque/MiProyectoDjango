@@ -1814,3 +1814,214 @@ button {
 [data-tema="oscuro"] .chip-quitar-todos {
   color: #F5A623;
 }
+
+/* ==========================================
+   FILTROS EN BARRA (arriba de la tabla)
+   Se activa con .listado-layout--barra; los desplegables los arma
+   static/js/filtros_barra.js. Sin esa clase, los filtros siguen a la izquierda.
+   ========================================== */
+.listado-layout--barra {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espacio-4);
+}
+
+.listado-layout--barra .filtros-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio);
+}
+
+/* El título "Filtros" solo se usa en celular, para abrir la barra */
+.listado-layout--barra .filtros-panel .filtros-header {
+  display: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.listado-layout--barra .filtro-grupo {
+  position: relative;
+  margin: 0;
+}
+
+/* Los títulos de cada grupo siguen en la página, pero no se muestran */
+.listado-layout--barra .filtro-grupo > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.listado-layout--barra .filtro-grupo:has(.input-buscar) {
+  flex: 1 1 160px;
+  max-width: 340px;
+}
+
+.listado-layout--barra .input-buscar input {
+  height: 38px;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 1px;
+  border-color: var(--borde);
+  border-radius: var(--radio-sm);
+  font-size: 14px;
+}
+
+.filtro-desplegable-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 8px 0 12px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.filtro-desplegable-boton:hover,
+.filtro-desplegable-boton[aria-expanded="true"] {
+  border-color: var(--acento);
+}
+
+.filtro-desplegable-boton.con-filtros {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+}
+
+.filtro-desplegable-boton .material-symbols-outlined {
+  font-size: 18px;
+  color: var(--icono-neutro);
+  transition: transform 0.15s;
+}
+
+.filtro-desplegable-boton[aria-expanded="true"] .material-symbols-outlined {
+  transform: rotate(180deg);
+}
+
+.filtro-desplegable-contador {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.filtro-desplegable-lista {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  min-width: 210px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: var(--espacio-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background-color: var(--superficie);
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.14);
+}
+
+.filtro-desplegable-lista .checkbox-item {
+  margin: 0;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.filtro-desplegable-lista[hidden] {
+  display: none;
+}
+
+/* Las fechas necesitan lugar para "Desde" y "Hasta" y su calendario */
+.filtro-desplegable-lista.filtro-fecha {
+  min-width: 260px;
+  overflow: visible;
+}
+
+.listado-layout--barra .btn-aplicar,
+.listado-layout--barra .btn-limpiar {
+  width: auto;
+  height: 38px;
+  margin: 0;
+  padding: 0 14px;
+  border-radius: var(--radio-sm);
+  white-space: nowrap;
+}
+
+.listado-layout--barra .btn-aplicar {
+  margin-left: auto;
+}
+
+.listado-layout--barra .btn-limpiar {
+  border-width: 1px;
+}
+
+@media (max-width: 768px) {
+  .listado-layout--barra .filtros-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .listado-layout--barra .filtros-panel .filtros-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .listado-layout--barra .filtros-header::after {
+    content: "expand_more";
+    margin-left: auto;
+    font-family: 'Material Symbols Outlined';
+    font-size: 22px;
+    color: var(--icono-neutro);
+  }
+
+  .listado-layout--barra .filtros-abiertos .filtros-header::after {
+    content: "expand_less";
+  }
+
+  /* Plegada: solo se ve el título */
+  .listado-layout--barra .filtros-panel:not(.filtros-abiertos) > :not(.filtros-header) {
+    display: none;
+  }
+
+  .listado-layout--barra .filtro-grupo:has(.input-buscar) {
+    flex: none;
+    max-width: none;
+  }
+
+  .filtro-desplegable-boton {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filtro-desplegable-boton > span:first-child {
+    margin-right: auto;
+  }
+
+  /* En celular la lista se abre en el lugar, sin flotar sobre la tabla */
+  .filtro-desplegable-lista {
+    position: static;
+    margin-top: 6px;
+    box-shadow: none;
+  }
+
+  .listado-layout--barra .btn-aplicar {
+    margin-left: 0;
+  }
+}
