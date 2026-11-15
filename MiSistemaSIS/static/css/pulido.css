@@ -1,0 +1,314 @@
+/*
+ * PULIDO VISUAL (se carga al final de base.html)
+ *
+ * Solo apariencia: no cambia pantallas ni funcionamiento. Mantiene la marca
+ * (naranja de Los Cardones, Inter para la interfaz y Oswald para los títulos)
+ * y busca un aspecto más limpio y parejo en todo el sistema:
+ *   - Menos sombras y bordes más suaves; más aire entre bloques.
+ *   - Botones y campos de la misma altura en todas las pantallas.
+ *   - Encabezado de página más compacto y con jerarquía clara.
+ *   - Tablas más livianas.
+ *   - Portadas de módulo (Empleados, Inventario) sin fotos de stock.
+ *
+ * Igual que interfaz.css, deja afuera los reportes (siguen el Documento
+ * Oficial) y el ticket y el comprobante (tienen diseño de impresión).
+ * Para volver atrás alcanza con quitar este archivo de base.html.
+ */
+
+/* ---------- Valores del tema claro (el oscuro sigue con los suyos) ---------- */
+:root:not([data-tema="oscuro"]) {
+  --fondo: #F6F6F7;
+  --borde: #E6E7EA;
+  --borde-suave: #EFF0F2;
+  --sombra-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --sombra: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.05);
+  --tabla-cabecera-fondo: transparent;
+  --tabla-cabecera-texto: #6B7280;
+  --tabla-fila-hover: #FAFAFA;
+}
+
+:root {
+  --radio-control: 8px;
+  --alto-control: 40px;
+}
+
+/* ---------- Encabezado de página ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .breadcrumb {
+  margin-bottom: var(--espacio-3);
+  font-size: 13px;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .page-header {
+  margin-bottom: var(--espacio-5);
+  gap: var(--espacio-4);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.page-header-icono, .inventario-header .header-icono) {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background-color: var(--acento-suave);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.page-header-icono, .inventario-header .header-icono) .material-symbols-outlined {
+  font-size: 26px;
+  color: var(--acento-texto);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .page-header h1,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .inventario-header h1 {
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--texto);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .page-header-texto p,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .inventario-header p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+/* ---------- Botones: misma altura, forma y respuesta al tocar ---------- */
+:is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar) {
+  min-height: var(--alto-control);
+  border-radius: var(--radio-control);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+:is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar):active {
+  transform: scale(0.98);
+}
+
+.btn-primario,
+.btn-aplicar {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+}
+
+.btn-primario:hover,
+.btn-aplicar:hover {
+  background-color: var(--acento-hover);
+}
+
+.btn-secundario:hover,
+.btn-limpiar:hover {
+  background-color: var(--superficie-2);
+  border-color: var(--borde);
+}
+
+:is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar) .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Íconos de acción en tablas: zona cómoda y respuesta suave */
+.btn-icon {
+  border-radius: var(--radio-control);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* ---------- Campos ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.form-control, .input-buscar input, .tabla-header select, .filtros-panel select) {
+  min-height: var(--alto-control);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) textarea.form-control,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .form-control-textarea {
+  min-height: 0;
+  border-radius: var(--radio-control);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.form-control, .form-control-textarea, .input-buscar input, select):hover {
+  border-color: #D3D5DA;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.form-control, .form-control-textarea, .input-buscar input, select):focus {
+  border-color: var(--acento);
+  box-shadow: var(--foco-anillo);
+  outline: none;
+}
+
+/* "Mostrar 10 registros": como un campo más, no el control del navegador */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla-header select {
+  min-height: 34px;
+  padding: 4px 28px 4px 10px;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .grupo-campo > label,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .filtro-grupo > label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+/* ---------- Tarjetas y paneles ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.tabla-panel, .filtros-panel, .tarjeta-comanda, .tarjeta-carrito, .tarjeta-empleado) {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+}
+
+/* ---------- Tablas ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla thead th {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--borde);
+  background-color: var(--tabla-cabecera-fondo);
+  color: var(--tabla-cabecera-texto);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla tbody td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---------- Barra superior y menú ---------- */
+.topbar {
+  border-bottom-color: var(--borde-suave);
+  box-shadow: 0 1px 0 rgba(16, 24, 40, 0.02);
+}
+
+.sidebar-item {
+  border-radius: var(--radio-control);
+}
+
+/* ---------- Portadas de módulo: tarjetas de ícono, sin fotos ---------- */
+.contenido :is(.empleados-grid, .inventario-grid) {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--espacio-4);
+  margin-top: 0;
+}
+
+.contenido :is(.empleados-card, .inventario-card) {
+  --c: var(--acento);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+  padding: var(--espacio-5);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.contenido :is(.empleados-card, .inventario-card):hover {
+  transform: none;
+  border-color: var(--acento);
+  box-shadow: var(--sombra);
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-imagen {
+  position: static;
+  flex-shrink: 0;
+  height: auto;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-imagen img {
+  display: none;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-icono-superpuesto {
+  position: static;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--acento-suave);
+  box-shadow: none;
+  transform: none;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-icono-superpuesto .material-symbols-outlined {
+  font-size: 26px;
+  color: var(--acento-texto);
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido {
+  flex: 1;
+  padding: 0;
+  text-align: left;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido h3 {
+  margin: 0 0 4px;
+  font-family: var(--fuente-ui);
+  font-size: 17px !important;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido h3::after,
+.contenido :is(.empleados-card, .inventario-card) .card-contenido h3::before {
+  display: none;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido p {
+  margin: 0 0 var(--espacio-3);
+  color: var(--texto-suave);
+}
+
+/* "Ingresar" como enlace; toda la tarjeta se puede tocar */
+.contenido :is(.empleados-card, .inventario-card) {
+  position: relative;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .btn-ingresar {
+  width: auto;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: var(--acento-texto);
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .btn-ingresar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .btn-ingresar:hover {
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ---------- Tema oscuro: las portadas usan sus colores ---------- */
+[data-tema="oscuro"] .contenido :is(.empleados-card, .inventario-card) {
+  background-color: var(--superficie);
+  border-color: var(--borde);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar):active {
+    transform: none;
+  }
+}
