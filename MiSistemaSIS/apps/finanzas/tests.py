@@ -34,12 +34,13 @@ class NavegacionFinanzasTests(TestCase):
     def test_sin_caja_abierta_se_ofrece_abrirla(self):
         respuesta = self.client.get(reverse("finanzas:listar_cajas"))
         self.assertContains(respuesta, reverse("finanzas:abrir_caja"))
-        self.assertContains(respuesta, "Sin caja abierta")
+        self.assertContains(respuesta, "No hay caja abierta")
 
     def test_con_caja_abierta_se_va_directo_a_ella(self):
         abierta = caja.objects.create(empleado_apertura=self.empleado, saldo_inicial=Decimal("1000"))
         respuesta = self.client.get(reverse("finanzas:listar_cajas"))
-        self.assertContains(respuesta, "Ver caja abierta")
+        self.assertContains(respuesta, "Caja #%d abierta" % abierta.pk)
+        self.assertContains(respuesta, reverse("finanzas:cerrar_caja", args=[abierta.pk]))
         self.assertContains(respuesta, reverse("finanzas:detalle_caja", args=[abierta.pk]))
         self.assertNotContains(respuesta, f'href="{reverse("finanzas:abrir_caja")}"')
 
@@ -118,3 +119,35 @@ class RecorridoDeCajaTests(TestCase):
         abierta.refresh_from_db()
         self.assertEqual(abierta.estado_caja, "abierto")
         self.assertEqual(abierta.diferencia_caja, Decimal("0"))
+
+
+class AbrirCajaTests(TestCase):
+    def setUp(self):
+        admin = Cargo.objects.create(nombre_cargo="Administrador Prueba", nivel_acceso=99)
+        usuario = User.objects.create_user("caja.abrir", password="Clave-Prueba-123")
+        self.empleado = Empleado.objects.create(
+            nombre_empleado="Abri", apellido_empleado="Caja", dni="99000012",
+            correo="abri@prueba.com", user=usuario, cargo=admin,
+        )
+        self.client.force_login(usuario)
+
+    def test_sugiere_lo_que_quedo_al_cerrar_la_anterior(self):
+        anterior = caja.objects.create(empleado_apertura=self.empleado, saldo_inicial=Decimal("500"))
+        anterior.realizar_arqueo(Decimal("1200"), self.empleado)
+        anterior.cerrar_caja(self.empleado)
+        respuesta = self.client.get(reverse("finanzas:abrir_caja"))
+        self.assertContains(respuesta, 'data-usar-monto="1200.00"')
+        self.assertContains(respuesta, "La abre Abri Caja")
+
+    def test_con_una_caja_abierta_lleva_a_esa_caja(self):
+        abierta = caja.objects.create(empleado_apertura=self.empleado, saldo_inicial=Decimal("0"))
+        respuesta = self.client.get(reverse("finanzas:abrir_caja"))
+        self.assertRedirects(respuesta, reverse("finanzas:detalle_caja", args=[abierta.pk]))
+
+    def test_el_historial_muestra_lo_que_falto(self):
+        cerrada = caja.objects.create(empleado_apertura=self.empleado, saldo_inicial=Decimal("1000"))
+        cerrada.realizar_arqueo(Decimal("900"), self.empleado)
+        cerrada.cerrar_caja(self.empleado)
+        respuesta = self.client.get(reverse("finanzas:listar_cajas"))
+        self.assertContains(respuesta, "Faltó $100")
+        self.assertContains(respuesta, "Abrir caja")

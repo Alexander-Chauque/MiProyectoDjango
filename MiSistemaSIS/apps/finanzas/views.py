@@ -717,9 +717,13 @@ def listar_cajas(request):
     paginator = Paginator(cajas, por_pagina)
     cajas_paginadas = paginator.get_page(request.GET.get('page'))
 
+    caja_abierta = caja.objects.filter(estado_caja='abierto').select_related('empleado_apertura').first()
+
     return render(request, 'CAJA/listar_cajas.html', {
         'cajas': cajas_paginadas,
-        'caja_abierta': caja.objects.filter(estado_caja='abierto').first(),
+        'caja_abierta': caja_abierta,
+        'resumen_abierta': _resumen_caja(caja_abierta) if caja_abierta else None,
+        'ultima_cerrada': _ultima_cerrada(),
         'buscar': buscar,
         'estado_seleccionado': estado,
         'fecha_desde': fecha_desde_texto,
@@ -727,9 +731,32 @@ def listar_cajas(request):
         'por_pagina': por_pagina,
     })
 
+def _ultima_cerrada():
+    return caja.objects.filter(estado_caja='cerrado').order_by('-fecha_cierre').first()
+
+
+def _contexto_abrir(request, **extra):
+    """Lo que muestra Abrir caja: quién la abre y lo que quedó al cerrar la anterior."""
+    empleado = getattr(request.user, 'empleado', None)
+    cargo = getattr(empleado, 'cargo', None)
+    return {
+        'empleado': empleado,
+        'cargo_nombre': cargo.nombre_cargo if cargo else '',
+        'ultima_cerrada': _ultima_cerrada(),
+        'ahora': timezone.now(),
+        **extra,
+    }
+
+
 @login_required
 @permiso_requerido('caja', 'escribir')
 def abrir_caja(request):
+    # Si ya hay una abierta, no tiene sentido mostrar el formulario: se va a esa caja
+    abierta = caja.objects.filter(estado_caja='abierto').first()
+    if request.method == 'GET' and abierta:
+        messages.info(request, f'Ya está abierta la caja #{abierta.pk}. Los cobros y gastos se registran en ella.')
+        return redirect('finanzas:detalle_caja', pk=abierta.pk)
+
     if request.method == 'POST':
         try:
             empleado = request.user.empleado
@@ -763,10 +790,11 @@ def abrir_caja(request):
             error_campo(
                     request, "observaciones_apertura", 'Las observaciones de apertura no pueden superar los 1000 caracteres.'
             )
-            return render(request, 'CAJA/abrir_caja.html', {
-                'saldo_inicial': saldo_inicial_texto,
-                'observaciones_apertura': observaciones,
-            })
+            return render(request, 'CAJA/abrir_caja.html', _contexto_abrir(
+                request,
+                saldo_inicial=saldo_inicial_texto,
+                observaciones_apertura=observaciones,
+            ))
 
         try:
             saldo_inicial = Decimal(saldo_inicial_texto)
@@ -778,10 +806,11 @@ def abrir_caja(request):
             error_campo(
                     request, "saldo_inicial", 'El saldo inicial debe ser un número válido y no negativo.'
             )
-            return render(request, 'CAJA/abrir_caja.html', {
-                'saldo_inicial': saldo_inicial_texto,
-                'observaciones_apertura': observaciones,
-            })
+            return render(request, 'CAJA/abrir_caja.html', _contexto_abrir(
+                request,
+                saldo_inicial=saldo_inicial_texto,
+                observaciones_apertura=observaciones,
+            ))
 
         with transaction.atomic():
             nueva_caja = caja.objects.create(
@@ -809,7 +838,7 @@ def abrir_caja(request):
         messages.success(request, f'Caja #{nueva_caja.pk} abierta. Los cobros y gastos del turno se registran en ella.')
         return redirect('finanzas:detalle_caja', pk=nueva_caja.pk)
 
-    return render(request, 'CAJA/abrir_caja.html')
+    return render(request, 'CAJA/abrir_caja.html', _contexto_abrir(request))
 
 @login_required
 @permiso_requerido('caja', 'leer')

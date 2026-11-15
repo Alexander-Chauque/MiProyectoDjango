@@ -973,3 +973,154 @@
   font-size: 14px;
   font-weight: 700;
 }
+
+/* =========================================
+   CAJA: la caja actual (arriba del historial) y Abrir caja
+   ========================================= */
+.caja-actual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-4);
+  margin-bottom: var(--espacio-5);
+  padding: var(--espacio-5);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+}
+
+.caja-actual.abierta {
+  border-color: var(--exito-borde);
+  border-left-width: 6px;
+}
+
+.caja-actual.cerrada {
+  border-left: 6px solid var(--acento);
+}
+
+.caja-actual-cabecera {
+  display: flex;
+  flex: 1 1 280px;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.caja-actual-icono {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--exito-fondo);
+  color: var(--exito-texto);
+}
+
+.caja-actual.cerrada .caja-actual-icono {
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+}
+
+.caja-actual-cabecera h2 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--texto);
+}
+
+.caja-actual-cabecera p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+.caja-actual-numeros {
+  display: flex;
+  flex: 2 1 360px;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin: 0;
+}
+
+.caja-actual-numeros > div {
+  flex: 1 1 110px;
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio);
+  background-color: var(--superficie-2);
+}
+
+.caja-actual-numeros dt {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.caja-actual-numeros dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-actual-numeros dd.destacado {
+  color: var(--acento-texto);
+}
+
+.caja-actual-ultima {
+  flex: 1 1 100%;
+  order: 3;
+  margin: 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.caja-actual-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin-left: auto;
+}
+
+/* Resultado de cada caja en el historial */
+.resultado-caja {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.resultado-caja.cuadra { background-color: var(--exito-fondo); color: var(--exito-texto); }
+.resultado-caja.falta { background-color: var(--error-fondo); color: var(--error-texto); }
+.resultado-caja.sobra { background-color: var(--advertencia-fondo); color: var(--advertencia-texto); }
+
+/* Abrir caja */
+.caja-formulario--angosto {
+  max-width: 720px;
+}
+
+.caja-sugerencia {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  width: 100%;
+  margin-top: var(--espacio-3);
+  padding: var(--espacio-3);
+  border: 1px dashed var(--acento);
+  border-radius: var(--radio);
+  background-color: var(--acento-suave);
+  color: var(--texto);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.caja-sugerencia:hover {
+  border-style: solid;
+}
+
+.caja-sugerencia .material-symbols-outlined {
+  color: var(--acento-texto);
+}
