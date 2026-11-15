@@ -28,7 +28,7 @@
       </div>
       <div class="texto-formulario">
         <h1>Crear permiso</h1>
-        <p>Definí el módulo, la acción y una descripción para este permiso.</p>
+        <p>Definí el módulo y la acción de este permiso.</p>
       </div>
     </div>
     <form method="POST" class="cuerpo-formulario">
@@ -58,6 +58,15 @@
           <span class="material-symbols-outlined">settings</span>
           {{ form.accion }}
         </div>
+      </div>
+
+      <div class="acciones-formulario">
+        <a href="{% url 'empleados:listar_permiso' %}" class="btn-secundario">
+          <span class="material-symbols-outlined">close</span> Cancelar
+        </a>
+        <button type="submit" class="btn-primario">
+          <span class="material-symbols-outlined">save</span> Guardar permiso
+        </button>
       </div>
     </form>
   </div>
