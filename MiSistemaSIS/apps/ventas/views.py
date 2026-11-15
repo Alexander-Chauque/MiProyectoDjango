@@ -3,6 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from datetime import datetime, time
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Mesa, Comanda, DetalleComanda
@@ -885,3 +886,71 @@ def _registrar_pago(request):
             f"Pago de ${monto} registrado en la comanda "
             f"#{comanda.id_comanda}. Saldo pendiente: ${saldo_restante}.{texto_vuelto}"
         )
+
+# PLANO DEL SALÓN
+@login_required
+@permiso_requerido("mesas", "leer")
+def plano_salon(request):
+    """Dibuja el local con cada mesa en su lugar y su estado (ver ventas/plano_salon.py)."""
+    from . import plano_salon as plano
+
+    mesas = {mesa.numero_mesa: mesa for mesa in Mesa.objects.all()}
+    # La comanda abierta más reciente de cada mesa (una sola consulta)
+    abiertas = {}
+    for comanda in Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS).order_by("fecha_hora"):
+        abiertas[comanda.mesa_id] = comanda
+    puede_crear = tiene_permiso(request.user, "comandas", "escribir")
+    puede_ver = tiene_permiso(request.user, "comandas", "leer")
+
+    lugares = []
+    numeros_en_plano = set()
+    for dato in plano.MESAS:
+        numeros_en_plano.add(dato["numero"])
+        mesa = mesas.get(dato["numero"])
+        lugar = {
+            **dato,
+            "pos": plano.a_porcentajes(dato["x"], dato["y"], plano.MESA_LADO, plano.MESA_LADO),
+            "mesa": mesa,
+            "comanda": None,
+            "url": "",
+        }
+        if mesa is None:
+            lugar["estado"] = "sin-cargar"
+        elif mesa.estado_mesa:
+            lugar["estado"] = "libre"
+            if puede_crear:
+                lugar["url"] = f"{reverse('ventas:comanda_crear')}?mesa={mesa.pk}"
+        else:
+            lugar["estado"] = "ocupada"
+            lugar["comanda"] = abiertas.get(mesa.pk)
+            if lugar["comanda"] and puede_ver:
+                lugar["url"] = reverse("ventas:comanda_detalle", args=[lugar["comanda"].pk])
+            else:
+                lugar["url"] = reverse("ventas:mesa_ver_comandas", args=[mesa.pk])
+        lugar["otra_ubicacion"] = bool(mesa and mesa.ubicacion != dato["ubicacion"])
+        lugares.append(lugar)
+
+    def con_posicion(items):
+        return [{**item, "pos": plano.a_porcentajes(item["x"], item["y"], item["ancho"], item["alto"])} for item in items]
+
+    pilares = [
+        plano.a_porcentajes(x - plano.PILAR_DIAMETRO / 2, y - plano.PILAR_DIAMETRO / 2, plano.PILAR_DIAMETRO, plano.PILAR_DIAMETRO)
+        for x, y in plano.PILARES
+    ]
+    resumen = {
+        clave: sum(1 for lugar in lugares if lugar["estado"] == estado)
+        for clave, estado in (("libre", "libre"), ("ocupada", "ocupada"), ("sin_cargar", "sin-cargar"))
+    }
+    return render(request, "mesas/plano_salon.html", {
+        "lugares": lugares,
+        "zonas": con_posicion(plano.ZONAS),
+        "elementos": con_posicion(plano.ELEMENTOS),
+        "pilares": pilares,
+        "resumen": resumen,
+        "capacidad_total": sum(lugar["capacidad"] for lugar in lugares),
+        "fuera_del_plano": sorted(
+            (mesa for numero, mesa in mesas.items() if numero not in numeros_en_plano),
+            key=lambda mesa: mesa.numero_mesa,
+        ),
+        "lienzo_proporcion": f"{plano.LIENZO[2]} / {plano.LIENZO[3]}",
+    })

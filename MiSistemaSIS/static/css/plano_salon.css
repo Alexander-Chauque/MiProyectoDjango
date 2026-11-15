@@ -1,0 +1,228 @@
+/*
+ * PLANO DEL SALÓN
+ * El plano se dibuja con posiciones en porcentajes (ver ventas/plano_salon.py),
+ * así se adapta al ancho. Los textos usan "cqw" (porcentaje del ancho del plano)
+ * para achicarse junto con el dibujo. Colores tomados de las variables comunes.
+ */
+
+.plano-panel {
+  margin-bottom: var(--espacio-5);
+  padding: var(--espacio-4) var(--espacio-5);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+}
+
+.plano-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+}
+
+.plano-cabecera h2,
+.plano-fuera h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.plano-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2) var(--espacio-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.plano-leyenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plano-muestra {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+
+.plano-muestra--libre { background-color: var(--exito-fondo); border-color: var(--exito-borde); }
+.plano-muestra--ocupada { background-color: var(--acento); border-color: var(--acento-hover); }
+.plano-muestra--sin-cargar { border: 2px dashed var(--borde); }
+
+/* En pantallas angostas el plano no se achica de más: se desplaza de costado */
+.plano-desplazable {
+  overflow-x: auto;
+  /* Lugar para los nombres de las zonas, que van arriba de cada una */
+  padding-top: 22px;
+  scrollbar-width: thin;
+}
+
+.plano {
+  position: relative;
+  min-width: 860px;
+  container-type: inline-size;
+}
+
+.plano > * {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+/* Zonas */
+.plano-zona {
+  border-radius: 10px;
+}
+
+.zona-salon {
+  background-color: var(--superficie-2);
+  border: 1px solid var(--borde);
+}
+
+.zona-patio {
+  border: 2px dashed var(--borde);
+}
+
+.zona-servicio {
+  background-color: var(--superficie-2);
+  border: 1px solid var(--borde);
+  opacity: 0.6;
+}
+
+.plano-zona-nombre {
+  position: absolute;
+  top: -0.2cqw;
+  left: 0.6cqw;
+  transform: translateY(-100%);
+  font-size: max(11px, 0.85cqw);
+  font-weight: 600;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+/* Elementos fijos (escenario, barras, cocina, baños) */
+.plano-elemento {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background-color: var(--superficie);
+  font-size: max(9px, 0.7cqw);
+  line-height: 1.15;
+  text-align: center;
+  color: var(--texto-suave);
+  overflow: hidden;
+}
+
+.elemento-destacado {
+  font-size: max(11px, 0.95cqw);
+  font-weight: 600;
+  color: var(--texto);
+  border-color: var(--texto-suave);
+}
+
+.elemento-vertical span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.plano-pilar {
+  border-radius: 50%;
+  background-color: var(--borde);
+}
+
+/* Mesas */
+.plano-mesa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  text-decoration: none;
+  line-height: 1.05;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.plano-mesa strong {
+  font-size: max(13px, 1.25cqw);
+  font-weight: 700;
+}
+
+.plano-mesa small {
+  font-size: max(9px, 0.62cqw);
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.plano-mesa--libre {
+  background-color: var(--exito-fondo);
+  border-color: var(--exito-borde);
+  color: var(--exito-texto);
+}
+
+.plano-mesa--ocupada {
+  background-color: var(--acento);
+  border-color: var(--acento-hover);
+  color: var(--texto-sobre-acento);
+}
+
+.plano-mesa--sin-cargar {
+  border: 2px dashed var(--borde);
+  color: var(--texto-suave);
+  background-color: var(--superficie);
+}
+
+/* La mesa existe, pero en el sistema figura en otra ubicación (salón/patio) */
+.plano-mesa--aviso::after {
+  content: "!";
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--peligro);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+a.plano-mesa:hover {
+  transform: scale(1.08);
+  box-shadow: var(--sombra);
+  z-index: 2;
+}
+
+.plano-pie,
+.plano-fuera p {
+  margin: var(--espacio-3) 0 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.plano-pie a,
+.plano-fuera a {
+  color: var(--acento-texto);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plano-mesa {
+    transition: none;
+  }
+}
