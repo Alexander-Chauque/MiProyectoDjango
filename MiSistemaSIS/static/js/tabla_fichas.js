@@ -1,11 +1,4 @@
-/*
- * Tablas como fichas en celular.
- *
- * Copia el título de cada columna en sus celdas (data-titulo). En pantallas
- * chicas, base.css muestra cada fila como una ficha con "Título: valor", así
- * la tabla no se desplaza de costado. En computadora la tabla no cambia.
- * Se vuelve a aplicar cuando la búsqueda en vivo reemplaza las filas.
- */
+
 (function () {
   function prepararTabla(tabla) {
     const titulos = Array.from(tabla.querySelectorAll('thead th')).map(function (th) {

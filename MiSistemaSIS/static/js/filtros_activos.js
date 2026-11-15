@@ -1,11 +1,6 @@
 /*
  * Filtros activos: muestra arriba de la tabla una etiqueta por cada filtro
  * aplicado, con una ✕ para quitarlo, y "Quitar todos" al final.
- *
- * Lee los filtros de la dirección (?estado=pagado&buscar=teo...) y busca en el
- * formulario de filtros el texto que corresponde a cada uno (por ejemplo, la
- * casilla con value="pagado" se muestra como "Pagado").
- * Funciona en todos los listados que tienen .filtros-panel y .tabla-panel.
  */
 (function () {
   // El panel es el formulario mismo o un <aside> que lo contiene

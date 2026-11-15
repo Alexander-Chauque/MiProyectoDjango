@@ -13,7 +13,6 @@
   </div>
 
   <div class="plano-desplazable">
-    {# Sin formato local: las posiciones van con punto decimal, como las entiende CSS #}
     {% localize off %}
     <div class="plano" style="aspect-ratio: {{ plano.proporcion }};">
       {% for zona in plano.zonas %}

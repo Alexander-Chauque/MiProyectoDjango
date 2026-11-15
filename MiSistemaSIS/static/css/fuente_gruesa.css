@@ -1,16 +1,4 @@
-/*
- * Texto en Segoe UI más grueso, para que se lea mejor.
- *
- * Windows trae Segoe UI en Regular (400), Semibold (600) y Bold (700): un
- * font-weight: 500 no cambia nada. Por eso se redefine la fuente:
- *   - texto normal (400-500)  -> Semibold
- *   - negritas     (600-900)  -> Bold
- * Así el texto común se engrosa y las negritas se siguen distinguiendo.
- *
- * Se carga desde base.html, login y recuperar contraseña. Los reportes del
- * Documento Oficial no lo cargan (block fuente_gruesa vacío), para que sigan
- * iguales a las capturas del documento.
- */
+
 @font-face {
     font-family: 'Segoe UI';
     src: local('Segoe UI Semibold'), local('SegoeUI-Semibold');

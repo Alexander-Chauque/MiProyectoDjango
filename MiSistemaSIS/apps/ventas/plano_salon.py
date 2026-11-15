@@ -1,11 +1,4 @@
 """Plano del local de Los Cardones, tomado del plano que entregó el restaurante.
-
-Las medidas están en los píxeles del plano original; la vista las pasa a porcentajes
-para que el dibujo se adapte al ancho de la pantalla. Cada mesa se une con la mesa
-cargada en el sistema por su número.
-
-Numeración: se respetan las 11 mesas que ya estaban cargadas (patio 6-10; salón 2, 3, 4,
-11, 13 y 14). Para cambiar la disposición del local, se edita solo este archivo.
 """
 
 # Parte del plano que se dibuja (x, y, ancho, alto)
