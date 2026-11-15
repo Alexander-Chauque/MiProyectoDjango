@@ -52,9 +52,9 @@ class TicketsDeComandaTests(TestCase):
         self.assertContains(respuesta, "Sin cebolla", count=3)
         self.assertContains(respuesta, "Ana Prueba", count=3)
         self.assertContains(respuesta, f"{comanda.pk:06d}", count=3)
-        self.assertContains(respuesta, "Mesa:</strong> 06", count=3)
+        self.assertContains(respuesta, '<dd class="ticket-mesa">06</dd>', count=3)
         self.assertContains(respuesta, "Imprimir los 3 tickets")
-        self.assertNotContains(respuesta, "NO PREPARAR")
+        self.assertNotContains(respuesta, "no preparar")
 
     def test_un_detalle_con_plato_y_bebida_va_a_los_dos_tickets(self):
         comanda = self.comanda()
@@ -80,7 +80,7 @@ class TicketsDeComandaTests(TestCase):
         for estado in ("anulado", "cancelado"):
             comanda = self.comanda(estado_comanda=estado)
             DetalleComanda.objects.create(comanda=comanda, plato=self.locro, cant_plato=1)
-            self.assertContains(self.ver(comanda), "NO PREPARAR")
+            self.assertContains(self.ver(comanda), "Comanda anulada: no preparar")
 
     def test_los_textos_cargados_se_escapan(self):
         comanda = self.comanda(observaciones_comanda="<script>alert(1)</script>")

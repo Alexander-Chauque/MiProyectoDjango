@@ -1,8 +1,10 @@
 """Pruebas de los módulos de la API que usa la web en React.
 
-Igual que tests.py, se ejecutan con ajustes que usan SQLite y omiten las migraciones.
+Corren en MySQL (como el sistema) o en SQLite. Ver _desactivado_hace() por el trigger de MySQL.
 """
 from datetime import timedelta
+from types import SimpleNamespace
+from unittest.mock import patch
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -14,6 +16,7 @@ from rest_framework.test import APIClient
 from auditoria.models import LogAuditoria
 from empleados.models import Asistencia, Cargo, Empleado, PermisoXCargo, TipoAsistencia, TipoPermiso
 from finanzas.models import Venta, caja, categoria_gasto, gasto, metodo_pago
+from inventario import servicios
 from inventario.models import Bebida, CategoriaPlato, DetallePlato, Ingrediente, Plato, TipoBebida
 from ventas.models import Comanda, DetalleComanda, Mesa, Pago
 
@@ -113,11 +116,23 @@ class MesasYComandasTests(BaseApi):
         self.assertTrue(Mesa.objects.get(pk=comanda["mesa"]).estado_mesa)
 
     def _desactivado_hace(self, producto, dias):
-        """Marca el producto como no disponible hace `dias` días (en MySQL lo haría el trigger)."""
-        campo = {"Plato": "estado_plato", "Bebida": "disponible_bebida", "Ingrediente": "estado_ingrediente"}[type(producto).__name__]
-        type(producto).objects.filter(pk=producto.pk).update(
-            **{campo: False, "fecha_desactivacion": timezone.now() - timedelta(days=dias)}
-        )
+        """Marca el producto como no disponible hace `dias` días.
+
+        En SQLite alcanza con guardar la fecha. En MySQL el trigger anota la fecha real
+        y no deja cambiarla, así que se adelanta el reloj con el que inventario.servicios
+        decide si ya se puede eliminar.
+        """
+        modelo = type(producto)
+        campo = {"Plato": "estado_plato", "Bebida": "disponible_bebida", "Ingrediente": "estado_ingrediente"}[modelo.__name__]
+        hace = timezone.now() - timedelta(days=dias)
+        modelo.objects.filter(pk=producto.pk).update(**{campo: False, "fecha_desactivacion": hace})
+        guardada = modelo.objects.filter(pk=producto.pk).values_list("fecha_desactivacion", flat=True).get()
+        if guardada and abs((guardada - hace).total_seconds()) > 60:
+            adelanto = guardada - hace
+            reloj = SimpleNamespace(now=lambda: timezone.now() + adelanto, localtime=timezone.localtime)
+            parche = patch.object(servicios, "timezone", reloj)
+            parche.start()
+            self.addCleanup(parche.stop)
 
     def test_no_elimina_un_plato_disponible(self):
         r = self.cliente.delete(f"/api/platos/{self.plato.pk}/")
@@ -184,7 +199,8 @@ class MesasYComandasTests(BaseApi):
 
     def test_no_elimina_comanda_con_pagos(self):
         comanda = self._comanda()
-        Pago.objects.create(comanda_id=comanda["id_comanda"], monto=10, metodo_pago="efectivo")
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        Pago.objects.create(comanda_id=comanda["id_comanda"], monto=10, metodo_pago=efectivo)
         self.assertEqual(self.cliente.delete(f"/api/comandas/{comanda['id_comanda']}/").status_code, 400)
 
     def test_consulta_paginada_con_filtros(self):
@@ -327,7 +343,7 @@ class CuentaYAsistenciasTests(BaseApi):
         self.assertEqual(anonimo.post("/api/token/cambiar-clave/", {**datos, "password": "mal"}, format="json").status_code, 400)
         r = anonimo.post("/api/token/cambiar-clave/", datos, format="json")
         self.assertEqual(r.status_code, 200, r.data)
-        r = anonimo.post("/api/token/", {"username": "ana.prueba", "password": "Nueva-Clave-789"}, format="json")
+        r = anonimo.post("/api/token/", {"username": self.admin.user_auto, "password": "Nueva-Clave-789"}, format="json")
         self.assertEqual(r.status_code, 200, r.data)
 
     def test_asistencia_una_por_dia_y_turnos(self):
