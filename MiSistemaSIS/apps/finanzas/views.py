@@ -806,8 +806,8 @@ def abrir_caja(request):
                 empleado=empleado,
             )
 
-        messages.success(request, 'La caja se abrió correctamente.')
-        return redirect('finanzas:listar_cajas')
+        messages.success(request, f'Caja #{nueva_caja.pk} abierta. Los cobros y gastos del turno se registran en ella.')
+        return redirect('finanzas:detalle_caja', pk=nueva_caja.pk)
 
     return render(request, 'CAJA/abrir_caja.html')
 
@@ -854,8 +854,14 @@ def detalle_caja(request, pk):
 
     saldo_esperado = caja_actual.calcular_saldo_esperado()
 
+    movimientos_despues_del_conteo = bool(caja_actual.fecha_arqueo) and (
+        pagos.filter(fecha_hora__gt=caja_actual.fecha_arqueo).exists()
+        or gastos.filter(fecha_hora_gasto__gt=caja_actual.fecha_arqueo).exists()
+    )
+
     return render(request, 'CAJA/detalle_caja.html', {
         'caja': caja_actual,
+        'movimientos_despues_del_conteo': movimientos_despues_del_conteo,
         'gastos': gastos,
         'total_egresos': total_egresos,
         'saldo_esperado': saldo_esperado,
@@ -896,12 +902,12 @@ def arqueo_caja(request, pk):
 
     contexto = {
         'caja': caja_actual,
-        'saldo_esperado': caja_actual.calcular_saldo_esperado(),
+        **_resumen_caja(caja_actual),
         'empleado': empleado,
         'cargo_nombre': cargo_nombre,
         'fecha_actual': timezone.now(),
         'observaciones_arqueo': caja_actual.observaciones_arqueo,
-        'saldo_contado': caja_actual.saldo_contado,
+        'saldo_contado': '',
     }
 
     if request.method == 'POST':
@@ -986,7 +992,7 @@ def arqueo_caja(request, pk):
 
             messages.success(
                 request,
-                'El arqueo se realizó correctamente.'
+                'Conteo guardado. La caja sigue abierta.'
             )
 
         except ValueError as error:
@@ -1056,18 +1062,36 @@ def cerrar_caja(request, pk):
         observaciones = request.POST.get(
             'observaciones_cierre', ''
         ).strip()
+        saldo_texto = request.POST.get('saldo_contado', '').strip()
+
+        def volver_al_formulario():
+            return render(
+                request,
+                'CAJA/cerrar_caja.html',
+                _contexto_cierre(
+                    request, caja_actual,
+                    observaciones_cierre=observaciones,
+                    saldo_contado=saldo_texto,
+                ),
+            )
 
         if len(observaciones) > 1000:
             error_campo(
                     request, "observaciones_cierre", 'Las observaciones de cierre no pueden superar los 1000 caracteres.'
             )
-            return render(
-                request,
-                'CAJA/cerrar_caja.html',
-                _contexto_cierre(
-                    request, caja_actual, observaciones_cierre=observaciones
-                ),
+            return volver_al_formulario()
+
+        # Para cerrar hay que contar el efectivo del cajón
+        try:
+            saldo_contado = Decimal(saldo_texto)
+            if not saldo_contado.is_finite() or saldo_contado < 0:
+                raise ValueError
+        except (InvalidOperation, ValueError):
+            error_campo(
+                request, "saldo_contado",
+                'Escribí cuánto efectivo hay en el cajón (un número, sin signo negativo).'
             )
+            return volver_al_formulario()
 
         try:
             with transaction.atomic():
@@ -1085,6 +1109,13 @@ def cerrar_caja(request, pk):
                 saldo_final_anterior = caja_actual.saldo_final
                 empleado_cierre_anterior = caja_actual.empleado_cierre
                 observaciones_anteriores = caja_actual.observaciones_cierre
+
+                # El conteo final queda como arqueo de la caja.
+                caja_actual.realizar_arqueo(
+                    saldo_contado=saldo_contado,
+                    empleado_arqueamiento=empleado,
+                    observaciones_arqueo=caja_actual.observaciones_arqueo,
+                )
 
                 # Cerrar la caja.
                 caja_actual.cerrar_caja(
@@ -1106,15 +1137,24 @@ def cerrar_caja(request, pk):
                     valores_actuales=(
                         f"Estado: {caja_actual.estado_caja}, "
                         f"Saldo final: ${caja_actual.saldo_final}, "
+                        f"Saldo contado: ${caja_actual.saldo_contado}, "
+                        f"Diferencia: ${caja_actual.diferencia_caja}, "
                         f"Empleado de cierre: {empleado}, "
                         f"Observaciones: {caja_actual.observaciones_cierre}"
                     ),
                     empleado=empleado,
                 )
 
+            diferencia = caja_actual.diferencia_caja
+            if diferencia == 0:
+                resultado = 'el efectivo cuadró'
+            elif diferencia < 0:
+                resultado = f'faltaron ${-diferencia}'
+            else:
+                resultado = f'sobraron ${diferencia}'
             messages.success(
                 request,
-                'La caja se cerró correctamente.'
+                f'Caja #{caja_actual.pk} cerrada: {resultado}.'
             )
 
             return redirect('finanzas:detalle_caja', pk=pk)

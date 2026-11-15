@@ -683,3 +683,293 @@
     background-color: #3A3A3A;
     color: #C8C8C8;
 }
+
+/* =========================================
+   CAJA: detalle, conteo y cierre
+   ========================================= */
+.caja-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+/* Los 3 pasos de la caja */
+.caja-pasos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espacio-3);
+  margin: 0 0 var(--espacio-4);
+  padding: 0;
+  list-style: none;
+}
+
+.caja-pasos li {
+  display: flex;
+  gap: var(--espacio-3);
+  align-items: flex-start;
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background-color: var(--superficie);
+  color: var(--texto-suave);
+}
+
+.caja-pasos li div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.caja-pasos li strong {
+  font-size: 14px;
+  color: var(--texto);
+}
+
+.caja-paso-marca {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--superficie-2);
+  color: var(--texto-suave);
+  font-weight: 700;
+}
+
+.caja-paso-marca .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.caja-pasos li.hecho .caja-paso-marca {
+  background-color: var(--exito-borde);
+  color: #fff;
+}
+
+.caja-pasos li.actual {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 1px var(--acento) inset;
+}
+
+.caja-pasos li.actual .caja-paso-marca {
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}
+
+/* La cuenta del cajón: al abrir + cobros − gastos = debería haber */
+.cuenta-cajon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--espacio-2);
+}
+
+.cuenta-cajon-item {
+  display: flex;
+  flex: 1 1 140px;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--espacio-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background-color: var(--superficie-2);
+}
+
+.cuenta-cajon-etiqueta {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.cuenta-cajon-item strong {
+  font-size: 20px;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta-cajon-item--suma strong {
+  color: var(--exito-texto);
+}
+
+.cuenta-cajon-item--resta strong {
+  color: var(--error-texto);
+}
+
+.cuenta-cajon-item--total {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+}
+
+.cuenta-cajon-item--total strong {
+  font-size: 24px;
+}
+
+.cuenta-cajon-signo {
+  align-self: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+
+/* Resultado de una caja cerrada */
+.resultado-cierre {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-4);
+}
+
+.resultado-cierre > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--espacio-3);
+  border-radius: var(--radio);
+  background-color: var(--superficie-2);
+}
+
+.resultado-cierre span {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.resultado-cierre strong {
+  font-size: 20px;
+  color: var(--texto);
+}
+
+.resultado-cierre-diferencia.cuadra { background-color: var(--exito-fondo); }
+.resultado-cierre-diferencia.cuadra strong { color: var(--exito-texto); }
+.resultado-cierre-diferencia.falta { background-color: var(--error-fondo); }
+.resultado-cierre-diferencia.falta strong { color: var(--error-texto); }
+.resultado-cierre-diferencia.sobra { background-color: var(--advertencia-fondo); }
+.resultado-cierre-diferencia.sobra strong { color: var(--advertencia-texto); }
+
+/* Aviso del último conteo */
+.aviso-conteo {
+  display: flex;
+  gap: var(--espacio-2);
+  align-items: flex-start;
+  margin: var(--espacio-3) 0 0;
+  padding: var(--espacio-3);
+  border-radius: var(--radio-sm);
+  background-color: var(--info-fondo);
+  color: var(--info-texto);
+  font-size: 13px;
+}
+
+.aviso-conteo.viejo {
+  background-color: var(--advertencia-fondo);
+  color: var(--advertencia-texto);
+}
+
+/* Datos en texto (no en campos apagados) */
+.caja-datos {
+  display: grid;
+  gap: var(--espacio-3);
+  margin: 0;
+}
+
+.caja-datos dt {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.caja-datos dd {
+  margin: 2px 0 0;
+  color: var(--texto);
+  white-space: pre-line;
+}
+
+.caja-por-metodo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin: 0 0 var(--espacio-3);
+  padding: 0;
+  list-style: none;
+}
+
+.caja-por-metodo li {
+  display: flex;
+  gap: var(--espacio-2);
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.caja-por-metodo strong {
+  color: var(--texto);
+}
+
+.caja-vacio {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+/* Contar el efectivo: la diferencia aparece mientras se escribe */
+.contar-efectivo input {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.contar-efectivo-diferencia {
+  margin: var(--espacio-2) 0 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio-sm);
+  font-weight: 600;
+}
+
+.contar-efectivo-diferencia.cuadra { background-color: var(--exito-fondo); color: var(--exito-texto); }
+.contar-efectivo-diferencia.falta { background-color: var(--error-fondo); color: var(--error-texto); }
+.contar-efectivo-diferencia.sobra { background-color: var(--advertencia-fondo); color: var(--advertencia-texto); }
+
+.caja-quien {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  margin: 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.caja-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.caja-formulario .tarjeta-comanda {
+  margin: 0;
+}
+
+.caja-botones {
+  justify-content: flex-end;
+}
+
+@media (max-width: 700px) {
+  .caja-pasos {
+    grid-template-columns: 1fr;
+  }
+
+  .cuenta-cajon-signo {
+    display: none;
+  }
+}
+
+/* Número de paso en los formularios de caja (el mismo que en Nueva comanda) */
+.caja-formulario .paso-numero {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+  font-size: 14px;
+  font-weight: 700;
+}

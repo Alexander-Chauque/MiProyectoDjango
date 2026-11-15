@@ -1,0 +1,31 @@
+{% load l10n %}
+{# La cuenta del cajón, en tarjetas: lo que había, lo que entró y salió en efectivo, y lo que debería haber. #}
+<div class="cuenta-cajon" aria-label="Cuenta del efectivo en el cajón">
+    <div class="cuenta-cajon-item">
+        <span class="cuenta-cajon-etiqueta">Al abrir</span>
+        <strong>${{ caja.saldo_inicial|floatformat:2 }}</strong>
+    </div>
+    <span class="cuenta-cajon-signo" aria-hidden="true">+</span>
+    <div class="cuenta-cajon-item cuenta-cajon-item--suma">
+        <span class="cuenta-cajon-etiqueta">Cobros en efectivo</span>
+        <strong>${{ ventas_efectivo|floatformat:2 }}</strong>
+    </div>
+    <span class="cuenta-cajon-signo" aria-hidden="true">−</span>
+    <div class="cuenta-cajon-item cuenta-cajon-item--resta">
+        <span class="cuenta-cajon-etiqueta">Gastos</span>
+        <strong>${{ total_egresos|floatformat:2 }}</strong>
+    </div>
+    <span class="cuenta-cajon-signo" aria-hidden="true">=</span>
+    <div class="cuenta-cajon-item cuenta-cajon-item--total">
+        <span class="cuenta-cajon-etiqueta">Debería haber en el cajón</span>
+        <strong>${{ saldo_esperado|floatformat:2 }}</strong>
+    </div>
+</div>
+
+<p class="resumen-nota">
+    <span class="material-symbols-outlined" aria-hidden="true">credit_card</span>
+    <span>
+        Además se cobraron <strong>${{ ventas_otros_medios|floatformat:2 }}</strong> con tarjeta, transferencia u otros medios
+        (total cobrado: <strong>${{ total_ventas|floatformat:2 }}</strong>). No se cuentan en el cajón porque no son billetes.
+    </span>
+</p>
