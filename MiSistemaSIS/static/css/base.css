@@ -2132,3 +2132,33 @@ button {
 .tabla tbody tr.fila-resaltada td:first-child {
   box-shadow: inset 4px 0 0 var(--acento);
 }
+
+/* Alerta de errores: hay que cerrarla con "Entendido" */
+.alerta-errores-caja {
+  max-width: 460px;
+}
+
+.alerta-errores .modal-body {
+  color: var(--texto, #2D3748);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.alerta-errores .modal-body p {
+  margin: 0;
+}
+
+.alerta-errores .modal-body ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.alerta-errores .modal-body li + li {
+  margin-top: 6px;
+}
+
+.alerta-errores .modal-footer .btn-primario {
+  min-width: 140px;
+  min-height: 44px;
+  justify-content: center;
+}

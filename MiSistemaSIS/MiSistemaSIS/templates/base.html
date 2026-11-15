@@ -260,10 +260,35 @@
 
       <!-- CONTENIDO DE CADA PÁGINA -->
       <main class="contenido">
-        {% if messages %} {% for message in messages %}
-        <div class="alert alert-{{ message.level_tag }}"{% if 'campo:' in message.extra_tags %} data-campo="{{ message.extra_tags|cut:'campo:' }}"{% endif %}>{{ message }}</div>
-        {% endfor %} {% endif %} {% block content %}{% endblock %}
+        {% if messages %}
+          {# Los errores van en una alerta que hay que cerrar; el resto, arriba y se van solos #}
+          <div class="alerta-errores-datos" hidden>
+            {% for message in messages %}{% if message.level_tag == 'error' %}
+            <p{% if 'campo:' in message.extra_tags %} data-campo="{{ message.extra_tags|cut:'campo:' }}"{% endif %}>{{ message }}</p>
+            {% endif %}{% endfor %}
+          </div>
+          {% for message in messages %}{% if message.level_tag != 'error' %}
+          <div class="alert alert-{{ message.level_tag }} mensaje-sistema" role="status">{{ message }}</div>
+          {% endif %}{% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
       </main>
+
+      <div class="modal-overlay alerta-errores" id="alerta-errores" style="display: none;" role="alertdialog" aria-modal="true"
+        aria-labelledby="alerta-errores-titulo" aria-describedby="alerta-errores-texto">
+        <div class="modal-contenido alerta-errores-caja">
+          <div class="modal-header">
+            <div class="modal-icono-alerta">
+              <span class="material-symbols-outlined" aria-hidden="true">error</span>
+            </div>
+            <h3 id="alerta-errores-titulo">No se pudo completar</h3>
+          </div>
+          <div class="modal-body" id="alerta-errores-texto"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn-primario" data-alerta-cerrar>Entendido</button>
+          </div>
+        </div>
+      </div>
     </div>
     
 
@@ -333,9 +358,51 @@
         });
       })();
 
+      // Errores: se muestran en una alerta que hay que cerrar con "Entendido".
+      // Va después de que validacion_campos.js ponga debajo de su campo los que tienen uno.
       document.addEventListener("DOMContentLoaded", function () {
         setTimeout(function () {
-          document.querySelectorAll(".alert").forEach(function (alert) {
+          const datos = document.querySelector(".alerta-errores-datos");
+          const alerta = document.getElementById("alerta-errores");
+          if (!datos || !alerta) return;
+          const errores = Array.from(datos.querySelectorAll("p"));
+          datos.remove();
+          if (!errores.length) return;
+          const texto = document.getElementById("alerta-errores-texto");
+          if (errores.length === 1) {
+            texto.appendChild(errores[0]);
+          } else {
+            const lista = document.createElement("ul");
+            errores.forEach(function (p) {
+              const item = document.createElement("li");
+              item.textContent = p.textContent.trim();
+              lista.appendChild(item);
+            });
+            texto.appendChild(lista);
+          }
+          const anterior = document.activeElement;
+          const boton = alerta.querySelector("[data-alerta-cerrar]");
+          function cerrar() {
+            alerta.style.display = "none";
+            document.removeEventListener("keydown", teclas);
+            if (anterior && anterior.focus) anterior.focus();
+          }
+          function teclas(e) {
+            if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); cerrar(); }
+            if (e.key === "Tab") { e.preventDefault(); boton.focus(); }  // el foco queda en la alerta
+          }
+          boton.addEventListener("click", cerrar);
+          alerta.addEventListener("click", function (e) { if (e.target === alerta) cerrar(); });
+          document.addEventListener("keydown", teclas);
+          alerta.style.display = "flex";
+          boton.focus();
+        }, 0);
+      });
+
+      // Avisos de que algo salió bien: se van solos (solo los del sistema, no los cuadros de cada pantalla)
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+          document.querySelectorAll(".mensaje-sistema").forEach(function (alert) {
             alert.style.transition = "opacity 0.5s";
             alert.style.opacity = "0";
             setTimeout(function () {

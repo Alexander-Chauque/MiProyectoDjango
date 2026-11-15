@@ -375,6 +375,15 @@ class TomarPedidoTests(TestCase):
         comanda.refresh_from_db()
         self.assertEqual(comanda.mesa, self.mesa)
 
+    def test_los_errores_salen_en_la_alerta_y_no_como_aviso(self):
+        comanda = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera, estado_comanda="pagado")
+        respuesta = self.client.get(reverse("ventas:comanda_editar", args=[comanda.pk]), follow=True)
+        html = respuesta.content.decode()
+        datos = html.split('class="alerta-errores-datos"', 1)[1].split("</div>", 1)[0]
+        self.assertIn("está cerrada", datos)
+        self.assertNotIn("mensaje-sistema", html.split('id="alerta-errores"', 1)[0].split("alerta-errores-datos", 1)[1])
+        self.assertContains(respuesta, 'role="alertdialog"')
+
     def test_la_nota_de_un_producto_llega_al_ticket(self):
         datos = self.datos()
         datos["detalles-0-observacion"] = "sin sal"
