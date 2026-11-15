@@ -9,55 +9,19 @@ class Migration(migrations.Migration):
         ('empleados', '0008_tipopermiso_descripcio_permiso'),
     ]
 
+    # Antes: RemoveField("id") + AddField(nueva clave primaria). En una base nueva eso
+    # fallaba (otras tablas ya apuntan a "id"), y no se podía crear la base de pruebas.
+    # Renombrar la columna deja el mismo resultado sin borrarla. Las bases donde esta
+    # migración ya se aplicó no la vuelven a ejecutar.
     operations = [
-        migrations.RemoveField(
-            model_name='asistencia',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='cargo',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='empleado',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='tipoasistencia',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='tipopermiso',
-            name='id',
-        ),
-        migrations.AddField(
-            model_name='asistencia',
-            name='id_asistencia',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='cargo',
-            name='id_cargo',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='empleado',
-            name='id_empleado',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='tipoasistencia',
-            name='id_tipo_asistencia',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='tipopermiso',
-            name='id_tipo_permiso',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
+        migrations.RenameField(model_name='asistencia', old_name='id', new_name='id_asistencia'),
+        migrations.AlterField(model_name='asistencia', name='id_asistencia', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='cargo', old_name='id', new_name='id_cargo'),
+        migrations.AlterField(model_name='cargo', name='id_cargo', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='empleado', old_name='id', new_name='id_empleado'),
+        migrations.AlterField(model_name='empleado', name='id_empleado', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='tipoasistencia', old_name='id', new_name='id_tipo_asistencia'),
+        migrations.AlterField(model_name='tipoasistencia', name='id_tipo_asistencia', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='tipopermiso', old_name='id', new_name='id_tipo_permiso'),
+        migrations.AlterField(model_name='tipopermiso', name='id_tipo_permiso', field=models.AutoField(primary_key=True, serialize=False)),
     ]

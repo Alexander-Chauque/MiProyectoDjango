@@ -9,75 +9,23 @@ class Migration(migrations.Migration):
         ('inventario', '0002_auto_20260915_1023'),
     ]
 
+    # Antes: RemoveField("id") + AddField(nueva clave primaria). En una base nueva eso
+    # fallaba (otras tablas ya apuntan a "id"), y no se podía crear la base de pruebas.
+    # Renombrar la columna deja el mismo resultado sin borrarla. Las bases donde esta
+    # migración ya se aplicó no la vuelven a ejecutar.
     operations = [
-        migrations.RemoveField(
-            model_name='bebida',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='categoriaplato',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='detalleplato',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='ingrediente',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='mesa',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='plato',
-            name='id',
-        ),
-        migrations.RemoveField(
-            model_name='tipobebida',
-            name='id',
-        ),
-        migrations.AddField(
-            model_name='bebida',
-            name='id_bebida',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='categoriaplato',
-            name='id_categoria_plato',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='detalleplato',
-            name='id_detalle_plato',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='ingrediente',
-            name='id_ingrediente',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='mesa',
-            name='id_mesa',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='plato',
-            name='id_plato',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='tipobebida',
-            name='id_tipo_bebida',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
+        migrations.RenameField(model_name='bebida', old_name='id', new_name='id_bebida'),
+        migrations.AlterField(model_name='bebida', name='id_bebida', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='categoriaplato', old_name='id', new_name='id_categoria_plato'),
+        migrations.AlterField(model_name='categoriaplato', name='id_categoria_plato', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='detalleplato', old_name='id', new_name='id_detalle_plato'),
+        migrations.AlterField(model_name='detalleplato', name='id_detalle_plato', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='ingrediente', old_name='id', new_name='id_ingrediente'),
+        migrations.AlterField(model_name='ingrediente', name='id_ingrediente', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='mesa', old_name='id', new_name='id_mesa'),
+        migrations.AlterField(model_name='mesa', name='id_mesa', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='plato', old_name='id', new_name='id_plato'),
+        migrations.AlterField(model_name='plato', name='id_plato', field=models.AutoField(primary_key=True, serialize=False)),
+        migrations.RenameField(model_name='tipobebida', old_name='id', new_name='id_tipo_bebida'),
+        migrations.AlterField(model_name='tipobebida', name='id_tipo_bebida', field=models.AutoField(primary_key=True, serialize=False)),
     ]
