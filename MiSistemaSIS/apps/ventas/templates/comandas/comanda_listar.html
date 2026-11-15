@@ -158,7 +158,7 @@
         </thead>
         <tbody>
           {% for comanda in comandas %}
-          <tr>
+          <tr{% if resaltar and comanda.id_comanda|stringformat:"s" == resaltar %} class="fila-resaltada" id="comanda-resaltada"{% endif %}>
             <td><strong>{{ comanda.id_comanda }}</strong></td>
             <td>Mesa {{ comanda.mesa.numero_mesa }}</td>
             <td>{{ comanda.empleado.get_full_name }}</td>
@@ -414,6 +414,9 @@
 
 {% include "comandas/_modal_pago.html" %}
 <script>
+  // La comanda recién guardada queda a la vista
+  document.getElementById("comanda-resaltada")?.scrollIntoView({ block: "center" });
+
   // Cambiar paginación
   function cambiarPorPagina(valor) {
     const url = new URL(window.location.href);

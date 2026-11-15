@@ -300,6 +300,7 @@ def comanda_listar(request):
         request,
         "comandas/comanda_listar.html",
         {
+            "resaltar": request.GET.get("resaltar", ""),
             "comandas": comandas,
             "mesas": mesas,
             "metodos_pago": metodos_pago,
@@ -389,7 +390,7 @@ def comanda_crear(request):
                 messages.success(
                     request, f"Comanda #{comanda.id_comanda} creada exitosamente"
                 )
-                return redirect(_despues_de_guardar(request))
+                return redirect(_ir_al_ticket(comanda))
             except Exception as e:
                 # Si algo falló, la transacción se revirtió automáticamente
                 messages.error(request, f"Error al crear la comanda: {e}")
@@ -469,7 +470,7 @@ def comanda_editar(request, pk):
                 messages.error(request, str(e))
                 return redirect("ventas:comanda_editar", pk=pk)
             messages.success(request, f"Comanda #{pk} actualizada")
-            return redirect(_despues_de_guardar(request))
+            return redirect(_ir_al_ticket(comanda, modificada=True))
     else:
         form = ComandaForm(instance=comanda)
         formset = DetalleFormSet(instance=comanda, form_kwargs={"comanda": comanda})
@@ -828,6 +829,10 @@ def _tickets_de_comanda(detalles):
 def comanda_ticket(request, pk):
     comanda = get_object_or_404(Comanda.objects.select_related("mesa", "empleado"), id_comanda=pk)
     detalles = comanda.detalles.all().select_related("plato__categoria", "bebida")
+    # ?detalles=1,2: solo lo que se agregó a la comanda (lo demás ya está en la cocina)
+    solo = [d for d in request.GET.get("detalles", "").split(",") if d.isdigit()]
+    if solo:
+        detalles = detalles.filter(pk__in=solo)
 
     return render(
         request,
@@ -836,6 +841,11 @@ def comanda_ticket(request, pk):
             "comanda": comanda,
             "tickets": _tickets_de_comanda(detalles),
             "anulada": comanda.estado_comanda in ("anulado", "cancelado"),
+            "agregado": bool(solo),
+            "modificada": request.GET.get("modificada") == "1",
+            # Recién guardada: se imprime sola y después se va al listado, con la comanda resaltada
+            "imprimir_al_abrir": request.GET.get("imprimir") == "1",
+            "url_listado": f"{reverse('ventas:comanda_listar')}?resaltar={comanda.pk}",
         },
     )
 
@@ -957,11 +967,20 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
     }
 
 
-def _despues_de_guardar(request):
-    """Después de crear o editar una comanda: de vuelta al plano para tomar el próximo pedido."""
-    if tiene_permiso(request.user, "comandas", "escribir"):
-        return "ventas:comanda_crear"
-    return "ventas:comanda_listar"
+def _ir_al_ticket(comanda, detalles=None, modificada=False):
+    """Después de guardar: el ticket se abre y se imprime solo; al terminar, va al listado.
+
+    detalles: solo esas líneas (lo agregado a una comanda que ya existía), para que la
+    cocina no vuelva a preparar lo que ya salió.
+    """
+    from urllib.parse import urlencode
+
+    parametros = {"imprimir": 1}
+    if detalles:
+        parametros["detalles"] = ",".join(str(d.pk) for d in detalles)
+    if modificada:
+        parametros["modificada"] = 1
+    return f"{reverse('ventas:comanda_ticket', args=[comanda.pk])}?{urlencode(parametros)}"
 
 
 def _mozos_disponibles():
@@ -1009,14 +1028,15 @@ def _agregar_a_comanda(request, id_comanda, DetalleFormSet, mozo_id):
                 messages.error(request, "Sumá al menos un plato o una bebida para agregar a la comanda.")
             else:
                 with transaction.atomic():
+                    agregados = []
                     for datos in nuevos:
-                        DetalleComanda.objects.create(
+                        agregados.append(DetalleComanda.objects.create(
                             comanda=comanda,
                             plato=datos.get("plato"),
                             cant_plato=datos.get("cant_plato") or 0,
                             bebida=datos.get("bebida"),
                             cant_bebida=datos.get("cant_bebida") or 0,
-                        )
+                        ))
                     total_anterior = comanda.total_comanda
                     comanda.calcular_total()
                     LogAuditoria.objects.create(
@@ -1034,7 +1054,7 @@ def _agregar_a_comanda(request, id_comanda, DetalleFormSet, mozo_id):
                     request,
                     f"Se agregaron productos a la mesa {comanda.mesa.numero_mesa} (comanda #{comanda.id_comanda}).",
                 )
-                return redirect(_despues_de_guardar(request))
+                return redirect(_ir_al_ticket(comanda, detalles=agregados))
     else:
         formset = DetalleFormSet()
 

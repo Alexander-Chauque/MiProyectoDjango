@@ -2123,3 +2123,12 @@ button {
     background-color: var(--superficie);
   }
 }
+
+/* Listado de comandas: la recién guardada, resaltada */
+.tabla tbody tr.fila-resaltada td {
+  background-color: var(--acento-suave);
+}
+
+.tabla tbody tr.fila-resaltada td:first-child {
+  box-shadow: inset 4px 0 0 var(--acento);
+}

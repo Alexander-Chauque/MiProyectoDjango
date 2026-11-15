@@ -196,9 +196,19 @@ class TomarPedidoTests(TestCase):
         self.assertContains(respuesta, f'{reverse("ventas:comanda_crear")}?comanda={comanda.pk}')
         self.assertContains(respuesta, "Agregar productos")
 
-    def test_al_guardar_vuelve_al_plano(self):
+    def test_al_crear_abre_el_ticket_para_imprimir(self):
         respuesta = self.client.post(reverse("ventas:comanda_crear"), self.datos())
-        self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
+        comanda = Comanda.objects.get()
+        ticket = f'{reverse("ventas:comanda_ticket", args=[comanda.pk])}?imprimir=1'
+        self.assertRedirects(respuesta, ticket, fetch_redirect_response=False)
+        pagina = self.client.get(ticket)
+        self.assertContains(pagina, "window.print()")
+        self.assertContains(pagina, f'{reverse("ventas:comanda_listar")}?resaltar={comanda.pk}')
+
+    def test_el_listado_resalta_la_comanda_recien_guardada(self):
+        comanda = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera)
+        respuesta = self.client.get(reverse("ventas:comanda_listar"), {"resaltar": comanda.pk})
+        self.assertContains(respuesta, 'id="comanda-resaltada"')
 
     def _mesa_con_pedido(self):
         comanda = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera, total_comanda=200)
@@ -251,7 +261,13 @@ class TomarPedidoTests(TestCase):
         datos = self.datos(comanda_id=comanda.pk)
         respuesta = self.client.post(reverse("ventas:comanda_crear"), datos)
 
-        self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
+        nuevo = comanda.detalles.order_by("-pk").first()
+        ticket = f'{reverse("ventas:comanda_ticket", args=[comanda.pk])}?imprimir=1&detalles={nuevo.pk}'
+        self.assertRedirects(respuesta, ticket, fetch_redirect_response=False)
+        # El ticket lleva solo lo agregado, marcado para la cocina
+        pagina = self.client.get(ticket)
+        self.assertEqual(pagina.context["tickets"][0]["productos"], [{"nombre": "Locro", "cantidad": 2}])
+        self.assertContains(pagina, "AGREGADO")
         self.assertEqual(Comanda.objects.count(), 1)
         comanda.refresh_from_db()
         # Lo que ya tenía (1 locro) sigue igual y se suma lo nuevo (2 locros): total 3 x 100
