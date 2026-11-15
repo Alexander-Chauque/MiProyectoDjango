@@ -268,6 +268,7 @@
             <td>{{ form_detalle.cant_plato }}</td>
             <td>{{ form_detalle.bebida }}</td>
             <td>{{ form_detalle.cant_bebida }}</td>
+            <td>{{ form_detalle.observacion }}</td>
             <td>{{ form_detalle.DELETE }}</td>
           </tr>
           {% endfor %}
@@ -330,6 +331,16 @@
                 </div>
             `;
         carritoContainer.appendChild(div);
+        // Nota para la cocina sobre este producto (sale en su ticket)
+        const nota = document.createElement('input');
+        nota.type = 'text';
+        nota.className = 'nota-item';
+        nota.maxLength = 120;
+        nota.placeholder = 'Nota para la cocina (ej: sin sal)';
+        nota.value = item.nota || '';
+        nota.setAttribute('aria-label', `Nota para ${item.nombre}`);
+        nota.addEventListener('input', () => { item.nota = nota.value; actualizarFormset(); });
+        div.appendChild(nota);
       });
 
       totalComanda.textContent = `$ ${total.toFixed(2)}`;
@@ -365,6 +376,12 @@
 }
                 <input type="hidden" name="detalles-${index}-DELETE" id="id_detalles-${index}-DELETE">
             `;
+        // La nota viaja con el producto
+        const observacion = document.createElement('input');
+        observacion.type = 'hidden';
+        observacion.name = `detalles-${index}-observacion`;
+        observacion.value = item.nota || '';
+        tr.appendChild(observacion);
         formsetTbody.appendChild(tr);
         index++;
       });
@@ -531,7 +548,7 @@
       const key = `${item.tipo}_${item.id}`;
       carrito[key] = {
         key, tipo: item.tipo, id: item.id, nombre: card.dataset.nombre,
-        precio: parseFloat(card.dataset.precio), cantidad: item.cantidad,
+        precio: parseFloat(card.dataset.precio), cantidad: item.cantidad, nota: item.nota || '',
       };
     });
     if (Object.keys(carrito).length) renderizarCarrito();

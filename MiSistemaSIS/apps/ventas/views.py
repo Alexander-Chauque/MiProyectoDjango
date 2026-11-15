@@ -429,7 +429,7 @@ def comanda_editar(request, pk):
         form=DetalleComandaForm,
         extra=1,
         can_delete=True,
-        fields=["plato", "cant_plato", "bebida", "cant_bebida"],
+        fields=["plato", "cant_plato", "bebida", "cant_bebida", "observacion"],
     )
 
     if request.method == "POST":
@@ -813,10 +813,14 @@ def _tickets_de_comanda(detalles):
         if detalle.tiene_plato:
             categoria = (detalle.categoria_del_plato or "").strip().lower()
             estacion = "parrilla" if categoria == "parrilla" else "cocina"
-            productos[estacion].append({"nombre": detalle.nombre_del_plato, "cantidad": detalle.cant_plato})
+            productos[estacion].append(
+                {"nombre": detalle.nombre_del_plato, "cantidad": detalle.cant_plato, "nota": detalle.observacion}
+            )
         # Un mismo detalle puede traer un plato y una bebida
         if detalle.tiene_bebida:
-            productos["bar"].append({"nombre": detalle.nombre_de_la_bebida, "cantidad": detalle.cant_bebida})
+            productos["bar"].append(
+                {"nombre": detalle.nombre_de_la_bebida, "cantidad": detalle.cant_bebida, "nota": detalle.observacion}
+            )
     return [
         {**estacion, "productos": productos[estacion["clave"]]}
         for estacion in _ESTACIONES_TICKET
@@ -904,6 +908,12 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
     from django.db.models import Sum
     from django.db.models.functions import Coalesce
 
+    # Mismo límite que la alerta de "Comanda demorada" (configurable, 30 minutos por defecto)
+    from notificaciones.reglas import leer_config
+
+    limite_minutos = int(leer_config("minutos_comanda_demorada", 30))
+    ahora = timezone.now()
+
     abiertas = {}
     for comanda in (
         Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS)
@@ -912,6 +922,12 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
         .order_by("fecha_hora")
     ):
         comanda.saldo = max(comanda.total_comanda - comanda.pagado, Decimal("0"))
+        comanda.espera = max(int((ahora - comanda.fecha_hora).total_seconds() // 60), 0)
+        # Solo se demora lo que todavía no se entregó
+        comanda.demorada = (
+            comanda.estado_comanda in ("pendiente", "en_preparacion")
+            and comanda.espera >= limite_minutos
+        )
         abiertas[comanda.mesa_id] = comanda
     puede_ver = tiene_permiso(request.user, "comandas", "leer")
     puede_agregar = tiene_permiso(request.user, "comandas", "modificar")
@@ -964,6 +980,14 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
         "proporcion": f"{plano.LIENZO[2]} / {plano.LIENZO[3]}",
         "puede_agregar": puede_agregar,
         "puede_ver": puede_ver,
+        "limite_minutos": limite_minutos,
+        # Las mesas abiertas del mozo que está usando el sistema, de la más antigua a la más nueva
+        "mis_mesas": sorted(
+            (lugar for lugar in lugares
+             if lugar["comanda"] and lugar["comanda"].empleado.user_id == request.user.pk),
+            key=lambda lugar: lugar["comanda"].fecha_hora,
+        ),
+        "demoradas": sum(1 for lugar in lugares if lugar["comanda"] and lugar["comanda"].demorada),
     }
 
 
@@ -1036,6 +1060,7 @@ def _agregar_a_comanda(request, id_comanda, DetalleFormSet, mozo_id):
                             cant_plato=datos.get("cant_plato") or 0,
                             bebida=datos.get("bebida"),
                             cant_bebida=datos.get("cant_bebida") or 0,
+                            observacion=(datos.get("observacion") or "").strip(),
                         ))
                     total_anterior = comanda.total_comanda
                     comanda.calcular_total()
@@ -1076,7 +1101,10 @@ def _carrito_enviado(datos):
             producto = datos.get(f"detalles-{i}-{tipo}", "")
             cantidad = datos.get(f"detalles-{i}-{campo_cantidad}", "")
             if str(producto).isdigit() and str(cantidad).isdigit() and int(cantidad) > 0:
-                items.append({"tipo": tipo, "id": producto, "cantidad": int(cantidad)})
+                items.append({
+                    "tipo": tipo, "id": producto, "cantidad": int(cantidad),
+                    "nota": str(datos.get(f"detalles-{i}-observacion", ""))[:120],
+                })
     return items
 
 

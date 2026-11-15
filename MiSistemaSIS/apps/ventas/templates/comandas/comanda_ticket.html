@@ -67,7 +67,7 @@
                         {% for producto in ticket.productos %}
                         <tr>
                             <td class="ticket-cantidad">{{ producto.cantidad }}</td>
-                            <td>{{ producto.nombre }}</td>
+                            <td>{{ producto.nombre }}{% if producto.nota %}<span class="ticket-nota">→ {{ producto.nota }}</span>{% endif %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

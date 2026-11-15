@@ -2,6 +2,19 @@
 {# Plano del local para elegir la mesa al tomar el pedido (datos: views._plano_de_mesas). #}
 {# Una mesa libre se elige con un toque; una ocupada lleva a su comanda.                  #}
 <div class="plano-elegir" data-plano-mesas data-campo="{{ form.mesa.id_for_label }}">
+  {% if plano.mis_mesas %}
+  <div class="mis-mesas" aria-label="Tus mesas abiertas">
+    <span class="mis-mesas-titulo">Tus mesas</span>
+    {% for lugar in plano.mis_mesas %}
+    <button type="button" class="mis-mesas-boton{% if lugar.comanda.demorada %} mis-mesas-boton--demorada{% endif %}"
+      data-abre-mesa="{{ lugar.numero }}">
+      <strong>Mesa {{ lugar.numero }}</strong>
+      <span>${{ lugar.comanda.total_comanda|floatformat:0 }} · {{ lugar.comanda.espera }} min</span>
+    </button>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <div class="plano-cabecera">
     <p class="plano-elegida" data-plano-elegida aria-live="polite">Tocá una mesa libre del plano.</p>
     <ul class="plano-leyenda">
@@ -9,6 +22,7 @@
       <li><span class="plano-muestra plano-muestra--ocupada"></span> Con pedido ({{ plano.ocupadas }}): agregar o cobrar</li>
       {% if plano.sin_pedido %}<li><span class="plano-muestra plano-muestra--sin-pedido"></span> Ocupada sin pedido ({{ plano.sin_pedido }})</li>{% endif %}
       <li><span class="plano-muestra plano-muestra--elegida"></span> Elegida</li>
+      <li><span class="plano-muestra plano-muestra--demorada"></span> Demorada: más de {{ plano.limite_minutos }} min sin entregar{% if plano.demoradas %} ({{ plano.demoradas }}){% endif %}</li>
     </ul>
   </div>
 
@@ -45,7 +59,9 @@
           <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
         </button>
         {% elif lugar.estado == 'ocupada' and lugar.comanda %}
-        <button type="button" class="plano-mesa plano-mesa--ocupada" data-mesa-panel
+        <button type="button" class="plano-mesa plano-mesa--ocupada{% if lugar.comanda.demorada %} plano-mesa--demorada{% endif %}" data-mesa-panel
+          data-desde="{{ lugar.comanda.fecha_hora|date:'c' }}" data-estado="{{ lugar.comanda.estado_comanda }}"
+          data-estado-texto="{{ lugar.comanda.get_estado_comanda_display }}"
           data-mesa-numero="{{ lugar.numero }}" data-mesa-ubicacion="{{ lugar.mesa.get_ubicacion_display }}"
           data-comanda="{{ lugar.comanda.id_comanda }}"
           data-mozo="{{ lugar.comanda.empleado.nombre_empleado }} {{ lugar.comanda.empleado.apellido_empleado }}"
@@ -54,8 +70,9 @@
           data-agregar="{% if plano.puede_agregar %}{% url 'ventas:comanda_crear' %}?comanda={{ lugar.comanda.id_comanda }}{% endif %}"
           data-ver="{% if plano.puede_ver %}{% url 'ventas:comanda_detalle' lugar.comanda.id_comanda %}{% endif %}"
           style="left: {{ lugar.pos.left }}%; top: {{ lugar.pos.top }}%; width: {{ lugar.pos.width }}%; height: {{ lugar.pos.height }}%;"
-          title="Mesa {{ lugar.numero }} · Con pedido · Comanda #{{ lugar.comanda.id_comanda }}">
+          title="Mesa {{ lugar.numero }} · Con pedido · Comanda #{{ lugar.comanda.id_comanda }} · {{ lugar.comanda.get_estado_comanda_display }}">
           <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
+          <span class="plano-espera" data-espera aria-label="Esperando {{ lugar.comanda.espera }} minutos">{{ lugar.comanda.espera }}'</span>
         </button>
         {% elif lugar.estado == 'ocupada' %}
         <a href="{{ lugar.url }}" class="plano-mesa plano-mesa--ocupada"
@@ -80,6 +97,34 @@
 </div>
 
 <script>
+  // Minutos de espera de cada mesa con pedido: se actualizan solos, sin recargar la página
+  (function () {
+    const limite = {{ plano.limite_minutos }};
+    function actualizar() {
+      document.querySelectorAll("[data-mesa-panel][data-desde]").forEach(function (mesa) {
+        const minutos = Math.max(0, Math.floor((Date.now() - Date.parse(mesa.dataset.desde)) / 60000));
+        const etiqueta = mesa.querySelector("[data-espera]");
+        if (etiqueta) {
+          etiqueta.textContent = minutos + "'";
+          etiqueta.setAttribute("aria-label", "Esperando " + minutos + " minutos");
+        }
+        const sinEntregar = mesa.dataset.estado === "pendiente" || mesa.dataset.estado === "en_preparacion";
+        mesa.classList.toggle("plano-mesa--demorada", sinEntregar && minutos >= limite);
+        mesa.dataset.espera = minutos;
+      });
+    }
+    actualizar();
+    setInterval(actualizar, 60000);
+
+    // "Tus mesas": abre el mismo panel que tocar la mesa en el plano
+    document.querySelectorAll("[data-abre-mesa]").forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        const mesa = document.querySelector('[data-mesa-panel][data-mesa-numero="' + boton.dataset.abreMesa + '"]');
+        if (mesa) mesa.click();
+      });
+    });
+  })();
+
   (function () {
     const raiz = document.querySelector("[data-plano-mesas]");
     if (!raiz) return;

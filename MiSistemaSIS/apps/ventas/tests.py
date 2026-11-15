@@ -45,9 +45,9 @@ class TicketsDeComandaTests(TestCase):
 
         tickets = {t["clave"]: t["productos"] for t in respuesta.context["tickets"]}
         self.assertEqual(tickets, {
-            "cocina": [{"nombre": "Locro", "cantidad": 2}],
-            "bar": [{"nombre": self.gaseosa.nombre_bebida, "cantidad": 3}],
-            "parrilla": [{"nombre": "Vacío de Ternera", "cantidad": 1}],
+            "cocina": [{"nombre": "Locro", "cantidad": 2, "nota": ""}],
+            "bar": [{"nombre": self.gaseosa.nombre_bebida, "cantidad": 3, "nota": ""}],
+            "parrilla": [{"nombre": "Vacío de Ternera", "cantidad": 1, "nota": ""}],
         })
         self.assertContains(respuesta, "Sin cebolla", count=3)
         self.assertContains(respuesta, "Ana Prueba", count=3)
@@ -185,7 +185,7 @@ class TomarPedidoTests(TestCase):
         self.assertEqual(Comanda.objects.count(), 1)
         self.assertEqual(
             respuesta.context["carrito_inicial"],
-            [{"tipo": "plato", "id": str(self.locro.pk), "cantidad": 2}],
+            [{"tipo": "plato", "id": str(self.locro.pk), "cantidad": 2, "nota": ""}],
         )
         self.assertContains(respuesta, 'id="carrito-inicial"')
 
@@ -266,7 +266,7 @@ class TomarPedidoTests(TestCase):
         self.assertRedirects(respuesta, ticket, fetch_redirect_response=False)
         # El ticket lleva solo lo agregado, marcado para la cocina
         pagina = self.client.get(ticket)
-        self.assertEqual(pagina.context["tickets"][0]["productos"], [{"nombre": "Locro", "cantidad": 2}])
+        self.assertEqual(pagina.context["tickets"][0]["productos"], [{"nombre": "Locro", "cantidad": 2, "nota": ""}])
         self.assertContains(pagina, "AGREGADO")
         self.assertEqual(Comanda.objects.count(), 1)
         comanda.refresh_from_db()
@@ -281,3 +281,27 @@ class TomarPedidoTests(TestCase):
         respuesta = self.client.post(reverse("ventas:comanda_crear"), self.datos(comanda_id=comanda.pk))
         self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
         self.assertEqual(comanda.detalles.count(), 0)
+
+    def test_el_plano_marca_las_mesas_demoradas_y_las_del_mozo(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        comanda = self._mesa_con_pedido()
+        Comanda.objects.filter(pk=comanda.pk).update(fecha_hora=timezone.now() - timedelta(minutes=45))
+
+        respuesta = self.client.get(reverse("ventas:comanda_crear"))
+
+        self.assertContains(respuesta, "plano-mesa--demorada")
+        self.assertContains(respuesta, "45'</span>")
+        # La comanda es del usuario actual: aparece en "Tus mesas"
+        self.assertContains(respuesta, 'data-abre-mesa="1"')
+
+    def test_la_nota_de_un_producto_llega_al_ticket(self):
+        datos = self.datos()
+        datos["detalles-0-observacion"] = "sin sal"
+        self.client.post(reverse("ventas:comanda_crear"), datos)
+
+        comanda = Comanda.objects.get()
+        self.assertEqual(comanda.detalles.get().observacion, "sin sal")
+        ticket = self.client.get(reverse("ventas:comanda_ticket", args=[comanda.pk]))
+        self.assertContains(ticket, "sin sal")

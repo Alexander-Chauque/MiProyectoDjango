@@ -19,6 +19,8 @@
       <dl class="panel-mesa-datos">
         <div><dt>Mozo</dt><dd data-panel="mozo"></dd></div>
         <div><dt>Desde</dt><dd data-panel="hora"></dd></div>
+        <div><dt>Estado</dt><dd data-panel="estado"></dd></div>
+        <div><dt>Esperando</dt><dd data-panel="espera"></dd></div>
         <div><dt>Total</dt><dd data-panel="total"></dd></div>
         <div><dt>Falta pagar</dt><dd class="panel-mesa-saldo" data-panel="saldo"></dd></div>
       </dl>
@@ -67,6 +69,9 @@
       campo("comanda").textContent = actual.comanda;
       campo("mozo").textContent = actual.mozo;
       campo("hora").textContent = actual.hora + " h";
+      campo("estado").textContent = actual.estadoTexto || "";
+      campo("espera").textContent = (actual.espera || "0") + " min";
+      campo("espera").classList.toggle("panel-mesa-demorada", boton.classList.contains("plano-mesa--demorada"));
       campo("total").textContent = pesos(actual.total);
       campo("saldo").textContent = pesos(actual.saldo);
       agregar.hidden = !actual.agregar;

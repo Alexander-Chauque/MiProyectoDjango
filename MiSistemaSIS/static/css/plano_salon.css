@@ -623,3 +623,130 @@ button.plano-mesa:hover {
   font-size: 13px;
   color: var(--texto-suave);
 }
+
+/* Minutos de espera de una mesa con pedido, y demora (mismo límite que la alerta) */
+.plano-espera {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background-color: var(--superficie);
+  border: 1px solid var(--acento-hover);
+  color: var(--texto);
+  font-size: max(9px, 0.6cqw);
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.plano-mesa--demorada,
+.plano-muestra--demorada {
+  background-color: var(--peligro);
+  border-color: var(--peligro);
+  color: #fff;
+}
+
+.plano-mesa--demorada .plano-espera {
+  border-color: var(--peligro);
+  color: var(--peligro);
+}
+
+.plano-mesa--demorada {
+  animation: mesa-demorada 1.6s ease-in-out infinite;
+}
+
+@keyframes mesa-demorada {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.3); }
+}
+
+.panel-mesa-demorada {
+  color: var(--peligro) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plano-mesa--demorada {
+    animation: none;
+  }
+}
+
+/* "Tus mesas": las mesas abiertas del mozo, arriba del plano */
+.mis-mesas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-4);
+  padding-bottom: var(--espacio-4);
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.mis-mesas-titulo {
+  margin-right: var(--espacio-1);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.mis-mesas-boton {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--acento);
+  border-radius: var(--radio);
+  background-color: var(--acento-suave);
+  color: var(--texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mis-mesas-boton strong {
+  font-size: 14px;
+}
+
+.mis-mesas-boton span {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.mis-mesas-boton:hover {
+  box-shadow: var(--sombra);
+}
+
+.mis-mesas-boton--demorada {
+  border-color: var(--peligro);
+  background-color: var(--peligro-suave);
+}
+
+.mis-mesas-boton--demorada span {
+  color: var(--peligro);
+}
+
+/* Nota para la cocina en cada producto del pedido */
+.item-carrito .nota-item {
+  width: 100%;
+  margin-top: var(--espacio-2);
+  padding: 6px 10px;
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio-sm);
+  background-color: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+}
+
+.item-carrito .nota-item:focus {
+  border-style: solid;
+  border-color: var(--acento);
+  outline: none;
+}
+
+.item-carrito {
+  flex-wrap: wrap;
+}

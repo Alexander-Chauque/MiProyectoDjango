@@ -205,6 +205,7 @@
             <td>{{ form_detalle.cant_plato }}</td>
             <td>{{ form_detalle.bebida }}</td>
             <td>{{ form_detalle.cant_bebida }}</td>
+            <td>{{ form_detalle.observacion }}</td>
             <td>{{ form_detalle.DELETE }}</td>
           </tr>
           {% endfor %}
@@ -246,6 +247,7 @@
       const cantPlato = fila.querySelector('input[name*="cant_plato"]');
       const selectBebida = fila.querySelector('select[name*="bebida"]');
       const cantBebida = fila.querySelector('input[name*="cant_bebida"]');
+      const notaGuardada = (fila.querySelector('input[name$="-observacion"]') || {}).value || '';
 
       if (selectPlato && selectPlato.value) {
         const id = selectPlato.value;
@@ -253,7 +255,7 @@
         const cant = cantPlato ? (parseInt(cantPlato.value) || 1) : 1;
         const info = infoProductos[key];
         if (info) {
-          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null };
+          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
       }
 
@@ -263,7 +265,7 @@
         const cant = cantBebida ? (parseInt(cantBebida.value) || 1) : 1;
         const info = infoProductos[key];
         if (info) {
-          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null };
+          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
       }
     });
@@ -297,6 +299,16 @@
                     ${item.minimo ? '' : `<button type="button" class="btn-eliminar" data-key="${item.key}"><span class="material-symbols-outlined">delete</span></button>`}
                 </div>`;
         carritoContainer.appendChild(div);
+        // Nota para la cocina sobre este producto (sale en su ticket)
+        const nota = document.createElement('input');
+        nota.type = 'text';
+        nota.className = 'nota-item';
+        nota.maxLength = 120;
+        nota.placeholder = 'Nota para la cocina (ej: sin sal)';
+        nota.value = item.nota || '';
+        nota.setAttribute('aria-label', `Nota para ${item.nombre}`);
+        nota.addEventListener('input', () => { item.nota = nota.value; actualizarFormset(); });
+        div.appendChild(nota);
       });
 
       totalComanda.textContent = `$ ${total.toFixed(2)}`;
@@ -339,6 +351,12 @@
             }
             <input type="hidden" name="detalles-${index}-DELETE" id="id_detalles-${index}-DELETE">
         `;
+        // La nota viaja con el producto
+        const observacion = document.createElement('input');
+        observacion.type = 'hidden';
+        observacion.name = `detalles-${index}-observacion`;
+        observacion.value = item.nota || '';
+        tr.appendChild(observacion);
         formsetTbody.appendChild(tr);
         index++;
     });
