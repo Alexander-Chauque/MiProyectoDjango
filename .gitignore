@@ -60,3 +60,8 @@ desktop.ini
 *.tar.gz
 *.rar
 *.bak
+# ==========================================
+# HERRAMIENTAS (no son parte del proyecto)
+# ==========================================
+graphify-out/
+.claude/
