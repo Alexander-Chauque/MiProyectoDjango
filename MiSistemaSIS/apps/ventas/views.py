@@ -956,8 +956,45 @@ def _contexto_crear_comanda(request, form, formset, mozo_id):
         "plano": _plano_de_mesas(request, form["mesa"].value()),
         "mozos": _mozos_disponibles(),
         "mozo_elegido": str(mozo_id or ""),
-        "platos": Plato.objects.filter(estado_plato=True),
-        "bebidas": Bebida.objects.filter(disponible_bebida=True),
+        **_productos_por_pedidos(),
         "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
         "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
     }
+
+
+# Para ordenar los productos al tomar el pedido: lo más pedido primero
+DIAS_MAS_PEDIDOS = 30
+MAS_PEDIDOS_DESTACADOS = 5
+
+
+def _productos_por_pedidos():
+    """Platos y bebidas disponibles, de lo más pedido en los últimos 30 días a lo menos pedido.
+
+    Cuenta las unidades de comandas no anuladas (dos consultas en total). Los primeros
+    con pedidos llevan la marca "destacado" para mostrar "Más pedido".
+    """
+    from datetime import timedelta
+
+    from django.db.models import Sum
+    from django.db.models.functions import Coalesce
+
+    desde = timezone.now() - timedelta(days=DIAS_MAS_PEDIDOS)
+    validas = Q(detallecomanda__comanda__fecha_hora__gte=desde) & ~Q(
+        detallecomanda__comanda__estado_comanda__in=["anulado", "cancelado"]
+    )
+    platos = list(
+        Plato.objects.filter(estado_plato=True)
+        .select_related("categoria")
+        .annotate(pedidos=Coalesce(Sum("detallecomanda__cant_plato", filter=validas), 0))
+        .order_by("-pedidos", "nombre_plato")
+    )
+    bebidas = list(
+        Bebida.objects.filter(disponible_bebida=True)
+        .select_related("id_tipo_bebida")
+        .annotate(pedidos=Coalesce(Sum("detallecomanda__cant_bebida", filter=validas), 0))
+        .order_by("-pedidos", "nombre_bebida")
+    )
+    for lista in (platos, bebidas):
+        for posicion, producto in enumerate(lista):
+            producto.destacado = posicion < MAS_PEDIDOS_DESTACADOS and producto.pedidos > 0
+    return {"platos": platos, "bebidas": bebidas}

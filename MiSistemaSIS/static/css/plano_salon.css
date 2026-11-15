@@ -364,3 +364,111 @@ button.plano-mesa:hover {
   display: inline-flex;
   margin: 0;
 }
+
+/* =========================================
+   PASO 3: PRODUCTOS (rápido con el dedo)
+   ========================================= */
+.ayuda-buscador {
+  margin: calc(-1 * var(--espacio-2)) 20px var(--espacio-3);
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.ayuda-buscador kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  background-color: var(--superficie-2);
+  font-family: var(--fuente-ui);
+  font-size: 11px;
+}
+
+/* Pestañas y categorías más grandes, para tocarlas sin errar */
+.tabs-productos .tab-btn,
+.tabs-categorias .cat-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+/* Toda la tarjeta se toca para sumar */
+.grilla-productos {
+  max-height: 520px;
+}
+
+.producto-card {
+  position: relative;
+  min-height: 76px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.producto-card:active {
+  transform: scale(0.98);
+}
+
+.btn-agregar-prod {
+  width: 40px;
+  height: 40px;
+}
+
+.prod-destacado {
+  display: inline-block !important;
+  margin-bottom: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: var(--acento-suave);
+  color: var(--acento-texto) !important;
+  font-size: 11px !important;
+  font-weight: 600;
+}
+
+/* Ya está en el pedido: borde marcado y la cantidad arriba */
+.producto-card.en-pedido {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+}
+
+.prod-en-pedido {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.producto-card.recien-agregado {
+  animation: producto-sumado 0.35s ease-out;
+}
+
+@keyframes producto-sumado {
+  0% { box-shadow: 0 0 0 0 var(--acento); }
+  100% { box-shadow: 0 0 0 8px transparent; }
+}
+
+@media (max-width: 600px) {
+  .grilla-productos {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .producto-card.recien-agregado {
+    animation: none;
+  }
+
+  .producto-card:active {
+    transform: none;
+  }
+}
+
+/* El modo oscuro pinta todas las tarjetas igual: esta regla le gana para marcar las del pedido */
+[data-tema="oscuro"] .producto-card.en-pedido {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+}

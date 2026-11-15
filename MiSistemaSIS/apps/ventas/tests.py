@@ -150,3 +150,20 @@ class TomarPedidoTests(TestCase):
         )
         self.client.post(reverse("ventas:comanda_crear"), self.datos(mozo=cocinero.pk))
         self.assertEqual(Comanda.objects.get().empleado, self.cajera)
+
+    def test_los_productos_mas_pedidos_aparecen_primero(self):
+        categoria = self.locro.categoria
+        empanada = Plato.objects.create(nombre_plato="Empanada", precio_plato=50, categoria=categoria)
+        vieja = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera)
+        DetalleComanda.objects.create(comanda=vieja, plato=empanada, cant_plato=12)
+        anulada = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera, estado_comanda="anulado")
+        DetalleComanda.objects.create(comanda=anulada, plato=self.locro, cant_plato=50)
+
+        respuesta = self.client.get(reverse("ventas:comanda_crear"))
+
+        platos = respuesta.context["platos"]
+        # La anulada no cuenta: la empanada (12) va antes que el locro (0)
+        self.assertEqual([p.nombre_plato for p in platos], ["Empanada", "Locro"])
+        self.assertTrue(platos[0].destacado)
+        self.assertFalse(platos[1].destacado)
+        self.assertContains(respuesta, "Más pedido", count=1)
