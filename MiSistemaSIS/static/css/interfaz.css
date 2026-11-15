@@ -1,0 +1,65 @@
+/*
+ * INTERFAZ COMÚN (rediseño, Fase 1)
+ *
+ * Se carga al final de base.html para que le gane a los estilos de cada
+ * módulo sin tener que editarlos uno por uno. Usa las variables definidas
+ * en base.css (:root) y tema_oscuro.css ([data-tema="oscuro"]).
+ *
+ *   - Una sola letra (Inter) en toda la interfaz; Oswald queda para el
+ *     título de cada página (h1) y la marca.
+ *   - Sin MAYÚSCULAS forzadas en etiquetas, botones y encabezados de tabla.
+ *     Las insignias de estado (Disponible, Ocupada, Pagado...) no cambian.
+ *   - Foco visible al moverse con el teclado.
+ *
+ * Quedan afuera, como en el Documento Oficial: el inicio (.estadisticas-grid)
+ * y los reportes (.tabs-reportes). También el ticket y el comprobante, que
+ * tienen su propio diseño de impresión.
+ */
+
+/* ---------- Tipografía ---------- */
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid, .comprobante, .ticket))
+  :not(.material-symbols-outlined, h1, h1 *) {
+  font-family: var(--fuente-ui) !important;
+}
+
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid, .comprobante, .ticket)) h1 {
+  font-family: var(--fuente-titulos);
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Sin mayúsculas forzadas ---------- */
+.contenido:not(:has(.tabs-reportes, .estadisticas-grid, .comprobante, .ticket))
+  :is(label, legend, button, a, th, td, span, p, small, strong, li, div, h2, h3, h4, h5, h6)
+  :not([class*="badge"], [class*="estado"]) {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+/* Insignias de estado: misma letra, siguen en mayúscula y con su color */
+.badge {
+  font-family: var(--fuente-ui);
+  letter-spacing: 0.03em;
+}
+
+/* ---------- Foco visible con teclado ---------- */
+body :is(a, button, summary, [role="button"], [role="switch"], [tabindex]):focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+body :is(input, select, textarea):focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 1px;
+}
+
+.btn-icon:focus-visible {
+  outline-offset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-item,
+  .btn-icon {
+    transition: none;
+  }
+}

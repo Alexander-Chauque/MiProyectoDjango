@@ -25,7 +25,7 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{% static 'css/base.css' %}" />
@@ -38,6 +38,8 @@
     <link rel="stylesheet" href="{% static 'css/colores.css' %}" />
     {# Texto más grueso. Los reportes y el inicio vacían este bloque (siguen como en el Documento Oficial) #}
     {% block fuente_gruesa %}<link rel="stylesheet" href="{% static 'css/fuente_gruesa.css' %}" />{% endblock %}
+    {# Rediseño: letra única, sin mayúsculas forzadas y foco visible. Va última #}
+    <link rel="stylesheet" href="{% static 'css/interfaz.css' %}" />
   </head>
   <body>
     <aside class="sidebar" id="sidebar">
@@ -49,76 +51,70 @@
             class="sidebar-logo"
           />
         </a>
-        <button class="btn-cerrar-sidebar" onclick="toggleSidebar()">
+        <button type="button" class="btn-cerrar-sidebar" onclick="toggleSidebar()" aria-label="Cerrar menú">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <nav class="sidebar-nav">
-        <a href="{% url 'home' %}" class="sidebar-item">
+      {% with ns=request.resolver_match.namespace|default:'' un=request.resolver_match.url_name|default:'' %}
+      <nav class="sidebar-nav" aria-label="Menú principal">
+        <a href="{% url 'home' %}" class="sidebar-item{% if un == 'home' %} activo{% endif %}"{% if un == 'home' %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined">home</span> Inicio
         </a>
 
         <div class="sidebar-modulo">
-          <div
-            class="sidebar-item"
-            onclick="toggleSubmenu('submenu-inventario')"
-          >
+          <button type="button" class="sidebar-item{% if ns == 'inventario' %} activo{% endif %}"
+            onclick="toggleSubmenu('submenu-inventario', this)" aria-controls="submenu-inventario"
+            aria-expanded="{% if ns == 'inventario' %}true{% else %}false{% endif %}">
             <span class="material-symbols-outlined">inventory_2</span>
             Inventario
-            <span class="material-symbols-outlined flecha-submenu"
-              >expand_more</span
-            >
-          </div>
-          <div class="sidebar-submenu" id="submenu-inventario">
-            <a href="{% url 'inventario:listar_platos' %}">Platos</a>
-            <a href="{% url 'inventario:listar_bebida' %}">Bebidas</a>
-            <a href="{% url 'inventario:listar_ingredientes' %}"
-              >Ingredientes</a
-            >
+            <span class="material-symbols-outlined flecha-submenu">expand_more</span>
+          </button>
+          <div class="sidebar-submenu{% if ns == 'inventario' %} abierto{% endif %}" id="submenu-inventario">
+            <a href="{% url 'inventario:listar_platos' %}"{% if ns == 'inventario' and 'plato' in un or ns == 'inventario' and 'categoria' in un %} class="activo" aria-current="page"{% endif %}>Platos</a>
+            <a href="{% url 'inventario:listar_bebida' %}"{% if ns == 'inventario' and 'bebida' in un %} class="activo" aria-current="page"{% endif %}>Bebidas</a>
+            <a href="{% url 'inventario:listar_ingredientes' %}"{% if ns == 'inventario' and 'ingrediente' in un %} class="activo" aria-current="page"{% endif %}>Ingredientes</a>
           </div>
         </div>
 
         <div class="sidebar-modulo">
-          <div
-            class="sidebar-item"
-            onclick="toggleSubmenu('submenu-empleados')"
-          >
+          <button type="button" class="sidebar-item{% if ns == 'empleados' %} activo{% endif %}"
+            onclick="toggleSubmenu('submenu-empleados', this)" aria-controls="submenu-empleados"
+            aria-expanded="{% if ns == 'empleados' %}true{% else %}false{% endif %}">
             <span class="material-symbols-outlined">groups</span> Empleados
-            <span class="material-symbols-outlined flecha-submenu"
-              >expand_more</span
-            >
-          </div>
-          <div class="sidebar-submenu" id="submenu-empleados">
-            <a href="{% url 'empleados:empleado_listar' %}">Listado</a>
-            <a href="{% url 'empleados:listar_cargo' %}">Cargos</a>
-            <a href="{% url 'empleados:listar_permiso' %}">Permisos</a>
-            <a href="{% url 'empleados:listar_asistencias' %}">Asistencia</a>
+            <span class="material-symbols-outlined flecha-submenu">expand_more</span>
+          </button>
+          <div class="sidebar-submenu{% if ns == 'empleados' %} abierto{% endif %}" id="submenu-empleados">
+            <a href="{% url 'empleados:empleado_listar' %}"{% if ns == 'empleados' and 'empleado' in un %} class="activo" aria-current="page"{% endif %}>Listado</a>
+            <a href="{% url 'empleados:listar_cargo' %}"{% if ns == 'empleados' and 'cargo' in un and 'permiso' not in un %} class="activo" aria-current="page"{% endif %}>Cargos</a>
+            <a href="{% url 'empleados:listar_permiso' %}"{% if ns == 'empleados' and 'permiso' in un and un != 'mis_permisos' %} class="activo" aria-current="page"{% endif %}>Permisos</a>
+            <a href="{% url 'empleados:listar_asistencias' %}"{% if ns == 'empleados' and 'asistencia' in un %} class="activo" aria-current="page"{% endif %}>Asistencia</a>
           </div>
         </div>
 
-        <a href="{% url 'ventas:listar_mesa' %}" class="sidebar-item">
+        <a href="{% url 'ventas:listar_mesa' %}" class="sidebar-item{% if ns == 'ventas' and 'mesa' in un %} activo{% endif %}"{% if ns == 'ventas' and 'mesa' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined">table_restaurant</span> Mesas
         </a>
 
-        <a href="{% url 'ventas:comanda_listar' %}" class="sidebar-item">
+        <a href="{% url 'ventas:comanda_listar' %}" class="sidebar-item{% if ns == 'ventas' and 'comanda' in un %} activo{% endif %}"{% if ns == 'ventas' and 'comanda' in un %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined">receipt_long</span> Comandas
         </a>
 
-        <a href="{% url 'reportes:ventas' %}" class="sidebar-item">
+        <a href="{% url 'reportes:ventas' %}" class="sidebar-item{% if ns == 'reportes' %} activo{% endif %}"{% if ns == 'reportes' %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined">bar_chart</span> Reportes
         </a>
 
-        <a href="{% url 'auditoria:log_auditoria_listar' %}" class="sidebar-item">
+        <a href="{% url 'auditoria:log_auditoria_listar' %}" class="sidebar-item{% if ns == 'auditoria' %} activo{% endif %}"{% if ns == 'auditoria' %} aria-current="page"{% endif %}>
           <span class="material-symbols-outlined">history</span> Auditoría
         </a>
       </nav>
+      {% endwith %}
     </aside>
     <div class="overlay-sidebar" id="overlay" onclick="toggleSidebar()"></div>
     <div class="contenido-principal">
       <header class="topbar">
         <div class="topbar-left">
-          <button class="btn-hamburguesa" onclick="toggleSidebar()">
+          <button type="button" class="btn-hamburguesa" onclick="toggleSidebar()" aria-label="Abrir menú" aria-controls="sidebar">
             <span class="material-symbols-outlined">menu</span>
           </button>
           <a href="{% url 'home' %}">
@@ -235,9 +231,10 @@
         document.getElementById("overlay").classList.toggle("activo");
       }
 
-      function toggleSubmenu(id) {
+      function toggleSubmenu(id, boton) {
         const submenu = document.getElementById(id);
-        submenu.classList.toggle("abierto");
+        const abierto = submenu.classList.toggle("abierto");
+        if (boton) boton.setAttribute("aria-expanded", String(abierto));
       }
 
       // Gráficos de reportes en modo oscuro

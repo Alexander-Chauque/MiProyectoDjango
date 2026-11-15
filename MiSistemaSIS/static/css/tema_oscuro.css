@@ -2,6 +2,29 @@
 [data-tema="oscuro"] {
   color-scheme: dark;
   --color-naranja-claro: #3A2F18;
+
+  /* Rediseño (Fase 1): mismos nombres que en base.css, valores oscuros */
+  --acento-suave: #3A2F18;
+  --acento-texto: #FBBF24;
+  --peligro: #F87171;
+  --peligro-suave: #3F1D1D;
+  --fondo: #1C1C1C;
+  --superficie: #2A2A2A;
+  --superficie-2: #333333;
+  --borde: #404040;
+  --borde-suave: #353535;
+  --texto: #E8E8E8;
+  --texto-suave: #A8A8A8;
+  --icono-neutro: #A8A8A8;
+  --tabla-cabecera-fondo: #303030;
+  --tabla-cabecera-texto: #C8C8C8;
+  --tabla-fila-hover: #262626;
+  --menu-fondo: #171717;
+  --topbar-fondo: #171717;
+  --topbar-texto: #E8E8E8;
+  --topbar-boton: #2A2A2A;
+  --topbar-boton-hover: #383838;
+  --foco-anillo: 0 0 0 3px rgba(251, 191, 36, 0.45);
 }
 
 [data-tema="oscuro"] body {
@@ -222,42 +245,18 @@
   background-color: #1F1F1F;
 }
 
-[data-tema="oscuro"] .btn-detalle,
-[data-tema="oscuro"] .btn-ver {
-  background-color: #1E2F4F;
-  color: #93C5FD;
-}
-
-[data-tema="oscuro"] .btn-editar {
-  background-color: #45361A;
-  color: #FCD34D;
-}
-
-[data-tema="oscuro"] .btn-baja {
-  background-color: #4A2020;
-  color: #FCA5A5;
-}
-
-[data-tema="oscuro"] .btn-clave {
-  background-color: #1F1F1F;
-  color: #C8C8C8;
-}
-
-[data-tema="oscuro"] .btn-reactivar {
-  background-color: #17382B;
-  color: #6EE7B7;
-}
+/* Botones de acción de las tablas: neutros; el color lo ponen las variables de base.css */
 
 [data-tema="oscuro"] .tabla {
   background-color: #2A2A2A;
 }
 
 [data-tema="oscuro"] .tabla tbody tr {
-  border-bottom: 1px solid #3A3A3A;
+  border-bottom: 1px solid var(--borde-suave);
 }
 
 [data-tema="oscuro"] .tabla tbody tr:hover {
-  background-color: #242424;
+  background-color: var(--tabla-fila-hover);
 }
 
 [data-tema="oscuro"] .tabla tbody td {
@@ -1668,11 +1667,11 @@
 }
 
 [data-tema="oscuro"] .user-dropdown {
-  background-color: #333333;
+  background-color: var(--topbar-boton);
 }
 
 [data-tema="oscuro"] .user-dropdown:hover {
-  background-color: #404040;
+  background-color: var(--topbar-boton-hover);
 }
 
 /* El contador de ingredientes pone este fondo desde JavaScript */
