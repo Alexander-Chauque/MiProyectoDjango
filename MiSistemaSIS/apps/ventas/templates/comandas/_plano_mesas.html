@@ -6,7 +6,7 @@
     <p class="plano-elegida" data-plano-elegida aria-live="polite">Tocá una mesa libre del plano.</p>
     <ul class="plano-leyenda">
       <li><span class="plano-muestra plano-muestra--libre"></span> Libre ({{ plano.libres }})</li>
-      <li><span class="plano-muestra plano-muestra--ocupada"></span> Con pedido ({{ plano.ocupadas }}): tocala para agregar</li>
+      <li><span class="plano-muestra plano-muestra--ocupada"></span> Con pedido ({{ plano.ocupadas }}): agregar o cobrar</li>
       {% if plano.sin_pedido %}<li><span class="plano-muestra plano-muestra--sin-pedido"></span> Ocupada sin pedido ({{ plano.sin_pedido }})</li>{% endif %}
       <li><span class="plano-muestra plano-muestra--elegida"></span> Elegida</li>
     </ul>
@@ -42,6 +42,19 @@
           aria-pressed="{% if lugar.elegida %}true{% else %}false{% endif %}"
           style="left: {{ lugar.pos.left }}%; top: {{ lugar.pos.top }}%; width: {{ lugar.pos.width }}%; height: {{ lugar.pos.height }}%;"
           title="Mesa {{ lugar.numero }} · {{ lugar.capacidad }} lugares · {% if lugar.estado == 'libre' %}Libre{% else %}Ocupada sin pedido: se puede tomar su pedido{% endif %}">
+          <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
+        </button>
+        {% elif lugar.estado == 'ocupada' and lugar.comanda %}
+        <button type="button" class="plano-mesa plano-mesa--ocupada" data-mesa-panel
+          data-mesa-numero="{{ lugar.numero }}" data-mesa-ubicacion="{{ lugar.mesa.get_ubicacion_display }}"
+          data-comanda="{{ lugar.comanda.id_comanda }}"
+          data-mozo="{{ lugar.comanda.empleado.nombre_empleado }} {{ lugar.comanda.empleado.apellido_empleado }}"
+          data-hora="{{ lugar.comanda.fecha_hora|date:'H:i' }}"
+          data-total="{{ lugar.comanda.total_comanda|unlocalize }}" data-saldo="{{ lugar.comanda.saldo|unlocalize }}"
+          data-agregar="{% if plano.puede_agregar %}{% url 'ventas:comanda_editar' lugar.comanda.id_comanda %}{% endif %}"
+          data-ver="{% if plano.puede_ver %}{% url 'ventas:comanda_detalle' lugar.comanda.id_comanda %}{% endif %}"
+          style="left: {{ lugar.pos.left }}%; top: {{ lugar.pos.top }}%; width: {{ lugar.pos.width }}%; height: {{ lugar.pos.height }}%;"
+          title="Mesa {{ lugar.numero }} · Con pedido · Comanda #{{ lugar.comanda.id_comanda }}">
           <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
         </button>
         {% elif lugar.estado == 'ocupada' %}

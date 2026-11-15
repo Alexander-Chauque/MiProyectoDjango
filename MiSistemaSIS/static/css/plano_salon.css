@@ -480,3 +480,77 @@ button.plano-mesa:hover {
   background-color: var(--acento-suave);
   color: var(--acento-texto);
 }
+
+/* Panel de una mesa con pedido (agregar, cobrar, ver) */
+.panel-mesa {
+  max-width: 420px;
+}
+
+.modal-icono-alerta.panel-mesa-icono {
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+}
+
+.panel-mesa-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espacio-3);
+  margin: 0 0 var(--espacio-5);
+}
+
+.panel-mesa-datos dt {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.panel-mesa-datos dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.panel-mesa-saldo {
+  color: var(--acento-texto) !important;
+}
+
+.panel-mesa-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.panel-mesa-boton {
+  justify-content: center;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.panel-mesa-ver {
+  margin-top: var(--espacio-1);
+  font-size: 13px;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.panel-mesa-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: var(--espacio-3);
+  border-radius: var(--radio-sm);
+  background-color: var(--advertencia-fondo);
+  color: var(--advertencia-texto);
+  font-size: 13px;
+}
+
+.panel-mesa [hidden] {
+  display: none !important;
+}
+
+[data-tema="oscuro"] .modal-icono-alerta.panel-mesa-icono {
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+}

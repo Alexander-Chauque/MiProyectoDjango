@@ -1,0 +1,100 @@
+{# Panel de una mesa con pedido, al tocarla en el plano: agregar productos, cobrar o ver la comanda. #}
+{# Va fuera del formulario de la comanda, porque el cobro tiene su propio formulario.                 #}
+<div class="modal-overlay" id="panel-mesa" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="panel-mesa-titulo">
+  <div class="modal-contenido panel-mesa">
+    <div class="modal-header">
+      <div class="modal-icono-alerta panel-mesa-icono">
+        <span class="material-symbols-outlined" aria-hidden="true">table_restaurant</span>
+      </div>
+      <div>
+        <h3 id="panel-mesa-titulo">Mesa <span data-panel="numero"></span></h3>
+        <p class="text-gris"><span data-panel="ubicacion"></span> · Comanda #<span data-panel="comanda"></span></p>
+      </div>
+      <button type="button" class="btn-cerrar-modal" data-panel-cerrar aria-label="Cerrar">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <dl class="panel-mesa-datos">
+        <div><dt>Mozo</dt><dd data-panel="mozo"></dd></div>
+        <div><dt>Desde</dt><dd data-panel="hora"></dd></div>
+        <div><dt>Total</dt><dd data-panel="total"></dd></div>
+        <div><dt>Falta pagar</dt><dd class="panel-mesa-saldo" data-panel="saldo"></dd></div>
+      </dl>
+
+      <div class="panel-mesa-acciones">
+        <a href="#" class="btn-primario panel-mesa-boton" data-panel-agregar>
+          <span class="material-symbols-outlined">add_shopping_cart</span> Agregar productos
+        </a>
+        {% if puede_cobrar %}
+          {% if caja_abierta %}
+          <button type="button" class="btn-secundario panel-mesa-boton" data-panel-cobrar>
+            <span class="material-symbols-outlined">payments</span> Cobrar
+          </button>
+          {% else %}
+          <p class="panel-mesa-aviso">
+            <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+            Para cobrar hay que abrir la caja.
+          </p>
+          {% endif %}
+        {% endif %}
+        <a href="#" class="panel-mesa-ver" data-panel-ver>Ver la comanda completa</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if puede_cobrar and caja_abierta %}
+  {% include "comandas/_modal_pago.html" %}
+{% endif %}
+
+<script>
+  (function () {
+    const panel = document.getElementById("panel-mesa");
+    if (!panel) return;
+    const campo = (nombre) => panel.querySelector(`[data-panel="${nombre}"]`);
+    const agregar = panel.querySelector("[data-panel-agregar]");
+    const ver = panel.querySelector("[data-panel-ver]");
+    const cobrar = panel.querySelector("[data-panel-cobrar]");
+    const pesos = (v) => "$" + parseFloat(v).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    let actual = null;
+
+    function abrir(boton) {
+      actual = boton.dataset;
+      campo("numero").textContent = actual.mesaNumero;
+      campo("ubicacion").textContent = actual.mesaUbicacion;
+      campo("comanda").textContent = actual.comanda;
+      campo("mozo").textContent = actual.mozo;
+      campo("hora").textContent = actual.hora + " h";
+      campo("total").textContent = pesos(actual.total);
+      campo("saldo").textContent = pesos(actual.saldo);
+      agregar.hidden = !actual.agregar;
+      agregar.href = actual.agregar || "#";
+      ver.hidden = !actual.ver;
+      ver.href = actual.ver || "#";
+      if (cobrar) cobrar.hidden = !(parseFloat(actual.saldo) > 0);
+      panel.style.display = "flex";
+      (agregar.hidden ? panel.querySelector("[data-panel-cerrar]") : agregar).focus();
+    }
+
+    function cerrar() {
+      panel.style.display = "none";
+    }
+
+    document.querySelectorAll("[data-mesa-panel]").forEach((boton) => {
+      boton.addEventListener("click", () => abrir(boton));
+    });
+    panel.querySelector("[data-panel-cerrar]").addEventListener("click", cerrar);
+    panel.addEventListener("click", (e) => { if (e.target === panel) cerrar(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && panel.style.display === "flex") cerrar(); });
+
+    // Cobrar: el mismo modal de pago del listado, con los datos de esta mesa
+    if (cobrar) {
+      cobrar.addEventListener("click", () => {
+        cerrar();
+        abrirModalPago(actual.comanda, actual.total, actual.saldo);
+      });
+    }
+  })();
+</script>

@@ -199,3 +199,41 @@ class TomarPedidoTests(TestCase):
     def test_al_guardar_vuelve_al_plano(self):
         respuesta = self.client.post(reverse("ventas:comanda_crear"), self.datos())
         self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
+
+    def _mesa_con_pedido(self):
+        comanda = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera, total_comanda=200)
+        Mesa.objects.filter(pk=self.mesa.pk).update(estado_mesa=False)
+        return comanda
+
+    def test_sin_caja_abierta_el_panel_avisa_en_lugar_de_cobrar(self):
+        comanda = self._mesa_con_pedido()
+        respuesta = self.client.get(reverse("ventas:comanda_crear"))
+        self.assertContains(respuesta, f'data-comanda="{comanda.pk}"')
+        self.assertContains(respuesta, 'data-saldo="200.00"')
+        self.assertContains(respuesta, "Para cobrar hay que abrir la caja.")
+        self.assertNotContains(respuesta, 'id="modal-pago"')
+
+    def test_cobrar_desde_el_plano_libera_la_mesa_y_vuelve_al_plano(self):
+        from finanzas.models import caja, metodo_pago
+
+        caja.objects.create(empleado_apertura=self.cajera)
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        comanda = self._mesa_con_pedido()
+
+        plano = self.client.get(reverse("ventas:comanda_crear"))
+        self.assertContains(plano, 'id="modal-pago"')
+        self.assertContains(plano, "data-panel-cobrar")
+
+        respuesta = self.client.post(reverse("ventas:comanda_cobrar"), {
+            "comanda_id": comanda.pk,
+            "tipo_pago": "total",
+            "metodo_pago": efectivo.pk,
+            "monto_recibido": "500",
+            "next": reverse("ventas:comanda_crear"),
+        })
+
+        self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
+        comanda.refresh_from_db()
+        self.mesa.refresh_from_db()
+        self.assertEqual(comanda.estado_comanda, "pagado")
+        self.assertTrue(self.mesa.estado_mesa)

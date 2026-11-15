@@ -1,0 +1,167 @@
+{# Modal para registrar un pago (total o por partes, con vuelto). Lo usan el listado de comandas #}
+{# y la toma de pedido. Necesita metodos_pago en el contexto; vuelve a la página actual.     #}
+<div class="modal-overlay" id="modal-pago" style="display: none;">
+  <div class="modal-contenido">
+    <div class="modal-header">
+      <div class="modal-icono-alerta" style="background-color: #D1FAE5; color: #065F46;">
+        <span class="material-symbols-outlined">payments</span>
+      </div>
+      <div>
+        <h3>Registrar pago</h3>
+        <p class="text-gris">Comanda #<span id="pago-id-comanda"></span></p>
+      </div>
+      <button type="button" class="btn-cerrar-modal" onclick="cerrarModalPago()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form id="form-pago" method="POST" action="{% url 'ventas:comanda_cobrar' %}">
+      {% csrf_token %}
+      <input type="hidden" name="comanda_id" id="pago-comanda-id">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+      <div class="modal-body">
+        <div class="tarjeta-resumen" style="text-align: center; margin-bottom: 20px;">
+          <span class="text-gris">Saldo a pagar:</span>
+          <h2 style="color: #F5A623; margin: 5px 0;">$<span id="pago-saldo"></span></h2>
+          <span class="text-gris" id="pago-detalle-total"></span>
+        </div>
+
+        <div class="grupo-campo">
+          <label>¿Cómo desea abonar?</label>
+          <div style="display: flex; gap: 10px; margin-top: 5px;">
+            <label class="checkbox-item" style="flex: 1; border: 1px solid #E5E7EB; padding: 10px; border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="tipo_pago" value="total" checked>
+              <span>Pagar todo de una vez</span>
+            </label>
+            <label class="checkbox-item" style="flex: 1; border: 1px solid #E5E7EB; padding: 10px; border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="tipo_pago" value="parcial">
+              <span>Pagar por partes</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="grupo-campo" style="margin-top: 15px;">
+            <label>Método de Pago <span class="req">*</span></label>
+
+            <select name="metodo_pago" class="form-control" required>
+                <option value="">Seleccione un método...</option>
+
+                {% for metodo in metodos_pago %}
+                    <option value="{{ metodo.id_metodo_pago }}"{% if metodo.permite_cambio %} data-permite-cambio="1"{% endif %}>
+                        {{ metodo.nombre_metodo_pago }}
+                    </option>
+                {% empty %}
+                    <option value="" disabled>
+                        No hay métodos de pago disponibles
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="grupo-campo" id="campo-monto-parcial" style="display: none; margin-top: 15px;">
+          <label>Monto a abonar <span class="req">*</span></label>
+          <input type="number" name="monto_abonado" class="form-control" step="0.01" min="0.01" placeholder="Ej: 1500.00">
+        </div>
+
+        <!-- Solo con métodos que permiten dar vuelto (por ejemplo, Efectivo) -->
+        <div class="grupo-campo" id="campo-monto-recibido" style="display: none; margin-top: 15px;">
+          <label>Monto recibido (opcional)</label>
+          <input type="number" name="monto_recibido" class="form-control" step="0.01" min="0.01" placeholder="Con cuánto paga el cliente">
+          <small class="text-gris" id="texto-vuelto" style="display: block; margin-top: 6px;"></small>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secundario" onclick="cerrarModalPago()">Cancelar</button>
+        <button type="submit" class="btn-primario">Confirmar pago</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function abrirModalPago(idComanda, total, saldo) {
+    // Cerrar el menú
+    document.querySelectorAll('.dropdown-menu-estado').forEach(menu => {
+        menu.classList.remove('mostrar');
+    });
+
+    // Resetear el formulario
+    document.getElementById('form-pago').reset();
+    const campoMonto = document.getElementById('campo-monto-parcial');
+    const inputMonto = campoMonto.querySelector('input');
+    campoMonto.style.display = 'none';
+    inputMonto.required = false;
+    inputMonto.max = saldo;
+    document.getElementById('form-pago').dataset.saldo = saldo;
+    document.getElementById('campo-monto-recibido').style.display = 'none';
+    document.getElementById('texto-vuelto').textContent = '';
+
+    const formatear = valor => parseFloat(valor).toLocaleString('es-AR', {minimumFractionDigits: 2});
+    document.getElementById('pago-comanda-id').value = idComanda;
+    document.getElementById('pago-id-comanda').textContent = idComanda;
+    document.getElementById('pago-saldo').textContent = formatear(saldo);
+    document.getElementById('pago-detalle-total').textContent =
+        parseFloat(saldo) < parseFloat(total) ? `Total de la comanda: $${formatear(total)}` : '';
+
+    document.getElementById('modal-pago').style.display = 'flex';
+}
+
+function cerrarModalPago() {
+    document.getElementById('modal-pago').style.display = 'none';
+}
+
+// --- MOSTRAR/OCULTAR EL MONTO PARCIAL ---
+document.addEventListener('DOMContentLoaded', function() {
+    const radiosPago = document.querySelectorAll('input[name="tipo_pago"]');
+    const campoMonto = document.getElementById('campo-monto-parcial');
+    const inputMonto = campoMonto.querySelector('input');
+
+    radiosPago.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'parcial') {
+                campoMonto.style.display = 'block';
+                inputMonto.required = true;
+            } else {
+                campoMonto.style.display = 'none';
+                inputMonto.required = false;
+                inputMonto.value = ''; // Limpiamos el valor
+            }
+            calcularVuelto();
+        });
+    });
+
+    // --- VUELTO: solo con los métodos que lo permiten ---
+    const form = document.getElementById('form-pago');
+    const selectMetodo = form.querySelector('select[name="metodo_pago"]');
+    const campoRecibido = document.getElementById('campo-monto-recibido');
+    const inputRecibido = campoRecibido.querySelector('input');
+    const textoVuelto = document.getElementById('texto-vuelto');
+
+    function calcularVuelto() {
+        const opcion = selectMetodo.selectedOptions[0];
+        const permite = opcion && opcion.dataset.permiteCambio === '1';
+        campoRecibido.style.display = permite ? 'block' : 'none';
+        if (!permite) { inputRecibido.value = ''; textoVuelto.textContent = ''; return; }
+
+        const parcial = form.querySelector('input[name="tipo_pago"]:checked').value === 'parcial';
+        const aCobrar = parseFloat(parcial ? inputMonto.value : form.dataset.saldo) || 0;
+        const recibido = parseFloat(inputRecibido.value);
+        inputRecibido.min = aCobrar || 0.01;
+        if (!inputRecibido.value || !aCobrar) { textoVuelto.textContent = ''; return; }
+
+        const formatear = v => v.toLocaleString('es-AR', {minimumFractionDigits: 2});
+        if (recibido < aCobrar) {
+            textoVuelto.textContent = `Falta: $${formatear(aCobrar - recibido)}`;
+            textoVuelto.style.color = '#DC2626';
+        } else {
+            textoVuelto.textContent = `Vuelto a entregar: $${formatear(recibido - aCobrar)}`;
+            textoVuelto.style.color = '#059669';
+        }
+    }
+
+    selectMetodo.addEventListener('change', calcularVuelto);
+    inputRecibido.addEventListener('input', calcularVuelto);
+    inputMonto.addEventListener('input', calcularVuelto);
+});
+</script>

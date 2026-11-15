@@ -2,6 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from datetime import datetime, time
+from decimal import Decimal
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -885,8 +886,17 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
 
     mesas = {mesa.numero_mesa: mesa for mesa in Mesa.objects.all()}
     # La comanda abierta más reciente de cada mesa (una sola consulta)
+    from django.db.models import Sum
+    from django.db.models.functions import Coalesce
+
     abiertas = {}
-    for comanda in Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS).order_by("fecha_hora"):
+    for comanda in (
+        Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS)
+        .select_related("empleado")
+        .annotate(pagado=Coalesce(Sum("pagos__monto"), Decimal("0")))
+        .order_by("fecha_hora")
+    ):
+        comanda.saldo = max(comanda.total_comanda - comanda.pagado, Decimal("0"))
         abiertas[comanda.mesa_id] = comanda
     puede_ver = tiene_permiso(request.user, "comandas", "leer")
     puede_agregar = tiene_permiso(request.user, "comandas", "modificar")
@@ -937,6 +947,8 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
         "sin_pedido": sum(1 for lugar in lugares if lugar["estado"] == "sin-pedido"),
         "ocupadas": sum(1 for lugar in lugares if lugar["estado"] == "ocupada"),
         "proporcion": f"{plano.LIENZO[2]} / {plano.LIENZO[3]}",
+        "puede_agregar": puede_agregar,
+        "puede_ver": puede_ver,
     }
 
 
@@ -987,6 +999,10 @@ def _contexto_crear_comanda(request, form, formset, mozo_id):
         "plano": _plano_de_mesas(request, form["mesa"].value()),
         "mozos": _mozos_disponibles(),
         "mozo_elegido": str(mozo_id or ""),
+        # Cobrar desde el plano usa el mismo permiso que el cobro del listado
+        "puede_cobrar": tiene_permiso(request.user, "comandas", "modificar"),
+        "caja_abierta": caja.objects.filter(estado_caja="abierto").exists(),
+        "metodos_pago": MetodoPago.objects.filter(estado_metodo_pago=True).order_by("nombre_metodo_pago"),
         **_productos_por_pedidos(),
         "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
         "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
