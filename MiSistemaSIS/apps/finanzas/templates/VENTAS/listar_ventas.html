@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Listado de Gastos{% endblock %}
+{% block title %}Ventas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -21,10 +21,7 @@
 
         <span class="breadcrumb-separator">&gt;</span>
 
-        <a href="{% url 'finanzas:finanzas_home' %}"
-           class="breadcrumb-item">
-            Finanzas
-        </a>
+        <span class="breadcrumb-item">Finanzas</span>
 
         <span class="breadcrumb-separator">&gt;</span>
 
@@ -42,22 +39,16 @@
 
             <div class="page-header-texto">
                 <h1>Ventas</h1>
-                <p>Listado de ventas</p>
+                <p>Cada cobro de una comanda: cuánto, con qué método y en qué caja quedó.</p>
             </div>
         </div>
 
         <div class="page-header-acciones">
-            {% if caja_cerrada %}
-                <a href="{% url 'finanzas:abrir_caja' %}"
-                   class="btn-primario">
-                    <span class="material-symbols-outlined">add</span>
-                    Abrir caja
-                </a>
-            {% endif %}
             {% if caja_abierta %}
                 <a href="{% url 'ventas:comanda_listar' %}"
                    class="btn-primario">
-                    Comandas
+                    <span class="material-symbols-outlined">receipt_long</span>
+                    Cobrar comandas
                 </a>
             {% endif %}
         </div>
@@ -144,7 +135,7 @@
                     Aplicar filtros
                 </button>
 
-                <a href="{% url 'finanzas:listar_gastos' %}"
+                <a href="{% url 'finanzas:listar_ventas' %}"
                    class="btn-limpiar">
                     <span class="material-symbols-outlined">
                         refresh

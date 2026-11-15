@@ -2162,3 +2162,9 @@ button {
   min-height: 44px;
   justify-content: center;
 }
+
+/* Acción que no se puede hacer en esa fila: se ve apagada y el título explica por qué */
+.btn-icon--bloqueado {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

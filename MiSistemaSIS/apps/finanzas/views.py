@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib import messages
 import re
-from django.db.models import Q, Sum
+from django.db.models import Exists, OuterRef, Q, Sum
 from empleados.decorators import permiso_requerido
 from decimal import Decimal, InvalidOperation
 from django.db import transaction
@@ -30,7 +30,10 @@ def finanzas_home(request):
 @login_required
 @permiso_requerido('caja', 'leer')
 def listar_cat_gasto(request):
-    cat_gasto = categoria_gasto.objects.all().order_by('nombre_categoria_gasto')
+    # Con gastos cargados ya no se puede modificar ni eliminar (solo desactivar)
+    cat_gasto = categoria_gasto.objects.annotate(
+        tiene_gastos=Exists(gasto.objects.filter(cat_gasto=OuterRef('pk')))
+    ).order_by('nombre_categoria_gasto')
 
     buscar = request.GET.get('buscar','').strip()
     estados = request.GET.getlist('estado')
@@ -261,6 +264,7 @@ def detalle_cat_gasto(request, pk):
         {
             'categoria': categoria,
             'gastos': gastos,
+            'tiene_gastos': gastos.exists(),
         }
     )
 
@@ -329,7 +333,11 @@ def estado_categoria(request, pk):
 @login_required
 @permiso_requerido('caja', 'leer')
 def listar_met_pago(request):
-    metodos = metodo_pago.objects.all().order_by(
+    # Con cobros o ventas registrados ya no se puede eliminar (solo desactivar)
+    metodos = metodo_pago.objects.annotate(
+        en_uso=Exists(Pago.objects.filter(metodo_pago=OuterRef('pk')))
+        | Exists(Venta.objects.filter(metodo_pago_venta=OuterRef('pk')))
+    ).order_by(
         'nombre_metodo_pago'
     )
 
@@ -711,6 +719,7 @@ def listar_cajas(request):
 
     return render(request, 'CAJA/listar_cajas.html', {
         'cajas': cajas_paginadas,
+        'caja_abierta': caja.objects.filter(estado_caja='abierto').first(),
         'buscar': buscar,
         'estado_seleccionado': estado,
         'fecha_desde': fecha_desde_texto,
