@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}Editar comanda{% endblock %}
 
@@ -8,6 +8,7 @@
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
 <link rel="stylesheet" href="{% static 'css/selector_mesa.css' %}">
+<link rel="stylesheet" href="{% static 'css/plano_salon.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -94,12 +95,14 @@
           <div class="titulo-tarjeta">
             <span class="material-symbols-outlined icono-naranja">shopping_basket</span>
             <h3>Agregar productos</h3>
-            <span class="subtitulo">Seleccioná platos y bebidas para la comanda.</span>
+            <span class="subtitulo">Tocá un producto para sumarlo. Primero aparece lo más pedido.</span>
           </div>
           <div class="buscador-productos">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" id="buscador-productos" placeholder="Buscar plato o bebida...">
+            <input type="text" id="buscador-productos" placeholder="Buscar plato o bebida..."
+              aria-describedby="ayuda-buscador" autocomplete="off">
           </div>
+          <p class="ayuda-buscador" id="ayuda-buscador">Escribí y apretá <kbd>Enter</kbd> para sumar el primero de la lista.</p>
           <div class="tabs-productos">
             <button type="button" class="tab-btn activo" data-filtro="todos">Todos</button>
             <button type="button" class="tab-btn" data-filtro="plato"><span
@@ -131,13 +134,15 @@
             {% for plato in platos %}
             <div class="producto-card" data-id="{{ plato.id_plato }}" data-tipo="plato"
               data-categoria="{{ plato.categoria.nombre_categoria_plato|lower }}"
-              data-nombre="{{ plato.nombre_plato }}" data-precio="{{ plato.precio_plato }}">
+              data-nombre="{{ plato.nombre_plato }}" data-precio="{{ plato.precio_plato|unlocalize }}">
               <div class="prod-info">
+                {% if plato.destacado %}<span class="prod-destacado">Más pedido</span>{% endif %}
                 <strong>{{ plato.nombre_plato }}</strong>
                 <span>Platos | {{ plato.categoria.nombre_categoria_plato }}</span>
                 <span class="precio">$ {{ plato.precio_plato }}</span>
               </div>
-              <button type="button" class="btn-agregar-prod"><span class="material-symbols-outlined">add</span></button>
+              <span class="prod-en-pedido" data-en-pedido hidden></span>
+              <button type="button" class="btn-agregar-prod" aria-label="Sumar {{ plato.nombre_plato }}"><span class="material-symbols-outlined">add</span></button>
             </div>
             {% endfor %}
 
@@ -145,13 +150,15 @@
             {% for bebida in bebidas %}
             <div class="producto-card" data-id="{{ bebida.id_bebida }}" data-tipo="bebida"
               data-categoria="{{ bebida.id_tipo_bebida.nombre_tipo_bebida|lower }}"
-              data-nombre="{{ bebida.nombre_bebida }}" data-precio="{{ bebida.precio_bebida }}">
+              data-nombre="{{ bebida.nombre_bebida }}" data-precio="{{ bebida.precio_bebida|unlocalize }}">
               <div class="prod-info">
+                {% if bebida.destacado %}<span class="prod-destacado">Más pedido</span>{% endif %}
                 <strong>{{ bebida.nombre_bebida }}</strong>
                 <span>Bebidas | {{ bebida.id_tipo_bebida.nombre_tipo_bebida }}</span>
                 <span class="precio">$ {{ bebida.precio_bebida }}</span>
               </div>
-              <button type="button" class="btn-agregar-prod"><span class="material-symbols-outlined">add</span></button>
+              <span class="prod-en-pedido" data-en-pedido hidden></span>
+              <button type="button" class="btn-agregar-prod" aria-label="Sumar {{ bebida.nombre_bebida }}"><span class="material-symbols-outlined">add</span></button>
             </div>
             {% endfor %}
 
@@ -270,6 +277,7 @@
         carritoContainer.innerHTML = `<div class="carrito-vacio"><span class="material-symbols-outlined">remove_shopping_cart</span><p>No hay productos agregados</p></div>`;
         totalComanda.textContent = '$ 0.00';
         actualizarFormset();
+        if (typeof marcarEnPedido === 'function') marcarEnPedido();
         return;
       }
 
@@ -293,6 +301,7 @@
 
       totalComanda.textContent = `$ ${total.toFixed(2)}`;
       actualizarFormset();
+      if (typeof marcarEnPedido === 'function') marcarEnPedido();
     }
 
     function actualizarFormset() {
@@ -340,15 +349,35 @@
     }
 }
 
-    document.querySelectorAll('.btn-agregar-prod').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const card = this.closest('.producto-card');
-        const key = `${card.dataset.tipo}_${card.dataset.id}`;
-        if (carrito[key]) { carrito[key].cantidad++; }
-        else { carrito[key] = { key, tipo: card.dataset.tipo, id: card.dataset.id, nombre: card.dataset.nombre, precio: parseFloat(card.dataset.precio), cantidad: 1 }; }
-        renderizarCarrito();
-      });
+    // Sumar tocando cualquier parte de la tarjeta (respeta el máximo de un producto no disponible)
+    function agregar(card) {
+      const key = `${card.dataset.tipo}_${card.dataset.id}`;
+      if (carrito[key]) {
+        if (carrito[key].maximo && carrito[key].cantidad >= carrito[key].maximo) return;
+        carrito[key].cantidad++;
+      }
+      else { carrito[key] = { key, tipo: card.dataset.tipo, id: card.dataset.id, nombre: card.dataset.nombre, precio: parseFloat(card.dataset.precio), cantidad: 1 }; }
+      renderizarCarrito();
+      card.classList.remove('recien-agregado');
+      void card.offsetWidth;
+      card.classList.add('recien-agregado');
+    }
+    document.querySelectorAll('.producto-card').forEach(card => {
+      card.addEventListener('click', () => agregar(card));
     });
+
+    // Cantidad de cada producto en la comanda, sobre su tarjeta
+    function marcarEnPedido() {
+      document.querySelectorAll('.producto-card').forEach(card => {
+        const item = carrito[`${card.dataset.tipo}_${card.dataset.id}`];
+        const marca = card.querySelector('[data-en-pedido]');
+        card.classList.toggle('en-pedido', Boolean(item));
+        if (marca) {
+          marca.hidden = !item;
+          marca.textContent = item ? `${item.cantidad} en la comanda` : '';
+        }
+      });
+    }
 
     carritoContainer.addEventListener('click', function (e) {
       if (e.target.closest('.btn-sumar')) { const key = e.target.closest('.btn-sumar').dataset.key; carrito[key].cantidad++; renderizarCarrito(); }
@@ -373,7 +402,19 @@
         card.style.display = (coincideTexto && coincideTipo && coincideCategoria) ? 'flex' : 'none';
       });
     }
-    if (buscador) buscador.addEventListener('input', filtrarProductos);
+    if (buscador) {
+      buscador.addEventListener('input', filtrarProductos);
+      // Enter suma el primer producto visible y deja el buscador listo para el siguiente
+      buscador.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const primero = Array.from(productosCards).find(card => card.style.display !== 'none');
+        if (!primero || !buscador.value.trim()) return;
+        agregar(primero);
+        buscador.value = '';
+        filtrarProductos();
+      });
+    }
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('activo'));

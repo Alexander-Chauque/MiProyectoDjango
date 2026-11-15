@@ -383,7 +383,7 @@ def comanda_crear(request):
                 messages.success(
                     request, f"Comanda #{comanda.id_comanda} creada exitosamente"
                 )
-                return redirect("ventas:comanda_listar")
+                return redirect(_despues_de_guardar(request))
             except Exception as e:
                 # Si algo falló, la transacción se revirtió automáticamente
                 messages.error(request, f"Error al crear la comanda: {e}")
@@ -463,7 +463,7 @@ def comanda_editar(request, pk):
                 messages.error(request, str(e))
                 return redirect("ventas:comanda_editar", pk=pk)
             messages.success(request, f"Comanda #{pk} actualizada")
-            return redirect("ventas:comanda_listar")
+            return redirect(_despues_de_guardar(request))
     else:
         form = ComandaForm(instance=comanda)
         formset = DetalleFormSet(instance=comanda, form_kwargs={"comanda": comanda})
@@ -476,8 +476,7 @@ def comanda_editar(request, pk):
             "comanda": comanda,
             "tiene_pagos": tiene_pagos,
             "productos_no_disponibles": _productos_no_disponibles(comanda),
-            "platos": Plato.objects.filter(estado_plato=True),
-            "bebidas": Bebida.objects.filter(disponible_bebida=True),
+            **_productos_por_pedidos(),
             "categorias": CategoriaPlato.objects.filter(estado_categoria_plato=True),
             "tipos_bebida": TipoBebida.objects.filter(estado_tipo_bebida=True),
         },
@@ -890,6 +889,7 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
     for comanda in Comanda.objects.filter(estado_comanda__in=ESTADOS_ABIERTOS).order_by("fecha_hora"):
         abiertas[comanda.mesa_id] = comanda
     puede_ver = tiene_permiso(request.user, "comandas", "leer")
+    puede_agregar = tiene_permiso(request.user, "comandas", "modificar")
 
     lugares = []
     for dato in plano.MESAS:
@@ -912,7 +912,10 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
         else:
             lugar["estado"] = "ocupada"
             lugar["comanda"] = abiertas.get(mesa.pk)
-            if lugar["comanda"] and puede_ver:
+            if lugar["comanda"] and puede_agregar:
+                lugar["url"] = reverse("ventas:comanda_editar", args=[lugar["comanda"].pk])
+                lugar["accion"] = "agregar"
+            elif lugar["comanda"] and puede_ver:
                 lugar["url"] = reverse("ventas:comanda_detalle", args=[lugar["comanda"].pk])
             else:
                 lugar["url"] = reverse("ventas:mesa_ver_comandas", args=[mesa.pk])
@@ -935,6 +938,13 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
         "ocupadas": sum(1 for lugar in lugares if lugar["estado"] == "ocupada"),
         "proporcion": f"{plano.LIENZO[2]} / {plano.LIENZO[3]}",
     }
+
+
+def _despues_de_guardar(request):
+    """Después de crear o editar una comanda: de vuelta al plano para tomar el próximo pedido."""
+    if tiene_permiso(request.user, "comandas", "escribir"):
+        return "ventas:comanda_crear"
+    return "ventas:comanda_listar"
 
 
 def _mozos_disponibles():

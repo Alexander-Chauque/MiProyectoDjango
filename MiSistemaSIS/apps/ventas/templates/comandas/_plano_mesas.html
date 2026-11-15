@@ -6,7 +6,7 @@
     <p class="plano-elegida" data-plano-elegida aria-live="polite">Tocá una mesa libre del plano.</p>
     <ul class="plano-leyenda">
       <li><span class="plano-muestra plano-muestra--libre"></span> Libre ({{ plano.libres }})</li>
-      <li><span class="plano-muestra plano-muestra--ocupada"></span> Con pedido ({{ plano.ocupadas }})</li>
+      <li><span class="plano-muestra plano-muestra--ocupada"></span> Con pedido ({{ plano.ocupadas }}): tocala para agregar</li>
       {% if plano.sin_pedido %}<li><span class="plano-muestra plano-muestra--sin-pedido"></span> Ocupada sin pedido ({{ plano.sin_pedido }})</li>{% endif %}
       <li><span class="plano-muestra plano-muestra--elegida"></span> Elegida</li>
     </ul>
@@ -48,7 +48,7 @@
         {% elif lugar.estado == 'ocupada' %}
         <a href="{{ lugar.url }}" class="plano-mesa plano-mesa--ocupada"
           style="left: {{ lugar.pos.left }}%; top: {{ lugar.pos.top }}%; width: {{ lugar.pos.width }}%; height: {{ lugar.pos.height }}%;"
-          title="Mesa {{ lugar.numero }} · Ocupada{% if lugar.comanda %} · Comanda #{{ lugar.comanda.id_comanda }}{% endif %} · Ver su comanda">
+          title="Mesa {{ lugar.numero }} · Con pedido{% if lugar.comanda %} · Comanda #{{ lugar.comanda.id_comanda }}{% endif %} · {% if lugar.accion == 'agregar' %}Agregar productos{% else %}Ver su comanda{% endif %}">
           <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
         </a>
         {% else %}

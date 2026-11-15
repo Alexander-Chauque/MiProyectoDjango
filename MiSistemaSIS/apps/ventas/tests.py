@@ -188,3 +188,14 @@ class TomarPedidoTests(TestCase):
             [{"tipo": "plato", "id": str(self.locro.pk), "cantidad": 2}],
         )
         self.assertContains(respuesta, 'id="carrito-inicial"')
+
+    def test_mesa_con_pedido_abre_agregar_productos(self):
+        comanda = Comanda.objects.create(mesa=self.mesa, empleado=self.cajera)
+        Mesa.objects.filter(pk=self.mesa.pk).update(estado_mesa=False)
+        respuesta = self.client.get(reverse("ventas:comanda_crear"))
+        self.assertContains(respuesta, reverse("ventas:comanda_editar", args=[comanda.pk]))
+        self.assertContains(respuesta, "Agregar productos")
+
+    def test_al_guardar_vuelve_al_plano(self):
+        respuesta = self.client.post(reverse("ventas:comanda_crear"), self.datos())
+        self.assertRedirects(respuesta, reverse("ventas:comanda_crear"), fetch_redirect_response=False)
