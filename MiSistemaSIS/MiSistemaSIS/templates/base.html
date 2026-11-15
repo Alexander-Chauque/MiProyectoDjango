@@ -32,6 +32,8 @@
     <link rel="stylesheet" href="{% static 'css/usuario.css' %}" />
     <link rel="stylesheet" href="{% static 'css/tema_oscuro.css' %}" />
     <link rel="stylesheet" href="{% static 'vendor/flatpickr/flatpickr.min.css' %}" />
+    {# Estilos de un módulo, para las bases de módulo que heredan de esta (base_empleados, base_comandas...) #}
+    {% block css_modulo %}{% endblock %}
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/calendario.css' %}" />
     <!-- Paleta única de textos y avisos: va última para que le gane a cada módulo -->

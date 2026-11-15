@@ -1924,3 +1924,136 @@ button {
     margin-left: 0;
   }
 }
+
+/* =========================================
+   PANTALLAS SIMPLES (confirmar, dar de baja, detalle corto)
+   Las pantallas que usan base_inventario, base_empleados, base_comandas o
+   base_mesas quedan dentro de esta tarjeta. Sus contenedores internos
+   (.card, .contenedor, .tarjeta-...) se aplanan para no tener tarjeta dentro de tarjeta.
+   ========================================= */
+.pagina-simple {
+  max-width: 680px;
+  margin: var(--espacio-5) auto;
+  padding: var(--espacio-6);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+  color: var(--texto);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.pagina-simple :is(.contenedor, .card, .card-body, .tarjeta-confirmacion, .tarjeta-detalle,
+  .tarjeta-formulario, .tarjeta-mensaje, .tarjeta-advertencia) {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+}
+
+.pagina-simple h1,
+.pagina-simple .titulo {
+  margin: 0 0 var(--espacio-4);
+  font-size: 26px;
+  color: var(--texto);
+}
+
+.pagina-simple h2,
+.pagina-simple h3,
+.pagina-simple .tarjeta-titulo {
+  margin: 0 0 var(--espacio-3);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.pagina-simple p {
+  margin: 0 0 var(--espacio-2);
+}
+
+.pagina-simple .detalle-linea {
+  display: block;
+  padding: var(--espacio-1) 0;
+}
+
+/* Aviso de que no se puede deshacer */
+.pagina-simple :is(.text-danger, .tarjeta-advertencia) {
+  margin-top: var(--espacio-3);
+  color: var(--peligro);
+}
+
+.pagina-simple .text-muted {
+  color: var(--texto-suave);
+}
+
+.pagina-simple label {
+  display: block;
+  margin: var(--espacio-4) 0 var(--espacio-1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pagina-simple textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  font: inherit;
+}
+
+/* Fila de botones: siempre abajo a la derecha, con el mismo espacio */
+.pagina-simple :is(.derecha_boton, .tarjeta-botones, div.btn-volver) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-5);
+  padding: 0;
+  background: none;
+}
+
+.pagina-simple :is(.btn-secundario, .btn-secondary) {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 18px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-sm);
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pagina-simple :is(.btn-secundario, .btn-secondary):hover {
+  border-color: var(--acento);
+  color: var(--acento-texto);
+}
+
+.pagina-simple .btn-danger {
+  padding: 9px 18px;
+  border-radius: var(--radio-sm);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pagina-simple .btn-danger:hover {
+  transform: none;
+}
+
+@media (max-width: 600px) {
+  .pagina-simple {
+    margin: 0;
+    padding: var(--espacio-5) var(--espacio-4);
+  }
+
+  .pagina-simple :is(.derecha_boton, .tarjeta-botones, div.btn-volver) > * {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
