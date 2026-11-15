@@ -56,6 +56,7 @@
   --menu-hover: rgba(255, 255, 255, 0.07);
   --menu-activo-fondo: rgba(245, 166, 35, 0.16);
   --menu-activo-texto: #FFC861;
+  --menu-etiqueta: #8B929C;
   --topbar-fondo: #FFFFFF;
   --topbar-texto: #1F2937;
   --topbar-boton: #F3F4F6;
@@ -223,9 +224,12 @@ button {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 14px 12px;
+  padding: 12px 12px;
   overflow-y: auto;
   flex: 1;
+  /* Barra de desplazamiento discreta, por si el menú no entra en pantallas bajas */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
 .sidebar-item {
@@ -233,7 +237,7 @@ button {
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 6px 12px;
   background: none;
   border: none;
   color: var(--menu-texto);
@@ -243,12 +247,12 @@ button {
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
   font-family: var(--fuente-ui);
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 500;
 }
 
 .sidebar-item .material-symbols-outlined {
-  font-size: 21px;
+  font-size: 20px;
 }
 
 .sidebar-item:hover {
@@ -263,46 +267,16 @@ button {
   box-shadow: inset 3px 0 0 var(--acento);
 }
 
-.sidebar-item .flecha-submenu {
-  margin-left: auto;
-  font-size: 18px;
-  transition: transform 0.2s;
-}
-
-.sidebar-item[aria-expanded="true"] .flecha-submenu {
-  transform: rotate(180deg);
-}
-
-.sidebar-submenu {
-  display: none;
-  flex-direction: column;
-  gap: 1px;
-  margin: 2px 0 6px 22px;
-  padding-left: 12px;
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.sidebar-submenu.abierto {
-  display: flex;
-}
-
-.sidebar-submenu a {
-  padding: 7px 12px;
-  color: var(--menu-texto);
-  text-decoration: none;
-  font-size: 14px;
-  border-radius: var(--radio-sm);
-  transition: background-color 0.15s, color 0.15s;
-}
-
-.sidebar-submenu a:hover {
-  background-color: var(--menu-hover);
-  color: #FFFFFF;
-}
-
-.sidebar-submenu a.activo {
-  color: var(--menu-activo-texto);
+/* Etiqueta de sección: agrupa las pantallas de un módulo, no se puede pulsar */
+.sidebar-etiqueta {
+  margin: 12px 0 2px;
+  padding: 0 12px;
+  font-family: var(--fuente-ui);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--menu-etiqueta);
 }
 
 .sidebar :focus-visible {
