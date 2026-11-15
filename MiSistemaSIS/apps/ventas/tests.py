@@ -136,6 +136,21 @@ class TomarPedidoTests(TestCase):
         self.assertContains(respuesta, "js/notas_rapidas.js")
         self.assertContains(respuesta, "agregarNotasRapidas(nota, item.tipo)")
 
+    def test_el_mismo_producto_puede_ir_en_dos_lineas_con_notas_distintas(self):
+        self.client.post(reverse("ventas:comanda_crear"), self.datos(**{
+            "mozo": self.mozo.pk,
+            "detalles-TOTAL_FORMS": "2",
+            "detalles-0-observacion": "bien cocido",
+            "detalles-1-plato": self.locro.pk,
+            "detalles-1-cant_plato": "1",
+            "detalles-1-bebida": "",
+            "detalles-1-cant_bebida": "0",
+            "detalles-1-observacion": "sin sal",
+        }))
+        comanda = Comanda.objects.get()
+        lineas = sorted((d.cant_plato, d.observacion) for d in comanda.detalles.all())
+        self.assertEqual(lineas, [(1, "sin sal"), (2, "bien cocido")])
+
     def test_guarda_la_comanda_con_el_mozo_elegido(self):
         self.client.post(reverse("ventas:comanda_crear"), self.datos(mozo=self.mozo.pk))
         comanda = Comanda.objects.get()

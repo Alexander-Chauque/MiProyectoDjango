@@ -242,6 +242,40 @@
       };
     });
 
+    // Separar una unidad en otra línea, para darle una nota distinta (ej: 2 con hielo y 1 sin hielo)
+    let siguienteLinea = 1;
+    function nuevaClave(base) {
+      return `${base}#${siguienteLinea++}`;
+    }
+    function separar(key) {
+      const origen = carrito[key];
+      if (!origen || origen.cantidad < 2) return;
+      const clave = nuevaClave(`${origen.tipo}_${origen.id}`);
+      const nuevo = { ...origen, key: clave, cantidad: 1, nota: '' };
+      origen.cantidad--;
+      // Lo ya cobrado (mínimo) y lo no disponible (máximo) se reparten entre las dos líneas
+      if (origen.minimo > origen.cantidad) {
+        nuevo.minimo = origen.minimo - origen.cantidad;
+        origen.minimo = origen.cantidad;
+      } else {
+        nuevo.minimo = 0;
+      }
+      if (origen.maximo) {
+        origen.maximo = origen.maximo - 1;
+        nuevo.maximo = 1;
+      }
+      // La línea nueva va justo debajo de la original
+      const entradas = Object.entries(carrito);
+      Object.keys(carrito).forEach(k => delete carrito[k]);
+      entradas.forEach(([k, v]) => {
+        carrito[k] = v;
+        if (k === key) carrito[clave] = nuevo;
+      });
+      renderizarCarrito();
+      const campo = carritoContainer.querySelector(`.nota-item[data-key="${clave}"]`);
+      if (campo) campo.focus();
+    }
+
     // 2. LEER DATOS EXISTENTES (Para Editar)
     document.querySelectorAll('#formset-tbody tr').forEach(fila => {
       const selectPlato = fila.querySelector('select[name*="plato"]');
@@ -252,9 +286,10 @@
 
       if (selectPlato && selectPlato.value) {
         const id = selectPlato.value;
-        const key = `plato_${id}`;
+        let key = `plato_${id}`;
+        if (carrito[key]) key = nuevaClave(key);  // el mismo producto en otra línea, con otra nota
         const cant = cantPlato ? (parseInt(cantPlato.value) || 1) : 1;
-        const info = infoProductos[key];
+        const info = infoProductos[`plato_${id}`];
         if (info) {
           carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
@@ -262,9 +297,10 @@
 
       if (selectBebida && selectBebida.value) {
         const id = selectBebida.value;
-        const key = `bebida_${id}`;
+        let key = `bebida_${id}`;
+        if (carrito[key]) key = nuevaClave(key);  // el mismo producto en otra línea, con otra nota
         const cant = cantBebida ? (parseInt(cantBebida.value) || 1) : 1;
-        const info = infoProductos[key];
+        const info = infoProductos[`bebida_${id}`];
         if (info) {
           carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
@@ -308,9 +344,18 @@
         nota.placeholder = 'Nota para la cocina (ej: sin sal)';
         nota.value = item.nota || '';
         nota.setAttribute('aria-label', `Nota para ${item.nombre}`);
+        nota.dataset.key = item.key;
         nota.addEventListener('input', () => { item.nota = nota.value; actualizarFormset(); });
         div.appendChild(nota);
         if (window.agregarNotasRapidas) agregarNotasRapidas(nota, item.tipo);
+        if (item.cantidad > 1) {
+          const separarBtn = document.createElement('button');
+          separarBtn.type = 'button';
+          separarBtn.className = 'btn-separar';
+          separarBtn.dataset.key = item.key;
+          separarBtn.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">call_split</span> Separar 1 con otra nota';
+          div.appendChild(separarBtn);
+        }
       });
 
       totalComanda.textContent = `$ ${total.toFixed(2)}`;
@@ -386,15 +431,17 @@
       card.addEventListener('click', () => agregar(card));
     });
 
-    // Cantidad de cada producto en la comanda, sobre su tarjeta
+    // Cantidad de cada producto en la comanda (sumando sus líneas), sobre su tarjeta
     function marcarEnPedido() {
       document.querySelectorAll('.producto-card').forEach(card => {
-        const item = carrito[`${card.dataset.tipo}_${card.dataset.id}`];
+        const cantidad = Object.values(carrito)
+          .filter(i => i.tipo === card.dataset.tipo && String(i.id) === card.dataset.id)
+          .reduce((suma, i) => suma + i.cantidad, 0);
         const marca = card.querySelector('[data-en-pedido]');
-        card.classList.toggle('en-pedido', Boolean(item));
+        card.classList.toggle('en-pedido', cantidad > 0);
         if (marca) {
-          marca.hidden = !item;
-          marca.textContent = item ? `${item.cantidad} en la comanda` : '';
+          marca.hidden = !cantidad;
+          marca.textContent = cantidad ? `${cantidad} en la comanda` : '';
         }
       });
     }
@@ -403,6 +450,11 @@
       if (e.target.closest('.btn-sumar')) { const key = e.target.closest('.btn-sumar').dataset.key; carrito[key].cantidad++; renderizarCarrito(); }
       if (e.target.closest('.btn-restar')) { const key = e.target.closest('.btn-restar').dataset.key; if (carrito[key].cantidad > 1) { carrito[key].cantidad--; renderizarCarrito(); } }
       if (e.target.closest('.btn-eliminar')) { const key = e.target.closest('.btn-eliminar').dataset.key; delete carrito[key]; renderizarCarrito(); }
+    });
+
+    carritoContainer.addEventListener('click', function (e) {
+      const separarBtn = e.target.closest('.btn-separar');
+      if (separarBtn) separar(separarBtn.dataset.key);
     });
 
     // Buscador

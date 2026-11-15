@@ -955,3 +955,28 @@ button.plano-mesa:hover {
   background-color: var(--acento);
   color: var(--texto-sobre-acento);
 }
+
+/* Separar una unidad en otra línea con su propia nota */
+.btn-separar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--acento-texto);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-separar .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.btn-separar:hover {
+  text-decoration: underline;
+}
