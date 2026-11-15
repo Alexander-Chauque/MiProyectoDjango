@@ -2,7 +2,8 @@ from django import forms
 from .models import Comanda, DetalleComanda, Mesa
 from empleados.models import Empleado
 from inventario.models import Plato, Bebida
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
+from .servicios import ESTADOS_ABIERTOS
 
 
 class MesaForm(forms.ModelForm):
@@ -55,7 +56,7 @@ class ComandaForm(forms.ModelForm):
             return mesa  # No validar si estamos editando la comanda existente
 
         comandas_existentes = Comanda.objects.filter(
-            mesa=mesa, estado_comanda__in=["pendiente", "en_preparacion"]
+            mesa=mesa, estado_comanda__in=ESTADOS_ABIERTOS
         )
         if comandas_existentes.exists():
             raise forms.ValidationError("Esta mesa ya tiene una comanda en curso")
@@ -71,10 +72,12 @@ class ComandaForm(forms.ModelForm):
                 Q(estado_mesa=True) | Q(id_mesa=self.instance.mesa.id_mesa)
             ).order_by("numero_mesa")
         else:
-            # Crear: solo disponibles
-            self.fields["mesa"].queryset = Mesa.objects.filter(
-                estado_mesa=True
-            ).order_by("numero_mesa")
+            # Crear: mesas sin comanda abierta. Incluye las marcadas como ocupadas a mano
+            # (por ejemplo, al sentar a los clientes), que todavía no tienen su pedido.
+            abierta = Comanda.objects.filter(mesa=OuterRef("pk"), estado_comanda__in=ESTADOS_ABIERTOS)
+            self.fields["mesa"].queryset = (
+                Mesa.objects.filter(~Exists(abierta)).order_by("numero_mesa")
+            )
 
 
 class DetalleComandaForm(forms.ModelForm):

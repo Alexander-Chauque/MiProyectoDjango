@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}Nueva comanda{% endblock %}
 
@@ -158,7 +158,7 @@
                 data-tipo="plato" 
                 data-categoria="{{ plato.categoria.nombre_categoria_plato|lower }}" 
                 data-nombre="{{ plato.nombre_plato }}" 
-                data-precio="{{ plato.precio_plato }}">
+                data-precio="{{ plato.precio_plato|unlocalize }}">
               <div class="prod-info">
                 {% if plato.destacado %}<span class="prod-destacado">Más pedido</span>{% endif %}
                 <strong>{{ plato.nombre_plato }}</strong>
@@ -177,7 +177,7 @@
                 data-tipo="bebida" 
                 data-categoria="{{ bebida.id_tipo_bebida.nombre_tipo_bebida|lower }}" 
                 data-nombre="{{ bebida.nombre_bebida }}" 
-                data-precio="{{ bebida.precio_bebida }}">
+                data-precio="{{ bebida.precio_bebida|unlocalize }}">
               <div class="prod-info">
                 {% if bebida.destacado %}<span class="prod-destacado">Más pedido</span>{% endif %}
                 <strong>{{ bebida.nombre_bebida }}</strong>
@@ -242,6 +242,7 @@
   </form>
 </div>
 
+{{ carrito_inicial|json_script:"carrito-inicial" }}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
@@ -485,6 +486,18 @@
         filtrarProductos();
       });
     });
+
+    // Si la comanda no se pudo guardar, se vuelve a cargar el pedido que se había armado
+    JSON.parse(document.getElementById('carrito-inicial').textContent).forEach(item => {
+      const card = document.querySelector(`.producto-card[data-tipo="${item.tipo}"][data-id="${item.id}"]`);
+      if (!card) return;
+      const key = `${item.tipo}_${item.id}`;
+      carrito[key] = {
+        key, tipo: item.tipo, id: item.id, nombre: card.dataset.nombre,
+        precio: parseFloat(card.dataset.precio), cantidad: item.cantidad,
+      };
+    });
+    if (Object.keys(carrito).length) renderizarCarrito();
 
   });
 </script>

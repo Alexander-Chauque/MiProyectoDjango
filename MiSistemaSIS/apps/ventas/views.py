@@ -906,6 +906,9 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
             lugar["estado"] = "sin-cargar"
         elif mesa.estado_mesa:
             lugar["estado"] = "libre"
+        elif mesa.pk not in abiertas:
+            # Marcada como ocupada a mano (clientes sentados), todavía sin comanda: se puede tomar el pedido
+            lugar["estado"] = "sin-pedido"
         else:
             lugar["estado"] = "ocupada"
             lugar["comanda"] = abiertas.get(mesa.pk)
@@ -928,6 +931,7 @@ def _plano_de_mesas(request, mesa_elegida_id=None):
             for x, y in plano.PILARES
         ],
         "libres": sum(1 for lugar in lugares if lugar["estado"] == "libre"),
+        "sin_pedido": sum(1 for lugar in lugares if lugar["estado"] == "sin-pedido"),
         "ocupadas": sum(1 for lugar in lugares if lugar["estado"] == "ocupada"),
         "proporcion": f"{plano.LIENZO[2]} / {plano.LIENZO[3]}",
     }
@@ -949,8 +953,25 @@ def _mozos_disponibles():
     )
 
 
+def _carrito_enviado(datos):
+    """Los productos que venían en el formulario, para no perder el pedido si hay que corregir algo."""
+    try:
+        total = min(int(datos.get("detalles-TOTAL_FORMS", 0)), 200)
+    except (TypeError, ValueError):
+        return []
+    items = []
+    for i in range(total):
+        for tipo, campo_cantidad in (("plato", "cant_plato"), ("bebida", "cant_bebida")):
+            producto = datos.get(f"detalles-{i}-{tipo}", "")
+            cantidad = datos.get(f"detalles-{i}-{campo_cantidad}", "")
+            if str(producto).isdigit() and str(cantidad).isdigit() and int(cantidad) > 0:
+                items.append({"tipo": tipo, "id": producto, "cantidad": int(cantidad)})
+    return items
+
+
 def _contexto_crear_comanda(request, form, formset, mozo_id):
     return {
+        "carrito_inicial": _carrito_enviado(request.POST) if request.method == "POST" else [],
         "form": form,
         "formset": formset,
         "plano": _plano_de_mesas(request, form["mesa"].value()),

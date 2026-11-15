@@ -239,7 +239,8 @@ def crear_comanda(id_mesa, empleado, observaciones, items):
         mesa = None
     if not mesa:
         raise ValueError("Seleccioná una mesa válida.")
-    if not mesa.estado_mesa or mesa.comandas.filter(estado_comanda__in=ESTADOS_ABIERTOS).exists():
+    # Una mesa marcada como ocupada a mano, pero sin comanda abierta, sí puede recibir su pedido
+    if mesa.comandas.filter(estado_comanda__in=ESTADOS_ABIERTOS).exists():
         raise ValueError(f"La mesa {mesa.numero_mesa} no está disponible.")
 
     cantidades = _leer_items(items)

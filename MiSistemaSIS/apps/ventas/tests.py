@@ -167,3 +167,24 @@ class TomarPedidoTests(TestCase):
         self.assertTrue(platos[0].destacado)
         self.assertFalse(platos[1].destacado)
         self.assertContains(respuesta, "Más pedido", count=1)
+
+    def test_mesa_ocupada_a_mano_sin_pedido_recibe_la_comanda(self):
+        # Clientes sentados: la mesa se marcó ocupada desde el listado, todavía sin comanda
+        Mesa.objects.filter(pk=self.mesa.pk).update(estado_mesa=False)
+        respuesta = self.client.get(reverse("ventas:comanda_crear"))
+        self.assertContains(respuesta, "plano-mesa--sin-pedido")
+        self.client.post(reverse("ventas:comanda_crear"), self.datos())
+        self.assertEqual(Comanda.objects.filter(mesa=self.mesa).count(), 1)
+
+    def test_si_la_mesa_ya_tiene_comanda_no_se_pierde_el_pedido(self):
+        Comanda.objects.create(mesa=self.mesa, empleado=self.cajera)
+        Mesa.objects.filter(pk=self.mesa.pk).update(estado_mesa=False)
+
+        respuesta = self.client.post(reverse("ventas:comanda_crear"), self.datos())
+
+        self.assertEqual(Comanda.objects.count(), 1)
+        self.assertEqual(
+            respuesta.context["carrito_inicial"],
+            [{"tipo": "plato", "id": str(self.locro.pk), "cantidad": 2}],
+        )
+        self.assertContains(respuesta, 'id="carrito-inicial"')

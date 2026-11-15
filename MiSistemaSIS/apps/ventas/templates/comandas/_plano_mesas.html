@@ -6,7 +6,8 @@
     <p class="plano-elegida" data-plano-elegida aria-live="polite">Tocá una mesa libre del plano.</p>
     <ul class="plano-leyenda">
       <li><span class="plano-muestra plano-muestra--libre"></span> Libre ({{ plano.libres }})</li>
-      <li><span class="plano-muestra plano-muestra--ocupada"></span> Ocupada ({{ plano.ocupadas }})</li>
+      <li><span class="plano-muestra plano-muestra--ocupada"></span> Con pedido ({{ plano.ocupadas }})</li>
+      {% if plano.sin_pedido %}<li><span class="plano-muestra plano-muestra--sin-pedido"></span> Ocupada sin pedido ({{ plano.sin_pedido }})</li>{% endif %}
       <li><span class="plano-muestra plano-muestra--elegida"></span> Elegida</li>
     </ul>
   </div>
@@ -35,13 +36,13 @@
       {% endfor %}
 
       {% for lugar in plano.lugares %}
-        {% if lugar.estado == 'libre' %}
-        <button type="button" class="plano-mesa plano-mesa--libre{% if lugar.elegida %} plano-mesa--elegida{% endif %}"
+        {% if lugar.estado == 'libre' or lugar.estado == 'sin-pedido' %}
+        <button type="button" class="plano-mesa plano-mesa--{{ lugar.estado }}{% if lugar.elegida %} plano-mesa--elegida{% endif %}"
           data-mesa-id="{{ lugar.mesa.pk }}" data-mesa-numero="{{ lugar.numero }}"
           data-mesa-texto="Mesa {{ lugar.numero }} · {{ lugar.mesa.get_ubicacion_display }} · {{ lugar.capacidad }} lugares"
           aria-pressed="{% if lugar.elegida %}true{% else %}false{% endif %}"
           style="left: {{ lugar.pos.left }}%; top: {{ lugar.pos.top }}%; width: {{ lugar.pos.width }}%; height: {{ lugar.pos.height }}%;"
-          title="Mesa {{ lugar.numero }} · {{ lugar.capacidad }} lugares · Libre">
+          title="Mesa {{ lugar.numero }} · {{ lugar.capacidad }} lugares · {% if lugar.estado == 'libre' %}Libre{% else %}Ocupada sin pedido: se puede tomar su pedido{% endif %}">
           <strong>{{ lugar.numero }}</strong><small>{{ lugar.capacidad }} p.</small>
         </button>
         {% elif lugar.estado == 'ocupada' %}

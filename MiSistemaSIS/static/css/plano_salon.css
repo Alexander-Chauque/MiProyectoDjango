@@ -472,3 +472,11 @@ button.plano-mesa:hover {
   border-color: var(--acento);
   background-color: var(--acento-suave);
 }
+
+/* Ocupada a mano (clientes sentados) y todavía sin comanda: se puede tomar su pedido */
+.plano-mesa--sin-pedido,
+.plano-muestra--sin-pedido {
+  border: 2px dashed var(--acento);
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+}
