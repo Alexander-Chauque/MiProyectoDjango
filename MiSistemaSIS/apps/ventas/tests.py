@@ -131,6 +131,11 @@ class TomarPedidoTests(TestCase):
         self.assertContains(respuesta, 'name="mozo"', count=2)
         self.assertContains(respuesta, f'value="{self.cajera.pk}" checked')
 
+    def test_la_pantalla_trae_las_notas_rapidas(self):
+        respuesta = self.client.get(reverse("ventas:comanda_crear"))
+        self.assertContains(respuesta, "js/notas_rapidas.js")
+        self.assertContains(respuesta, "agregarNotasRapidas(nota, item.tipo)")
+
     def test_guarda_la_comanda_con_el_mozo_elegido(self):
         self.client.post(reverse("ventas:comanda_crear"), self.datos(mozo=self.mozo.pk))
         comanda = Comanda.objects.get()

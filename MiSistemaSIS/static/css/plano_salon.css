@@ -923,3 +923,35 @@ button.plano-mesa:hover {
 .estacion-vacia strong {
   color: var(--texto);
 }
+
+/* Notas rápidas debajo de cada producto del carrito */
+.notas-rapidas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.nota-rapida {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background-color: var(--superficie);
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.nota-rapida:hover {
+  border-color: var(--acento);
+  color: var(--texto);
+}
+
+.nota-rapida.activa {
+  border-color: var(--acento);
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}

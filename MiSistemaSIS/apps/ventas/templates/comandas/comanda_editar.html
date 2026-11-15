@@ -214,6 +214,7 @@
     </div>
   </form>
 </div>
+<script src="{% static 'js/notas_rapidas.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
@@ -309,6 +310,7 @@
         nota.setAttribute('aria-label', `Nota para ${item.nombre}`);
         nota.addEventListener('input', () => { item.nota = nota.value; actualizarFormset(); });
         div.appendChild(nota);
+        if (window.agregarNotasRapidas) agregarNotasRapidas(nota, item.tipo);
       });
 
       totalComanda.textContent = `$ ${total.toFixed(2)}`;
