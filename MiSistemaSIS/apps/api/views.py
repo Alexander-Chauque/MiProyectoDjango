@@ -589,12 +589,14 @@ class ComandaPagoView(APIView):
                 {"detail": f"La comanda #{comanda.id_comanda} todavía no se entregó: marcala como entregada antes de cobrar."}
             )
         with transaction.atomic():
-            comanda, *_ = _ejecutar(
+            comanda, monto, _, vuelto = _ejecutar(
                 registrar_pago,
                 pk,
                 request.data.get("tipo_pago"),
                 request.data.get("metodo_pago"),
                 request.data.get("monto"),
                 request.user.empleado,
+                str(request.data.get("monto_recibido") or "").strip(),
             )
-        return Response(ComandaDetalleSerializer(comanda).data)
+        # Además de la comanda: lo cobrado y el vuelto a entregar (si pagó con más, en efectivo)
+        return Response({**ComandaDetalleSerializer(comanda).data, "monto_cobrado": str(monto), "vuelto": str(vuelto or 0)})
