@@ -153,6 +153,21 @@ class MesasYComandasTests(BaseApi):
         r = self.cliente.patch(f"/api/comandas/{otra['id_comanda']}/", {"items": items, "mesa": libre.pk}, format="json")
         self.assertEqual(r.status_code, 400)
 
+    def test_ventas_lista_los_cobros(self):
+        comanda = self._comanda()
+        caja.objects.create(empleado_apertura=self.admin)
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/estado/", {"estado": "entregado"}, format="json")
+        self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/pago/", {"tipo_pago": "total", "metodo_pago": efectivo.pk}, format="json")
+        r = self.cliente.get("/api/ventas/cobros/", {"buscar": "efect"})
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["total"], 1)
+        fila = r.data["resultados"][0]
+        self.assertEqual((fila["comanda"], fila["metodo"], fila["monto"]), (comanda["id_comanda"], "Efectivo", "200.00"))
+        self.assertIsNotNone(r.data["caja_abierta"])
+        self.assertEqual(r.data["por_metodo"], [{"metodo": "Efectivo", "total": "200.00"}])
+        self.assertEqual(self.cliente.get("/api/ventas/cobros/", {"buscar": "tarjeta"}).data["total"], 0)
+
     def test_metodos_de_pago_para_cobrar(self):
         metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
         metodo_pago.objects.create(nombre_metodo_pago="Viejo", estado_metodo_pago=False)

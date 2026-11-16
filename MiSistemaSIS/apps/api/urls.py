@@ -91,6 +91,7 @@ urlpatterns = [
     path("gastos/", vistas_finanzas.GastoListaView.as_view(), name="gastos"),
     path("gastos/<int:pk>/", vistas_finanzas.GastoDetalleView.as_view(), name="gasto"),
     path("ventas/", vistas_finanzas.VentaListaView.as_view(), name="ventas"),
+    path("ventas/cobros/", vistas_finanzas.CobroListaView.as_view(), name="ventas_cobros"),
     # Reportes y auditoría
     path("reportes/", vistas_reportes.ReporteView.as_view(), name="reportes"),
     path("auditoria/", vistas_reportes.AuditoriaView.as_view(), name="auditoria"),
