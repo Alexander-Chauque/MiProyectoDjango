@@ -63,6 +63,7 @@ class YoView(APIView):
         acciones = [clave for clave, _ in TipoPermiso._meta.get_field("accion").choices]
         return Response(
             {
+                "id_empleado": empleado.pk,
                 "nombre": empleado.get_full_name(),
                 "usuario": request.user.username,
                 "correo": empleado.correo,
@@ -407,6 +408,7 @@ class ComandaListaView(APIView):
             request.user.empleado,
             str(request.data.get("observaciones") or "").strip(),
             request.data.get("items"),
+            request.data.get("mozo"),
         )
         return Response(ComandaDetalleSerializer(comanda).data, status=status.HTTP_201_CREATED)
 
@@ -428,6 +430,7 @@ class ComandaDetalleView(APIView):
             request.user.empleado,
             None if observaciones is None else str(observaciones).strip(),
             request.data.get("items"),
+            request.data.get("mozo"),
         )
         return Response(ComandaDetalleSerializer(comanda).data)
 
@@ -478,6 +481,27 @@ class ComandaConsultaView(APIView):
         return responder_paginado(
             request, comandas, lambda comanda: ComandaSerializer(comanda).data,
             {"fecha_desde": desde, "fecha_hasta": hasta},
+        )
+
+
+class ComandaMozosView(APIView):
+    """GET /api/comandas/mozos/: quienes pueden tomar pedidos, para elegir el mozo de la comanda."""
+
+    permission_classes = [PermisoDeModulo]
+    modulo = "comandas"
+
+    def get(self, request):
+        from ventas.views import _mozos_disponibles
+
+        return Response(
+            [
+                {
+                    "id": mozo.pk,
+                    "nombre": mozo.get_full_name(),
+                    "cargo": mozo.cargo.nombre_cargo if mozo.cargo else "",
+                }
+                for mozo in _mozos_disponibles()
+            ]
         )
 
 

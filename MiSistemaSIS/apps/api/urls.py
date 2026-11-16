@@ -54,6 +54,7 @@ urlpatterns = [
     # Comandas
     path("comandas/", views.ComandaListaView.as_view(), name="comandas"),
     path("comandas/productos/", views.ComandaProductosView.as_view(), name="comanda_productos"),
+    path("comandas/mozos/", views.ComandaMozosView.as_view(), name="comanda_mozos"),
     path("comandas/consulta/", views.ComandaConsultaView.as_view(), name="comandas_consulta"),
     path("comandas/<int:pk>/", views.ComandaDetalleView.as_view(), name="comanda"),
     path("comandas/<int:pk>/estado/", views.ComandaEstadoView.as_view(), name="comanda_estado"),

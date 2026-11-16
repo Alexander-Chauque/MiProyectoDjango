@@ -115,6 +115,31 @@ class MesasYComandasTests(BaseApi):
         self.assertEqual(self.cliente.delete(f"/api/comandas/{comanda['id_comanda']}/").status_code, 204)
         self.assertTrue(Mesa.objects.get(pk=comanda["mesa"]).estado_mesa)
 
+    def test_notas_por_producto_y_unidad_separada(self):
+        mesa = Mesa.objects.create(numero_mesa=50, ubicacion="salon")
+        items = [
+            {"tipo": "plato", "id": self.plato.pk, "cantidad": 2, "observacion": "jugoso"},
+            {"tipo": "plato", "id": self.plato.pk, "cantidad": 1, "observacion": "bien cocido"},
+        ]
+        r = self.cliente.post("/api/comandas/", {"mesa": mesa.pk, "items": items}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual([(i["cantidad"], i["observacion"]) for i in r.data["items"]], [(2, "jugoso"), (1, "bien cocido")])
+        self.assertEqual(Comanda.objects.get(pk=r.data["id_comanda"]).total_comanda, 300)
+
+    def test_elegir_mozo(self):
+        mozo = self._empleado("mozo", permisos=[("comandas", "escribir")])
+        cocinero = self._empleado("cocinero", permisos=[("comandas", "leer")])
+        nombres = [m["id"] for m in self.cliente.get("/api/comandas/mozos/").data]
+        self.assertIn(mozo.pk, nombres)
+        self.assertNotIn(cocinero.pk, nombres)
+        mesa = Mesa.objects.create(numero_mesa=51, ubicacion="salon")
+        items = [{"tipo": "plato", "id": self.plato.pk, "cantidad": 1}]
+        r = self.cliente.post("/api/comandas/", {"mesa": mesa.pk, "items": items, "mozo": cocinero.pk}, format="json")
+        self.assertEqual(r.status_code, 400)
+        r = self.cliente.post("/api/comandas/", {"mesa": mesa.pk, "items": items, "mozo": mozo.pk}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual(r.data["mozo_id"], mozo.pk)
+
     def _desactivado_hace(self, producto, dias):
         """Marca el producto como no disponible hace `dias` días.
 
