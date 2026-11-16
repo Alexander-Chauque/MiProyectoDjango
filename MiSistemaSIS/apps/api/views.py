@@ -484,6 +484,24 @@ class ComandaConsultaView(APIView):
         )
 
 
+class ComandaMetodosPagoView(APIView):
+    """GET /api/comandas/metodos-pago/: los métodos activos, para cobrar sin necesitar el permiso de caja."""
+
+    permission_classes = [PermisoDeModulo]
+    modulo = "comandas"
+
+    def get(self, request):
+        from finanzas.models import metodo_pago
+
+        metodos = metodo_pago.objects.filter(estado_metodo_pago=True).order_by("nombre_metodo_pago")
+        return Response(
+            [
+                {"id": m.pk, "nombre": m.nombre_metodo_pago, "permite_cambio": bool(m.permite_cambio)}
+                for m in metodos
+            ]
+        )
+
+
 class ComandaMozosView(APIView):
     """GET /api/comandas/mozos/: quienes pueden tomar pedidos, para elegir el mozo de la comanda."""
 
@@ -571,7 +589,7 @@ class ComandaPagoView(APIView):
                 {"detail": f"La comanda #{comanda.id_comanda} todavía no se entregó: marcala como entregada antes de cobrar."}
             )
         with transaction.atomic():
-            comanda, _, _ = _ejecutar(
+            comanda, *_ = _ejecutar(
                 registrar_pago,
                 pk,
                 request.data.get("tipo_pago"),

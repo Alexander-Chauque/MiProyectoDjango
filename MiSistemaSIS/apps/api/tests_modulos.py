@@ -140,6 +140,24 @@ class MesasYComandasTests(BaseApi):
         self.assertEqual(r.status_code, 201, r.data)
         self.assertEqual(r.data["mozo_id"], mozo.pk)
 
+    def test_metodos_de_pago_para_cobrar(self):
+        metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        metodo_pago.objects.create(nombre_metodo_pago="Viejo", estado_metodo_pago=False)
+        mozo = self._cliente(self._empleado("mozo", permisos=[("comandas", "leer")]))
+        r = mozo.get("/api/comandas/metodos-pago/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual([m["nombre"] for m in r.data], ["Efectivo"])
+
+    def test_cobra_comanda_entregada_con_metodo_de_finanzas(self):
+        comanda = self._comanda()
+        caja.objects.create(empleado_apertura=self.admin)
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/estado/", {"estado": "entregado"}, format="json")
+        datos = {"tipo_pago": "total", "metodo_pago": efectivo.pk}
+        r = self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/pago/", datos, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["estado_comanda"], "pagado")
+
     def test_no_cobra_comanda_sin_entregar(self):
         comanda = self._comanda()
         efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
