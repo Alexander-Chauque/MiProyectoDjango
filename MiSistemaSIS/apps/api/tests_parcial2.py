@@ -76,6 +76,15 @@ class PestanasConsolidadosWebTests(BaseApi):
         self.assertIn(reverse("reportes:consolidado", args=["personal"]), html)
         self.assertNotIn(reverse("reportes:consolidado", args=["rentabilidad"]), html)
 
+    def test_tarjeta_con_el_titulo_de_las_demas_pestanas(self):
+        from django.test import Client
+        from django.urls import reverse
+
+        web = Client()
+        web.force_login(self.admin.user)
+        html = web.get(reverse("reportes:consolidado", args=["personal"])).content.decode()
+        self.assertIn('<div class="titulo-top"><span class="material-symbols-outlined icono-naranja">badge</span>', html)
+
 
 class NotificacionesTests(BaseApi):
     def setUp(self):

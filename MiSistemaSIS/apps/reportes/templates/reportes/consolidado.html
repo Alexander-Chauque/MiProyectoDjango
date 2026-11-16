@@ -2,9 +2,11 @@
 
 {% block extra_css_reportes %}
 <style>
-  .consolidado-cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
-  .consolidado-cabecera h3 { margin: 0 0 4px 0; }
+  /* Debajo del título de la tarjeta: descripción a la izquierda y procesos a la derecha */
+  .consolidado-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid #EDF2F7; }
   .consolidado-cabecera p { margin: 0; color: #6B7280; font-size: 14px; }
+  .tarjeta-top .nota-reporte { padding: 0 20px; }
+  .tarjeta-top .paginacion { padding: 0 20px 16px; }
   .chip-procesos { display: inline-flex; align-items: center; gap: 6px; background: #FFF8E7; color: #B7791F; border: 1px solid #F5D7A1; border-radius: 999px; padding: 4px 12px; font-size: 13px; white-space: nowrap; }
   .chip-procesos .material-symbols-outlined { font-size: 18px; }
   .tabla-consolidado-scroll { overflow-x: auto; }
@@ -54,11 +56,9 @@
 
 {% block contenido_reporte %}
 <div class="tarjeta-top">
+  <div class="titulo-top"><span class="material-symbols-outlined icono-naranja">{{ icono }}</span><h3>{{ titulo }}</h3></div>
   <div class="consolidado-cabecera">
-    <div>
-      <h3>{{ titulo }}</h3>
-      <p>{{ descripcion }}</p>
-    </div>
+    <p>{{ descripcion }}</p>
     <span class="chip-procesos" title="Procesos que cruza este reporte">
       <span class="material-symbols-outlined">join_inner</span> {{ procesos }}
     </span>

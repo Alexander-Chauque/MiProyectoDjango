@@ -417,6 +417,8 @@ def reporte_consolidado(request, clave):
             **datos,
             "clave": clave,
             "tab": clave,
+            # Ícono de la pestaña, también en el título de la tarjeta (como Top 5, Mozos...)
+            "icono": REPORTES[clave]["icono"],
             "pagina": pagina,
             "por_pagina": por_pagina,
             "fecha_desde": filtros["fecha_desde"],
