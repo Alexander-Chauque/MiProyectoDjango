@@ -263,15 +263,21 @@
       <!-- CONTENIDO DE CADA PÁGINA -->
       <main class="contenido">
         {% if messages %}
-          {# Los errores van en una alerta que hay que cerrar; el resto, arriba y se van solos #}
+          {# Los errores van en una alerta que hay que cerrar; el resto, en avisos flotantes que se van solos #}
           <div class="alerta-errores-datos" hidden>
             {% for message in messages %}{% if message.level_tag == 'error' %}
             <p{% if 'campo:' in message.extra_tags %} data-campo="{{ message.extra_tags|cut:'campo:' }}"{% endif %}>{{ message }}</p>
             {% endif %}{% endfor %}
           </div>
-          {% for message in messages %}{% if message.level_tag != 'error' %}
-          <div class="alert alert-{{ message.level_tag }} mensaje-sistema" role="status">{{ message }}</div>
-          {% endif %}{% endfor %}
+          <div class="avisos-flotantes" aria-live="polite">
+            {% for message in messages %}{% if message.level_tag != 'error' %}
+            <div class="aviso-flotante aviso-{{ message.level_tag }} mensaje-sistema" role="status">
+              <span class="material-symbols-outlined aviso-flotante-icono" aria-hidden="true">{% if message.level_tag == 'warning' %}warning{% elif message.level_tag == 'info' %}info{% else %}check_circle{% endif %}</span>
+              <p>{{ message }}</p>
+              <button type="button" class="aviso-flotante-cerrar" aria-label="Cerrar aviso"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            {% endif %}{% endfor %}
+          </div>
         {% endif %}
         {% block content %}{% endblock %}
       </main>
@@ -401,17 +407,24 @@
         }, 0);
       });
 
-      // Avisos de que algo salió bien: se van solos (solo los del sistema, no los cuadros de cada pantalla)
+      // Avisos de que algo salió bien: flotan arriba a la derecha y se van solos a los 4 segundos.
+      // Con el mouse encima esperan a que se terminen de leer; la X los cierra antes.
       document.addEventListener("DOMContentLoaded", function () {
-        setTimeout(function () {
-          document.querySelectorAll(".mensaje-sistema").forEach(function (alert) {
-            alert.style.transition = "opacity 0.5s";
-            alert.style.opacity = "0";
-            setTimeout(function () {
-              alert.style.display = "none";
-            }, 500);
-          });
-        }, 5000);
+        document.querySelectorAll(".mensaje-sistema").forEach(function (aviso) {
+          let reloj = null;
+          function quitar() {
+            aviso.classList.add("saliendo");
+            setTimeout(function () { aviso.remove(); }, 200);
+          }
+          function esperar() {
+            clearTimeout(reloj);
+            reloj = setTimeout(quitar, 4000);
+          }
+          aviso.addEventListener("mouseenter", function () { clearTimeout(reloj); });
+          aviso.addEventListener("mouseleave", esperar);
+          aviso.querySelector(".aviso-flotante-cerrar").addEventListener("click", quitar);
+          esperar();
+        });
       });
     </script>
 

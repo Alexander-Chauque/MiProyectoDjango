@@ -375,3 +375,110 @@
   background-color: transparent;
   color: var(--icono-neutro);
 }
+
+/* ---------- Avisos flotantes: lo que salió bien, sin mover la pantalla ---------- */
+.avisos-flotantes {
+  position: fixed;
+  top: 76px;
+  right: 20px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.avisos-flotantes:empty {
+  display: none;
+}
+
+.aviso-flotante {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 10px 12px 14px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid #10B981;
+  border-radius: 10px;
+  background-color: var(--superficie);
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.16);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  animation: aviso-entra 0.22s ease-out;
+}
+
+.aviso-flotante.saliendo {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.aviso-flotante p {
+  flex: 1;
+  margin: 1px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.aviso-flotante-icono {
+  flex-shrink: 0;
+  color: #10B981;
+  font-size: 22px !important;
+}
+
+.aviso-warning { border-left-color: var(--acento); }
+.aviso-warning .aviso-flotante-icono { color: var(--acento); }
+.aviso-info { border-left-color: #3B82F6; }
+.aviso-info .aviso-flotante-icono { color: #3B82F6; }
+
+.aviso-flotante-cerrar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.aviso-flotante-cerrar:hover {
+  background-color: var(--superficie-2);
+  color: var(--texto);
+}
+
+.aviso-flotante-cerrar .material-symbols-outlined {
+  font-size: 18px;
+}
+
+@keyframes aviso-entra {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* En celular: abajo al centro, a lo ancho */
+@media (max-width: 600px) {
+  .avisos-flotantes {
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    align-items: stretch;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso-flotante {
+    animation: none;
+    transition: none;
+  }
+}
