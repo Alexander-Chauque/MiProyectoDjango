@@ -482,3 +482,43 @@
     transition: none;
   }
 }
+
+/* ---------- Enlaces sin subrayado: color de marca y cambio de color al pasar ---------- */
+a,
+a:hover,
+a:focus {
+  text-decoration: none !important;
+}
+
+/* Enlaces sueltos dentro del texto (los que no son botones ni tarjetas) */
+.contenido a:not([class]) {
+  color: var(--acento-texto);
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.contenido a:not([class]):hover {
+  color: var(--acento-hover);
+}
+
+/* Ver caja / Abrir caja: botoncito redondeado del color del aviso */
+.contenido .aviso-caja a {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: background-color 0.15s ease;
+}
+
+.contenido .aviso-caja a:hover {
+  background-color: #FFFFFF;
+}
+
+[data-tema="oscuro"] .contenido .aviso-caja a {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Iniciales del usuario: blancas sobre el naranja ---------- */
+.user-avatar {
+  color: #FFFFFF;
+  text-shadow: 0 1px 1px rgba(120, 60, 0, 0.25);
+}
