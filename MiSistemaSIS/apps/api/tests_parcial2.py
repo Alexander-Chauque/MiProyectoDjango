@@ -57,6 +57,26 @@ class ConsolidadosTests(BaseApi):
         self.assertTrue(r.content.startswith(b"%PDF"))
 
 
+class PestanasConsolidadosWebTests(BaseApi):
+    """En la web de Django, los consolidados son pestañas de Reportes según el perfil."""
+
+    def test_pestanas_segun_el_perfil(self):
+        from django.test import Client
+        from django.urls import reverse
+
+        web = Client()
+        web.force_login(self.admin.user)
+        html = web.get(reverse("reportes:ventas")).content.decode()
+        for clave in ("rentabilidad", "cajas", "personal"):
+            self.assertIn(reverse("reportes:consolidado", args=[clave]), html)
+
+        mozo = self._empleado("ceci", nivel=1, permisos=[("reportes", "leer")])
+        web.force_login(mozo.user)
+        html = web.get(reverse("reportes:ventas")).content.decode()
+        self.assertIn(reverse("reportes:consolidado", args=["personal"]), html)
+        self.assertNotIn(reverse("reportes:consolidado", args=["rentabilidad"]), html)
+
+
 class NotificacionesTests(BaseApi):
     def setUp(self):
         super().setUp()
