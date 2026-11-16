@@ -308,7 +308,28 @@ def crear_comanda(id_mesa, empleado, observaciones, items, id_mozo=None):
 
 
 @transaction.atomic
-def actualizar_comanda(id_comanda, empleado, observaciones, items, id_mozo=None):
+def _cambiar_mesa(comanda, id_mesa):
+    """Pasa la comanda a otra mesa libre: libera la anterior y ocupa la nueva (como la web)."""
+    if id_mesa in (None, "") or str(id_mesa) == str(comanda.mesa_id):
+        return
+    try:
+        nueva = Mesa.objects.select_for_update().filter(pk=int(id_mesa)).first()
+    except (TypeError, ValueError):
+        nueva = None
+    if not nueva:
+        raise ValueError("Seleccioná una mesa válida.")
+    if nueva.comandas.filter(estado_comanda__in=ESTADOS_ABIERTOS).exclude(pk=comanda.pk).exists():
+        raise ValueError(f"La mesa {nueva.numero_mesa} ya tiene un pedido abierto.")
+    anterior = comanda.mesa
+    anterior.estado_mesa = True
+    anterior.save()
+    nueva.estado_mesa = False
+    nueva.save()
+    comanda.mesa = nueva
+
+
+@transaction.atomic
+def actualizar_comanda(id_comanda, empleado, observaciones, items, id_mozo=None, id_mesa=None):
     """Aplica las mismas reglas que la web: con pagos solo se puede agregar."""
     comanda = get_object_or_404(Comanda.objects.select_for_update(), id_comanda=id_comanda)
     if not comanda.esta_abierta:
@@ -332,6 +353,7 @@ def actualizar_comanda(id_comanda, empleado, observaciones, items, id_mozo=None)
     if observaciones is not None:
         comanda.observaciones_comanda = observaciones
     comanda.empleado = _mozo_elegido(id_mozo, comanda.empleado)
+    _cambiar_mesa(comanda, id_mesa)
     comanda.save()
     _guardar_detalles(comanda, lineas)
 

@@ -140,6 +140,19 @@ class MesasYComandasTests(BaseApi):
         self.assertEqual(r.status_code, 201, r.data)
         self.assertEqual(r.data["mozo_id"], mozo.pk)
 
+    def test_editar_cambia_de_mesa(self):
+        comanda = self._comanda()
+        libre = Mesa.objects.create(numero_mesa=60, ubicacion="salon")
+        items = [{"tipo": "plato", "id": self.plato.pk, "cantidad": 2}]
+        r = self.cliente.patch(f"/api/comandas/{comanda['id_comanda']}/", {"items": items, "mesa": libre.pk}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["mesa_numero"], 60)
+        self.assertTrue(Mesa.objects.get(pk=comanda["mesa"]).estado_mesa)
+        self.assertFalse(Mesa.objects.get(pk=libre.pk).estado_mesa)
+        otra = self._comanda()
+        r = self.cliente.patch(f"/api/comandas/{otra['id_comanda']}/", {"items": items, "mesa": libre.pk}, format="json")
+        self.assertEqual(r.status_code, 400)
+
     def test_metodos_de_pago_para_cobrar(self):
         metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
         metodo_pago.objects.create(nombre_metodo_pago="Viejo", estado_metodo_pago=False)

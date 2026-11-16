@@ -431,6 +431,7 @@ class ComandaDetalleView(APIView):
             None if observaciones is None else str(observaciones).strip(),
             request.data.get("items"),
             request.data.get("mozo"),
+            request.data.get("mesa"),
         )
         return Response(ComandaDetalleSerializer(comanda).data)
 
