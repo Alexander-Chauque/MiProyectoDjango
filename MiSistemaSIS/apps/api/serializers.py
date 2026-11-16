@@ -283,6 +283,7 @@ class ComandaSerializer(serializers.ModelSerializer):
     mesa_numero = serializers.IntegerField(source="mesa.numero_mesa", read_only=True)
     mozo = serializers.CharField(source="empleado.get_full_name", read_only=True)
     mozo_id = serializers.IntegerField(source="empleado_id", read_only=True)
+    mesa_ubicacion = serializers.CharField(source="mesa.get_ubicacion_display", read_only=True)
     estado_nombre = serializers.SerializerMethodField()
     total_pagado = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     saldo_pendiente = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -297,6 +298,7 @@ class ComandaSerializer(serializers.ModelSerializer):
             "mesa_numero",
             "mozo",
             "mozo_id",
+            "mesa_ubicacion",
             "estado_comanda",
             "estado_nombre",
             "total_comanda",
