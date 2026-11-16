@@ -564,6 +564,12 @@ class ComandaPagoView(APIView):
     accion = "modificar"
 
     def post(self, request, pk):
+        # Desde la app solo se cobra lo que ya se llevó a la mesa
+        comanda = get_object_or_404(Comanda, pk=pk)
+        if comanda.estado_comanda in ("pendiente", "en_preparacion"):
+            raise ValidationError(
+                {"detail": f"La comanda #{comanda.id_comanda} todavía no se entregó: marcala como entregada antes de cobrar."}
+            )
         with transaction.atomic():
             comanda, _, _ = _ejecutar(
                 registrar_pago,
