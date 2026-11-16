@@ -11,6 +11,7 @@ from . import (
     vistas_empleados,
     vistas_finanzas,
     vistas_login,
+    vistas_notificaciones,
     vistas_reportes,
 )
 
@@ -95,4 +96,13 @@ urlpatterns = [
     # Reportes y auditoría
     path("reportes/", vistas_reportes.ReporteView.as_view(), name="reportes"),
     path("auditoria/", vistas_reportes.AuditoriaView.as_view(), name="auditoria"),
+    # Reportes consolidados (Parcial Nº 2, M2)
+    path("reportes/consolidados/", vistas_reportes.ConsolidadosView.as_view(), name="consolidados"),
+    path("reportes/consolidados/<slug:clave>/", vistas_reportes.ConsolidadoView.as_view(), name="consolidado"),
+    path("reportes/consolidados/<slug:clave>/pdf/", vistas_reportes.ConsolidadoPdfView.as_view(), name="consolidado_pdf"),
+    # Notificaciones (Parcial Nº 2, M3)
+    path("notificaciones/", vistas_notificaciones.NotificacionListaView.as_view(), name="notificaciones"),
+    path("notificaciones/sin-leer/", vistas_notificaciones.NotificacionSinLeerView.as_view(), name="notificaciones_sin_leer"),
+    path("notificaciones/marcar-todas/", vistas_notificaciones.NotificacionMarcarTodasView.as_view(), name="notificaciones_marcar_todas"),
+    path("notificaciones/<int:pk>/leida/", vistas_notificaciones.NotificacionLeidaView.as_view(), name="notificacion_leida"),
 ]
