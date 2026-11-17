@@ -325,6 +325,17 @@ class FinanzasTests(BaseApi):
         # La categoría ya tiene gastos: no se edita ni elimina
         self.assertEqual(self.cliente.delete(f"/api/categorias-gasto/{categoria.pk}/").status_code, 400)
 
+    def test_cerrar_caja_contando_el_efectivo_en_un_paso(self):
+        id_caja = self.cliente.post("/api/cajas/", {"saldo_inicial": "500"}, format="json").data["id_caja"]
+        r = self.cliente.post(f"/api/cajas/{id_caja}/cierre/", {"saldo_contado": "abc"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        r = self.cliente.post(f"/api/cajas/{id_caja}/cierre/", {"saldo_contado": "480"}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["estado_caja"], "cerrado")
+        self.assertEqual(Decimal(r.data["saldo_contado"]), Decimal("480"))
+        self.assertEqual(Decimal(r.data["diferencia_caja"]), Decimal("-20"))
+        self.assertEqual(Decimal(r.data["saldo_final"]), Decimal("500"))
+
     def test_gasto_sin_caja_abierta_y_montos_invalidos(self):
         categoria = categoria_gasto.objects.create(nombre_categoria_gasto="Varios")
         datos = {"descripcion_gasto": "X", "monto_gasto": "10", "cat_gasto": categoria.pk}

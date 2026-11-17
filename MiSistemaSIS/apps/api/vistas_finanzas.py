@@ -414,7 +414,11 @@ class CajaArqueoView(APIView):
 
 
 class CajaCierreView(APIView):
-    """POST /api/cajas/5/cierre/ con {observaciones_cierre}."""
+    """POST /api/cajas/5/cierre/ con {observaciones_cierre} y, opcional, {saldo_contado}.
+
+    Con saldo_contado se cierra en un solo paso: se registra el conteo del efectivo y se cierra,
+    así el cierre compara lo que debería haber con lo que se contó en ese momento.
+    """
 
     permission_classes = [PermisoDeModulo]
     modulo = "caja"
@@ -424,9 +428,22 @@ class CajaCierreView(APIView):
         observaciones = leer_texto(
             request, "observaciones_cierre", MAXIMO_OBSERVACIONES, "Las observaciones de cierre"
         )
+        contado = None
+        if request.data.get("saldo_contado") not in (None, ""):
+            contado = leer_monto(
+                request.data.get("saldo_contado"), "saldo_contado",
+                "El efectivo contado debe ser un número válido y no negativo.", permitir_cero=True,
+            )
         with transaction.atomic():
             actual = get_object_or_404(caja.objects.select_for_update(), pk=pk)
             try:
+                if contado is not None:
+                    actual.realizar_arqueo(contado, request.user.empleado, observaciones)
+                    _auditar(
+                        request, "Caja", "MODIFICAR", actual.pk, "",
+                        f"Conteo al cerrar. Esperado: ${actual.saldo_esperado}. Contado: ${actual.saldo_contado}. "
+                        f"Diferencia: ${actual.diferencia_caja}",
+                    )
                 actual.cerrar_caja(request.user.empleado, observaciones)
             except ValueError as error:
                 raise ValidationError({"detail": str(error)})
