@@ -357,7 +357,30 @@ class CajaDetalleView(APIView):
         datos["gastos"] = [_gasto_a_dict(g) for g in gastos]
         datos["total_egresos"] = str(actual.calcular_total_egresos())
         datos["saldo_esperado_actual"] = str(actual.calcular_saldo_esperado())
-        datos["total_ventas"] = str(sum((v.total_venta for v in actual.ventas.all()), 0))
+        # Lo mismo que el detalle de caja de Django: cobros, efectivo, otros medios y por método
+        total_ventas = actual.calcular_total_ventas()
+        efectivo = actual.calcular_total_ventas_efectivo()
+        datos["total_ventas"] = str(total_ventas)
+        datos["ventas_efectivo"] = str(efectivo)
+        datos["ventas_otros_medios"] = str(total_ventas - efectivo)
+        pagos = actual.pagos.select_related("comanda", "empleado", "metodo_pago").order_by("-fecha_hora")
+        datos["pagos"] = [
+            {
+                "id_pago": p.id_pago,
+                "comanda": p.comanda_id,
+                "fecha_hora": p.fecha_hora,
+                "empleado": _nombre(p.empleado) if p.empleado else "No disponible",
+                "metodo": p.metodo_pago.nombre_metodo_pago if p.metodo_pago else "No disponible",
+                "monto": str(p.monto),
+            }
+            for p in pagos
+        ]
+        datos["ventas_por_metodo"] = [
+            {"metodo": v["metodo_pago__nombre_metodo_pago"], "total": str(v["total"])}
+            for v in actual.pagos.values("metodo_pago__nombre_metodo_pago")
+            .annotate(total=Sum("monto"))
+            .order_by("metodo_pago__nombre_metodo_pago")
+        ]
         return Response(datos)
 
 

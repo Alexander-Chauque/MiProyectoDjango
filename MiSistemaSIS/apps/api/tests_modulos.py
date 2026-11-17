@@ -311,6 +311,8 @@ class FinanzasTests(BaseApi):
 
         detalle = self.cliente.get(f"/api/cajas/{id_caja}/").data
         self.assertEqual(Decimal(detalle["saldo_esperado_actual"]), Decimal("849.50"))
+        for campo in ("ventas_efectivo", "ventas_otros_medios", "pagos", "ventas_por_metodo"):
+            self.assertIn(campo, detalle)
 
         r = self.cliente.post(f"/api/cajas/{id_caja}/arqueo/", {"saldo_contado": "840"}, format="json")
         self.assertEqual(Decimal(r.data["diferencia_caja"]), Decimal("-9.50"))
