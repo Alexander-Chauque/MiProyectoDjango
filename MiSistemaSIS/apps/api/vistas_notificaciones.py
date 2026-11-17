@@ -5,6 +5,7 @@ y se marcan como leídas, siempre las dirigidas al cargo de quien inició sesió
 """
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -63,6 +64,23 @@ class NotificacionListaView(APIView):
                 "sin_leer": _sin_leer(request),
             },
         )
+
+
+class NotificacionEvaluarView(APIView):
+    """POST /api/notificaciones/evaluar/: revisa ahora las reglas de comandas demoradas y cajas
+    abiertas (lo mismo que el comando programado evaluar_alertas). Las alertas nuevas se guardan
+    y se mandan por correo. Solo el Administrador.
+    """
+
+    def post(self, request):
+        from empleados.decorators import NIVEL_ADMINISTRADOR, nivel_de
+        from notificaciones.reglas import evaluar_cajas_abiertas, evaluar_comandas_demoradas
+
+        if nivel_de(request.user) < NIVEL_ADMINISTRADOR:
+            raise PermissionDenied("Solo el Administrador puede revisar las alertas.")
+        comandas = evaluar_comandas_demoradas()
+        cajas = evaluar_cajas_abiertas()
+        return Response({"comandas_demoradas": comandas, "cajas_abiertas": cajas, "sin_leer": _sin_leer(request)})
 
 
 class NotificacionSinLeerView(APIView):

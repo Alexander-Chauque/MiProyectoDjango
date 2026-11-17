@@ -119,6 +119,31 @@ class NotificacionesTests(BaseApi):
         r = self.cliente.get("/api/notificaciones/", {"buscar": "13 horas"})
         self.assertEqual(r.data["total"], 1)
 
+    def test_revisar_alertas_ahora_solo_admin(self):
+        from datetime import timedelta
+        from unittest.mock import patch
+
+        from django.utils import timezone
+        from ventas.models import Comanda, Mesa
+
+        mesa = Mesa.objects.create(numero_mesa=70, ubicacion="salon")
+        comanda = Comanda.objects.create(mesa=mesa, empleado=self.admin)
+        Comanda.objects.filter(pk=comanda.pk).update(fecha_hora=timezone.now() - timedelta(minutes=90))
+        Cargo = type(self.admin.cargo)
+        Cargo.objects.get_or_create(nombre_cargo="Mozo", defaults={"nivel_acceso": 1})
+
+        sin_permiso = self._cliente(self._empleado("dani", nivel=1, permisos=[("comandas", "leer")]))
+        self.assertEqual(sin_permiso.post("/api/notificaciones/evaluar/").status_code, 403)
+
+        with patch("notificaciones.reglas.enviar_por_correo", return_value=1) as correo:
+            r = self.cliente.post("/api/notificaciones/evaluar/")
+            self.assertEqual(r.status_code, 200, r.data)
+            self.assertEqual(r.data["comandas_demoradas"], 1)
+            self.assertEqual(correo.call_count, 1)
+            # Una segunda revisión no repite la alerta ni el correo
+            self.assertEqual(self.cliente.post("/api/notificaciones/evaluar/").data["comandas_demoradas"], 0)
+            self.assertEqual(correo.call_count, 1)
+
     def test_contador_de_la_campana(self):
         r = self.cliente.get("/api/notificaciones/sin-leer/")
         self.assertEqual(r.data, {"sin_leer": 1})

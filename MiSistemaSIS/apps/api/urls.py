@@ -103,6 +103,7 @@ urlpatterns = [
     # Notificaciones (Parcial Nº 2, M3)
     path("notificaciones/", vistas_notificaciones.NotificacionListaView.as_view(), name="notificaciones"),
     path("notificaciones/sin-leer/", vistas_notificaciones.NotificacionSinLeerView.as_view(), name="notificaciones_sin_leer"),
+    path("notificaciones/evaluar/", vistas_notificaciones.NotificacionEvaluarView.as_view(), name="notificaciones_evaluar"),
     path("notificaciones/marcar-todas/", vistas_notificaciones.NotificacionMarcarTodasView.as_view(), name="notificaciones_marcar_todas"),
     path("notificaciones/<int:pk>/leida/", vistas_notificaciones.NotificacionLeidaView.as_view(), name="notificacion_leida"),
 ]
