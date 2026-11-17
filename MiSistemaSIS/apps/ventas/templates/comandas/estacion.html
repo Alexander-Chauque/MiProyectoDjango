@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ estacion.destino }} · Pedidos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/plano_salon.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="contenedor">
+  <div class="page-header">
+    <div class="page-header-info">
+      <div class="page-header-icono">
+        <span class="material-symbols-outlined">soup_kitchen</span>
+      </div>
+      <div class="page-header-texto">
+        <h1>{{ estacion.destino }}</h1>
+        <p>Pedidos para preparar, del más antiguo al más nuevo. La pantalla se actualiza sola.</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="estaciones-pestanas" aria-label="Estaciones">
+    {% for e in estaciones %}
+    <a href="{% url 'ventas:estacion' e.clave %}" class="estacion-pestana{% if e.clave == estacion.clave %} activa{% endif %}"{% if e.clave == estacion.clave %} aria-current="page"{% endif %}>{{ e.destino }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if pedidos %}
+  <div class="estacion-pedidos">
+    {% for pedido in pedidos %}
+    <article class="estacion-pedido{% if pedido.demorada %} estacion-pedido--demorada{% endif %}">
+      <header>
+        <div>
+          <strong>Mesa {{ pedido.comanda.mesa.numero_mesa }}</strong>
+          <span>Comanda #{{ pedido.comanda.id_comanda }} · {{ pedido.comanda.empleado.nombre_empleado }}</span>
+        </div>
+        <span class="estacion-espera" title="Tiempo desde que se tomó el pedido">{{ pedido.espera_texto }}</span>
+      </header>
+      <ul>
+        {% for producto in pedido.productos %}
+        <li>
+          <span class="estacion-cantidad">{{ producto.cantidad }}</span>
+          <span>{{ producto.nombre }}{% if producto.nota %}<em class="estacion-nota">{{ producto.nota }}</em>{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if pedido.comanda.observaciones_comanda %}
+      <p class="estacion-observaciones">{{ pedido.comanda.observaciones_comanda }}</p>
+      {% endif %}
+      {% if puede_marcar %}
+      <form method="POST" action="{% url 'ventas:estacion_listo' estacion.clave pedido.comanda.id_comanda %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-primario estacion-listo">
+          <span class="material-symbols-outlined">check</span> Listo
+        </button>
+      </form>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="estacion-vacia">
+    <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+    <strong>No hay nada para preparar en {{ estacion.destino|lower }}.</strong>
+    <p>Cuando entre un pedido, aparece acá solo.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  // Se actualiza sola cada 30 segundos (si no se está tocando nada)
+  setTimeout(function () { window.location.reload(); }, 30000);
+</script>
+{% endblock %}

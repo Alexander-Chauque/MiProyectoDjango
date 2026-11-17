@@ -127,7 +127,7 @@ class FiltrosDeFechaEnPantallasTests(TestCase):
         self.assertIn("El apellido solo puede contener letras", html)
 
     def test_exportar_auditoria_limita_la_fecha(self):
-        respuesta = self.client.get(reverse("auditoria:exportar_csv"), {"fecha_hasta": "abc"})
+        respuesta = self.client.get(reverse("auditoria:exportar_pdf"), {"fecha_hasta": "abc"})
         self.assertEqual(respuesta.status_code, 200)
 
     def test_asistencia_se_registra_con_la_fecha_de_salta(self):

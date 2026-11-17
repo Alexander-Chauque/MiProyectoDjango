@@ -1,16 +1,4 @@
-/*
- * Mayúscula automática en los campos de nombre, mientras se escribe.
- *
- * - Nombres de personas (nombre_empleado, apellido_empleado):
- *   cada palabra con mayúscula -> "Juan Carlos", "De La Fuente".
- * - El resto de los nombres (platos, bebidas, categorías, métodos de pago...):
- *   solo la primera letra -> "Milanesa con puré".
- *
- * Se aplica solo a los <input type="text"> cuyo name es "nombre" o empieza
- * con "nombre_" / "apellido_". Para excluir un campo: data-sin-mayuscula.
- * Para forzarlo en otro campo: data-mayuscula="primera" o "palabras".
- * El cursor queda donde estaba, así se puede corregir en el medio del texto.
- */
+
 (function () {
   'use strict';
 

@@ -13,6 +13,28 @@ def nivel_de(user):
     return cargo.nivel_acceso if cargo else 0
 
 
+MENSAJE_SIN_ACCESO = (
+    'Tu cargo "{cargo}" no tiene acceso al sistema. '
+    "Solo pueden ingresar los cargos habilitados (Mozo y Administrador)."
+)
+
+
+def motivo_sin_acceso(user):
+    """None si el usuario puede usar el sistema; si no, el texto que explica por qué."""
+    if user.is_superuser:
+        return None  # cuenta técnica creada con createsuperuser
+    try:
+        empleado = user.empleado
+    except Empleado.DoesNotExist:
+        return "Tu usuario no está asociado a ningún empleado."
+    cargo = empleado.cargo
+    if cargo is None:
+        return "No tenés un cargo asignado. Contactá con el administrador."
+    if not cargo.acceso_sistema and cargo.nivel_acceso < NIVEL_ADMINISTRADOR:
+        return MENSAJE_SIN_ACCESO.format(cargo=cargo.nombre_cargo)
+    return None
+
+
 def puede_gestionar(user, nivel_objetivo):
     """Solo se gestiona a quien tiene un nivel menor al propio. El administrador gestiona a todos."""
     nivel = nivel_de(user)

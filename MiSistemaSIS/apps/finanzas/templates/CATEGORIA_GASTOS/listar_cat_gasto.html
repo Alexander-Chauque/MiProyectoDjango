@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Categorías de Gastos{% endblock %}
+{% block title %}Categorías de gasto{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -17,15 +17,13 @@
       <span class="material-symbols-outlined">home</span> Inicio
     </a>
     <span class="breadcrumb-separator">&gt;</span>
-    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
-      Finanzas
-    </a>
+    <span class="breadcrumb-item">Finanzas</span>
     <span class="breadcrumb-separator">&gt;</span>
     <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">
       Gastos
     </a>
     <span class="breadcrumb-separator">&gt;</span>
-    <span class="breadcrumb-item active">Categorías de gastos</span>
+    <span class="breadcrumb-item active">Categorías de gasto</span>
   </nav>
 
   <div class="page-header">
@@ -34,16 +32,12 @@
         <span class="material-symbols-outlined">category</span>
       </div>
       <div class="page-header-texto">
-        <h1>Categorías de Gastos</h1>
-        <p>Administra las categorías de gastos del sistema.</p>
+        <h1>Categorías de gasto</h1>
+        <p>Para ordenar los gastos (ej: limpieza, proveedores). Si ya tiene gastos, solo se puede desactivar.</p>
       </div>
     </div>
 
     <div class="page-header-acciones">
-      <a href="{% url 'finanzas:listar_gastos' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">arrow_back</span>
-        Volver a Gastos
-      </a>
       <a href="{% url 'finanzas:crear_cat_gasto' %}" class="btn-primario">
         <span class="material-symbols-outlined">add</span>
         Nueva categoría
@@ -53,7 +47,7 @@
 
 
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
 
     <!-- FILTROS -->
     <aside class="filtros-panel">
@@ -147,10 +141,10 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>DESCRIPCIÓN</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
 
@@ -182,11 +176,18 @@
                   <span class="material-symbols-outlined">visibility</span>
                 </a>
 
+                {% if cat_gasto.tiene_gastos %}
+                <span class="btn-icon btn-icon--bloqueado" aria-disabled="true"
+                      title="Ya tiene gastos cargados: no se puede modificar (sí desactivar)">
+                  <span class="material-symbols-outlined">edit_off</span>
+                </span>
+                {% else %}
                 <a href="{% url 'finanzas:editar_cat_gasto' cat_gasto.pk %}"
                    class="btn-icon btn-editar"
                    title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
+                {% endif %}
                   
                   <form method="post"
                         action="{% url 'finanzas:estado_categoria' cat_gasto.pk %}"
@@ -202,11 +203,18 @@
                   </form>
 
 
+                {% if cat_gasto.tiene_gastos %}
+                <span class="btn-icon btn-icon--bloqueado" aria-disabled="true"
+                      title="Ya tiene gastos cargados: no se puede eliminar (sí desactivar)">
+                  <span class="material-symbols-outlined">delete_forever</span>
+                </span>
+                {% else %}
                 <a href="{% url 'finanzas:eliminar_cat_gasto' cat_gasto.pk %}"
                    class="btn-icon btn-clave"
                    title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
                 </a>
+                {% endif %}
 
               </div>
             </td>

@@ -176,6 +176,11 @@ class DetalleComanda(models.Model):
     nombre_bebida_guardado = models.CharField(max_length=50, blank=True, default="")
     precio_bebida_guardado = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
+    # Indicación para la cocina sobre este producto (por ejemplo, "sin sal"); sale en su ticket
+    observacion = models.CharField(max_length=120, blank=True, default="", verbose_name="Observación")
+    # Cuándo la estación (cocina, bar o parrilla) lo marcó como listo; vacío mientras se prepara
+    listo = models.DateTimeField(null=True, blank=True, verbose_name="Listo")
+
     class Meta:
         db_table = 'ventas_detallecomanda'
         verbose_name = 'Detalle de Comanda'

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Crear Cargo{% endblock %}
+{% block title %}Crear cargo{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -28,7 +28,7 @@
         <span class="material-symbols-outlined">work</span>
       </div>
       <div class="texto-formulario">
-        <h1>Crear Cargo</h1>
+        <h1>Crear cargo</h1>
         <p>Definí el nombre, la descripción y el nivel de acceso para este cargo.</p>
       </div>
     </div>
@@ -89,12 +89,26 @@
         {% endif %}
       </div>
 
+      <!-- Acceso al sistema -->
+      <div class="grupo-campo">
+        <label class="casilla-cargo">
+          {{ form.acceso_sistema }}
+          <span>
+            <strong>Puede ingresar al sistema</strong>
+            <small>Marcalo solo para los cargos que usan el sistema (Mozo y Administrador). El resto del personal queda registrado, pero no puede iniciar sesión.</small>
+          </span>
+        </label>
+        {% if form.acceso_sistema.errors %}
+        <span class="error-mensaje">{{ form.acceso_sistema.errors.0 }}</span>
+        {% endif %}
+      </div>
+
       <div class="acciones-formulario">
         <a href="{% url 'empleados:listar_cargo' %}" class="btn-secundario">
           <span class="material-symbols-outlined">close</span> Cancelar
         </a>
         <button type="submit" class="btn-primario">
-          <span class="material-symbols-outlined">save</span> Guardar Cargo
+          <span class="material-symbols-outlined">save</span> Guardar cargo
         </button>
       </div>
     </form>

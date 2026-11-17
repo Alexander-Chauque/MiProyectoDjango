@@ -36,15 +36,15 @@
     </div>
     <div class="page-header-acciones">
       <a href="{% url 'empleados:listar_tipos_asistencia' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">schedule</span> Tipos de Turno
+        <span class="material-symbols-outlined">schedule</span> Tipos de turno
       </a>
       <button onclick="abrirModalRegistro()" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Registrar Asistencia
+        <span class="material-symbols-outlined">add</span> Registrar asistencia
       </button>
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     <!-- FILTROS -->
     <form method="GET" class="filtros-panel">
       <div class="filtros-header">
@@ -61,19 +61,23 @@
       </div>
 
       <div class="filtro-grupo">
-        <label>Desde</label>
-        <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="filtro-select" max="{{ hoy_iso}}">
-      </div>
-      
-      <div class="filtro-grupo">
-        <label>Hasta</label>
-        <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="filtro-select" max="{{ hoy_iso }}">
+        <label>Rango de fecha</label>
+        <div class="filtro-fecha">
+          <div class="input-buscar-fecha">
+            <label>Desde</label>
+            <input type="date" name="fecha_desde" value="{{ fecha_desde }}" max="{{ hoy_iso }}">
+          </div>
+          <div class="input-buscar-fecha">
+            <label>Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" max="{{ hoy_iso }}">
+          </div>
+        </div>
       </div>
 
       <div class="filtro-grupo">
         <label>Tipo de Turno</label>
         <select name="tipo_asistencia" class="filtro-select">
-          <option value="">Todos</option>
+          <option value="">Todos los turnos</option>
           {% for t in tipos %}
             <option value="{{ t.id_tipo_asistencia }}" {% if t.id_tipo_asistencia|stringformat:"s" == tipo_seleccionado %}selected{% endif %}>
               {{ t.nombre_tipo_asis }}
@@ -111,10 +115,10 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>FECHA</th>
-            <th>EMPLEADO</th>
-            <th>TURNO</th>
-            <th>ACCIONES</th>
+            <th>Fecha</th>
+            <th>Empleado</th>
+            <th>Turno</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -130,7 +134,7 @@
             </td>
             <td>
               <div class="acciones-tabla">
-                <a href="#" class="btn-icon btn-editar" title="Editar Turno" 
+                <a href="#" class="btn-icon btn-editar" title="Editar turno" 
                   onclick="event.preventDefault(); abrirModalEditar('{{ asistencia.id_asistencia }}', '{{ asistencia.id_empleado.nombre_empleado }} {{ asistencia.id_empleado.apellido_empleado }}', '{{ asistencia.fecha_asistencia|date:"d/m/Y" }}', '{{ asistencia.id_tipo_asistencia_id }}');">
                   <span class="material-symbols-outlined">edit</span>
                 </a>
@@ -184,7 +188,7 @@
         <span class="material-symbols-outlined">person_add</span>
       </div>
       <div>
-        <h3>Registrar Asistencia</h3>
+        <h3>Registrar asistencia</h3>
         <p class="text-gris">Asigná el turno al empleado.</p>
       </div>
       <button type="button" class="btn-cerrar-modal" onclick="cerrarModales()">
@@ -231,7 +235,7 @@
         <span class="material-symbols-outlined">edit</span>
       </div>
       <div>
-        <h3>Editar Turno</h3>
+        <h3>Editar turno</h3>
         <p class="text-gris">Corregí el turno asignado.</p>
       </div>
       <button type="button" class="btn-cerrar-modal" onclick="cerrarModales()">
@@ -260,7 +264,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secundario" onclick="cerrarModales()">Cancelar</button>
-        <button type="submit" class="btn-primario"><span class="material-symbols-outlined">save</span> Guardar Cambios</button>
+        <button type="submit" class="btn-primario"><span class="material-symbols-outlined">save</span> Guardar cambios</button>
       </div>
     </form>
   </div>
@@ -273,14 +277,14 @@
         <span class="material-symbols-outlined">warning</span>
       </div>
     </div>
-    <h3>¿Anular Asistencia?</h3>
+    <h3>¿Anular asistencia?</h3>
     <p class="text-gris" id="anular-empleado"></p>
     <p class="text-gris" id="anular-fecha"></p>
     <form id="formAnular" method="POST" action="">
       {% csrf_token %}
       <div class="modal-footer" style="justify-content: center;">
         <button type="button" class="btn-secundario" onclick="cerrarModales()">Cancelar</button>
-        <button type="submit" class="btn-peligro"><span class="material-symbols-outlined">delete</span> Sí, Anular</button>
+        <button type="submit" class="btn-peligro"><span class="material-symbols-outlined">delete</span> Sí, anular</button>
       </div>
     </form>
   </div>

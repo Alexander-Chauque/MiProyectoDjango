@@ -14,7 +14,7 @@
  *   Error / peligro .... rojo        (algo falló o no se puede deshacer)
  *
  * Solo cambia colores: tamaños, bordes y formas siguen como en cada módulo.
- * Los reportes (.tabs-reportes) y el inicio (.estadisticas-grid) quedan afuera: su aspecto no se toca.
+ * Los reportes (.tabs-reportes) quedan afuera: su aspecto no se toca.
  */
 
 :root {
@@ -64,51 +64,51 @@
 }
 
 /* ---------- Títulos ---------- */
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .page-header-texto h1,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .header-texto h1,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .tarjeta-titulo h2,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .tarjeta-titulo-bebida h2,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-tarjeta h2,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-tarjeta h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-carrito h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .tabla-header h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .filtros-header h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-grafico h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .titulo-top h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-header h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .card-contenido h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .stat-info h3,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .detalle-titulo,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-texto strong,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .prod-info strong,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .mesa-info strong,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-reporte strong {
+.contenido:not(:has(.tabs-reportes)) .page-header-texto h1,
+.contenido:not(:has(.tabs-reportes)) .header-texto h1,
+.contenido:not(:has(.tabs-reportes)) .tarjeta-titulo h2,
+.contenido:not(:has(.tabs-reportes)) .tarjeta-titulo-bebida h2,
+.contenido:not(:has(.tabs-reportes)) .titulo-tarjeta h2,
+.contenido:not(:has(.tabs-reportes)) .titulo-tarjeta h3,
+.contenido:not(:has(.tabs-reportes)) .titulo-carrito h3,
+.contenido:not(:has(.tabs-reportes)) .tabla-header h3,
+.contenido:not(:has(.tabs-reportes)) .filtros-header h3,
+.contenido:not(:has(.tabs-reportes)) .titulo-grafico h3,
+.contenido:not(:has(.tabs-reportes)) .titulo-top h3,
+.contenido:not(:has(.tabs-reportes)) .modal-header h3,
+.contenido:not(:has(.tabs-reportes)) .card-contenido h3,
+.contenido:not(:has(.tabs-reportes)) .stat-info h3,
+.contenido:not(:has(.tabs-reportes)) .detalle-titulo,
+.contenido:not(:has(.tabs-reportes)) .info-texto strong,
+.contenido:not(:has(.tabs-reportes)) .prod-info strong,
+.contenido:not(:has(.tabs-reportes)) .mesa-info strong,
+.contenido:not(:has(.tabs-reportes)) .info-reporte strong {
   color: var(--texto-titulo);
 }
 
 /* ---------- Texto y etiquetas de campos ---------- */
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .grupo-campo label,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .filtro-grupo > label,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .resumen-nota {
+.contenido:not(:has(.tabs-reportes)) .grupo-campo label,
+.contenido:not(:has(.tabs-reportes)) .filtro-grupo > label,
+.contenido:not(:has(.tabs-reportes)) .resumen-nota {
   color: var(--texto-normal);
 }
 
 /* ---------- Subtítulos y texto secundario ---------- */
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .page-header-texto p,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .header-texto p,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .card-contenido p,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .stat-info p,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .text-gris,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .texto-gris,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .text-gris-medio,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .paginacion-info,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-label,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .prod-info span,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-reporte span,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .info-footer-permisos,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-ayuda,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .contador-caracteres,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .contador-caracteres-bebida {
+.contenido:not(:has(.tabs-reportes)) .page-header-texto p,
+.contenido:not(:has(.tabs-reportes)) .header-texto p,
+.contenido:not(:has(.tabs-reportes)) .card-contenido p,
+.contenido:not(:has(.tabs-reportes)) .stat-info p,
+.contenido:not(:has(.tabs-reportes)) .text-gris,
+.contenido:not(:has(.tabs-reportes)) .texto-gris,
+.contenido:not(:has(.tabs-reportes)) .text-gris-medio,
+.contenido:not(:has(.tabs-reportes)) .paginacion-info,
+.contenido:not(:has(.tabs-reportes)) .info-label,
+.contenido:not(:has(.tabs-reportes)) .prod-info span,
+.contenido:not(:has(.tabs-reportes)) .info-reporte span,
+.contenido:not(:has(.tabs-reportes)) .info-footer-permisos,
+.contenido:not(:has(.tabs-reportes)) .modal-ayuda,
+.contenido:not(:has(.tabs-reportes)) .contador-caracteres,
+.contenido:not(:has(.tabs-reportes)) .contador-caracteres-bebida {
   color: var(--texto-secundario) !important;
 }
 
@@ -117,7 +117,7 @@
 .alerta-info,
 .alerta-caja-info,
 .alerta-debug,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info.es-info {
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info.es-info {
   background: var(--info-fondo) !important;
   border-color: var(--info-borde) !important;
   color: var(--info-texto) !important;
@@ -133,13 +133,13 @@
 .alert-success,
 .alerta-success,
 .alerta-caja-exito,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja:not(.cerrada) {
+.contenido:not(:has(.tabs-reportes)) .aviso-caja:not(.cerrada) {
   background: var(--exito-fondo) !important;
   border-color: var(--exito-borde) !important;
   color: var(--exito-texto) !important;
 }
 
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja:not(.cerrada) .material-symbols-outlined {
+.contenido:not(:has(.tabs-reportes)) .aviso-caja:not(.cerrada) .material-symbols-outlined {
   color: var(--exito-borde) !important;
 }
 
@@ -147,25 +147,25 @@
 .alert-warning,
 .alerta-warning,
 .aviso-cambio,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja.cerrada,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja {
+.contenido:not(:has(.tabs-reportes)) .aviso-caja.cerrada,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info-naranja {
   background: var(--advertencia-fondo) !important;
   border-color: var(--advertencia-borde) !important;
   color: var(--advertencia-texto) !important;
 }
 
 .aviso-cambio strong,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info strong,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info ul,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja strong,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja ul {
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info strong,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info ul,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info-naranja strong,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info-naranja ul {
   color: var(--advertencia-texto) !important;
 }
 
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .aviso-caja.cerrada .material-symbols-outlined,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info .material-symbols-outlined,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-info-naranja .material-symbols-outlined {
+.contenido:not(:has(.tabs-reportes)) .aviso-caja.cerrada .material-symbols-outlined,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info .material-symbols-outlined,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-info-naranja .material-symbols-outlined {
   color: var(--advertencia-borde) !important;
 }
 
@@ -175,23 +175,23 @@
 .alerta-error,
 .alerta-danger,
 .alerta-caja-error,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro {
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-peligro {
   background: var(--error-fondo) !important;
   border-color: var(--error-borde) !important;
   color: var(--error-texto) !important;
 }
 
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro strong,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro ul {
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-peligro strong,
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-peligro ul {
   color: var(--error-texto) !important;
 }
 
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-alerta-peligro .material-symbols-outlined,
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-icono-alerta {
+.contenido:not(:has(.tabs-reportes)) .modal-alerta-peligro .material-symbols-outlined,
+.contenido:not(:has(.tabs-reportes)) .modal-icono-alerta {
   color: var(--error-borde) !important;
 }
 
-.contenido:not(:has(.tabs-reportes, .estadisticas-grid)) .modal-icono-alerta {
+.contenido:not(:has(.tabs-reportes)) .modal-icono-alerta {
   background-color: var(--error-fondo) !important;
 }
 

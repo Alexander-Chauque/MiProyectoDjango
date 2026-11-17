@@ -15,7 +15,6 @@ urlpatterns = [
     path('METODOS_PAGO/crear_met_pago/', views.crear_met_pago, name='crear_met_pago'),
     path('METODOS_PAGO/<int:pk>/editar_met_pago/', views.editar_met_pago, name='editar_met_pago'),
     path('METODOS_PAGO/<int:pk>/eliminar_met_pago/', views.eliminar_met_pago, name='eliminar_met_pago'),
-    path('METODOS_PAGO/<int:pk>/detalle_met_pago/', views.detalle_met_pago, name='detalle_met_pago'),
     path('METODOS_PAGO/<int:pk>/estado_metodo_pago/', views.estado_metodo_pago, name='estado_metodo_pago'),
     #RUTAS PARA CAJA
     path('CAJA/listar_cajas/', views.listar_cajas, name='listar_cajas'),

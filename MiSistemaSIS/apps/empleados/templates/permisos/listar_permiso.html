@@ -38,16 +38,13 @@
       </div>
     </div>
     <div class="page-header-acciones">
-      <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">arrow_back</span> Volver a Empleados
-      </a>
       <a href="{% url 'empleados:crear_permiso' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Nuevo Permiso
+        <span class="material-symbols-outlined">add</span> Nuevo permiso
       </a>
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     
     <!-- Filtros -->
     <form method="GET" class="filtros-panel">
@@ -127,10 +124,10 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>MÓDULO</th>
-            <th>ACCIÓN</th>
-            <th>DESCRIPCIÓN</th>
-            <th>ACCIONES</th>
+            <th>Módulo</th>
+            <th>Acción</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>

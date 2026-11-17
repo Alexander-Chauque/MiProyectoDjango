@@ -38,16 +38,13 @@
       </div>
     </div>
     <div class="page-header-acciones">
-      <a href="{% url 'empleados:empleado_listar' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">arrow_back</span> Volver a Empleados
-      </a>
       <a href="{% url 'empleados:crear_cargo' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Nuevo Cargo
+        <span class="material-symbols-outlined">add</span> Nuevo cargo
       </a>
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     
     <!-- Filtros -->
     <form method="GET" class="filtros-panel">
@@ -93,12 +90,13 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>DESCRIPCIÓN</th>
-            <th>NIVEL</th>
-            <th>SUELDOS</th>
-            <th>PERMISOS</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Nivel</th>
+            <th>Sueldos</th>
+            <th>Acceso al sistema</th>
+            <th>Permisos</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -110,6 +108,13 @@
               <span class="badge badge-activo">{{ cargo.nivel_acceso }}</span>
             </td>
             <td>${{ cargo.sueldo_cargo|floatformat:2 }}</td>
+            <td>
+              {% if cargo.acceso_sistema %}
+              <span class="badge badge-activo">Sí</span>
+              {% else %}
+              <span class="badge badge-inactivo">No</span>
+              {% endif %}
+            </td>
             <td>
               <a href="{% url 'empleados:ver_permisos_cargo' cargo.pk %}" class="btn-icon btn-ver" title="Ver permisos del cargo">
                   <span class="material-symbols-outlined">visibility</span>
@@ -123,7 +128,7 @@
                 <a href="{% url 'empleados:eliminar_cargo' cargo.pk %}" class="btn-icon btn-clave" title="Eliminar">
                   <span class="material-symbols-outlined">delete</span>
                 </a>
-                <a href="{% url 'empleados:asignar_permisos' %}" class="btn-icon btn-detalle" title="Asignar Permisos">
+                <a href="{% url 'empleados:asignar_permisos' %}" class="btn-icon btn-detalle" title="Asignar permisos">
                   <span class="material-symbols-outlined">key</span>
                 </a>
               </div>
@@ -131,7 +136,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="5" class="sin-resultados">No hay cargos registrados</td>
+            <td colspan="7" class="sin-resultados">No hay cargos registrados</td>
           </tr>
           {% endfor %}
         </tbody>

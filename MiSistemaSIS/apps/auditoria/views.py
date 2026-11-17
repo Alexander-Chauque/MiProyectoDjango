@@ -3,15 +3,18 @@ from urllib.parse import urlencode
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import get_template
+from django.utils import timezone
 from xhtml2pdf import pisa
 
 from core.fechas import filtrar_por_fecha, limitar_rango
 from empleados.decorators import permiso_requerido
 from empleados.models import Empleado
+from reportes.views import logo_en_base64, nombre_de_usuario
+
 from .models import LogAuditoria
 
 # Un PDF con miles de filas tarda mucho en generarse y nadie lo lee entero
@@ -83,9 +86,45 @@ def log_auditoria_listar(request):
     )
 
 
+def _fecha_corta(texto):
+    """AAAA-MM-DD -> DD/MM/AAAA, como en los reportes."""
+    try:
+        return datetime.strptime(texto, "%Y-%m-%d").strftime("%d/%m/%Y")
+    except (TypeError, ValueError):
+        return ""
+
+
+def _describir_filtros(filtros, usuario_nombre):
+    """Los filtros en una línea, para el pie del PDF."""
+    acciones = dict(LogAuditoria.ACCIONES)
+    partes = [
+        f"Tabla: {filtros['tabla'] or 'todas'}",
+        f"Acción: {acciones.get(filtros['accion'], 'todas')}",
+        f"Usuario: {usuario_nombre or 'todos'}",
+        f"Desde: {_fecha_corta(filtros['fecha_desde']) or '—'}",
+        f"Hasta: {_fecha_corta(filtros['fecha_hasta']) or '—'}",
+    ]
+    if filtros["detalle"]:
+        partes.append(f'Texto: "{filtros["detalle"]}"')
+    return " · ".join(partes)
+
+
+def _periodo(filtros):
+    desde = _fecha_corta(filtros["fecha_desde"])
+    hasta = _fecha_corta(filtros["fecha_hasta"])
+    if desde and hasta:
+        return f"{desde} al {hasta}"
+    if desde:
+        return f"desde el {desde}"
+    if hasta:
+        return f"hasta el {hasta}"
+    return "todos los movimientos"
+
+
 @login_required
 @permiso_requerido("auditoria", "leer")
 def exportar_auditoria_pdf(request):
+    """PDF con el mismo diseño que los reportes: logo, resumen, tabla y pie con filtros y usuario."""
     logs, filtros = _filtrar_logs(request)
     total = logs.count()
 
@@ -95,21 +134,29 @@ def exportar_auditoria_pdf(request):
         if empleado:
             usuario_nombre = f"{empleado.nombre_empleado} {empleado.apellido_empleado}"
 
+    # Cuántos movimientos hay de cada acción (con los mismos filtros)
+    por_accion = dict(logs.order_by().values_list("accion").annotate(cantidad=Count("id_log")))
+    resumen = [(nombre, por_accion.get(codigo, 0)) for codigo, nombre in LogAuditoria.ACCIONES]
+
+    generado = timezone.localtime()
     html = get_template("auditoria/pdf_auditoria.html").render(
         {
             "logs": logs[:MAXIMO_PDF],
             "total": total,
+            "resumen": resumen,
             "recortado": total > MAXIMO_PDF,
             "maximo": MAXIMO_PDF,
-            "filtros": filtros,
-            "usuario_nombre": usuario_nombre,
+            "periodo": _periodo(filtros),
+            "filtros_texto": _describir_filtros(filtros, usuario_nombre),
+            "logo": logo_en_base64(),
+            "usuario": nombre_de_usuario(request.user),
+            "generado": generado,
         }
     )
 
-    fecha_actual = datetime.now().strftime("%Y-%m-%d")
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'attachment; filename="log_auditoria_{fecha_actual}.pdf"'
+        f'attachment; filename="Auditoria_{generado:%Y-%m-%d_%H%M}.pdf"'
     )
     if pisa.CreatePDF(html, dest=response, encoding="utf-8").err:
         return HttpResponse("Error al generar el PDF", status=500)

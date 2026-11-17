@@ -18,9 +18,9 @@
             <span class="material-symbols-outlined">home</span> Inicio
         </a>
         <span class="breadcrumb-separator">&gt;</span>
-        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">Finanzas</a>
+        <span class="breadcrumb-item">Finanzas</span>
         <span class="breadcrumb-separator">&gt;</span>
-        <span class="breadcrumb-item active">Cajas</span>
+        <span class="breadcrumb-item active">Caja</span>
     </nav>
 
     <!-- Page header -->
@@ -30,22 +30,38 @@
                 <span class="material-symbols-outlined">point_of_sale</span>
             </div>
             <div class="page-header-texto">
-                <h1>Cajas</h1>
-                <p>Gestiona las cajas registradas.</p>
+                <h1>Caja</h1>
+                <p>Abrí la caja al empezar el turno, mirá sus cobros y gastos, y cerrala al terminar.</p>
             </div>
         </div>
 
         <div class="page-header-acciones">
-            <a href="{% url 'finanzas:finanzas_home' %}" class="btn-secundario">
-                <span class="material-symbols-outlined">arrow_back</span> Volver a Finanzas
+            {% if caja_abierta %}
+            <a href="{% url 'finanzas:detalle_caja' caja_abierta.pk %}" class="btn-primario">
+                <span class="material-symbols-outlined">lock_open</span> Ver caja abierta
             </a>
+            {% else %}
             <a href="{% url 'finanzas:abrir_caja' %}" class="btn-primario">
-                <span class="material-symbols-outlined">add</span> Abrir Caja
+                <span class="material-symbols-outlined">add</span> Abrir caja
             </a>
+            {% endif %}
         </div>
     </div>
 
-    <div class="listado-layout">
+    <!-- Estado de caja -->
+    {% if caja_abierta %}
+        <div class="aviso-caja">
+            <span class="material-symbols-outlined">lock_open</span>
+            <span><strong>Caja #{{ caja_abierta.pk }} abierta</strong> Los cobros y gastos nuevos se registran en ella. Al terminar el turno, hacé el arqueo y cerrala.</span>
+        </div>
+    {% else %}
+        <div class="aviso-caja cerrada">
+            <span class="material-symbols-outlined">lock</span>
+            <span><strong>Sin caja abierta</strong> Para cobrar comandas o registrar gastos, primero abrí una caja con el botón de arriba.</span>
+        </div>
+    {% endif %}
+
+    <div class="listado-layout listado-layout--barra">
 
         <!-- Filtros -->
         <form method="GET" class="filtros-panel">
@@ -166,12 +182,12 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>FECHA DE APERTURA</th>
-                        <th>EMPLEADO RESPONSABLE</th>
-                        <th>SALDO INICIAL</th>
-                        <th>SALDO ESPERADO</th>
-                        <th>ESTADO</th>
-                        <th>ACCIONES</th>
+                        <th>Fecha de apertura</th>
+                        <th>Empleado responsable</th>
+                        <th>Saldo inicial</th>
+                        <th>Saldo esperado</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
 

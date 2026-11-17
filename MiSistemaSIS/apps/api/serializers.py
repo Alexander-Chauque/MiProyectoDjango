@@ -282,6 +282,10 @@ class ComandaSerializer(serializers.ModelSerializer):
 
     mesa_numero = serializers.IntegerField(source="mesa.numero_mesa", read_only=True)
     mozo = serializers.CharField(source="empleado.get_full_name", read_only=True)
+    mozo_id = serializers.IntegerField(source="empleado_id", read_only=True)
+    mesa_ubicacion = serializers.CharField(source="mesa.get_ubicacion_display", read_only=True)
+    # Todo lo pedido ya está preparado y falta llevarlo a la mesa (como el plano de Django)
+    listo_para_llevar = serializers.SerializerMethodField()
     estado_nombre = serializers.SerializerMethodField()
     total_pagado = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     saldo_pendiente = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -295,6 +299,9 @@ class ComandaSerializer(serializers.ModelSerializer):
             "mesa",
             "mesa_numero",
             "mozo",
+            "mozo_id",
+            "mesa_ubicacion",
+            "listo_para_llevar",
             "estado_comanda",
             "estado_nombre",
             "total_comanda",
@@ -304,6 +311,12 @@ class ComandaSerializer(serializers.ModelSerializer):
             "esta_abierta",
             "puede_modificarse",
         ]
+
+    def get_listo_para_llevar(self, comanda):
+        if comanda.estado_comanda not in ("pendiente", "en_preparacion"):
+            return False
+        detalles = list(comanda.detalles.all())
+        return bool(detalles) and all(d.listo for d in detalles)
 
     def get_estado_nombre(self, comanda):
         # "anulado" no está en la lista de estados del modelo
@@ -339,6 +352,7 @@ class ComandaDetalleSerializer(ComandaSerializer):
                         "disponible": bool(detalle.plato and detalle.plato.estado_plato),
                         # Los tickets mandan la categoría Parrilla a la parrilla y el resto a la cocina
                         "categoria": detalle.categoria_del_plato,
+                        "observacion": detalle.observacion,
                     }
                 )
             if detalle.tiene_bebida:
@@ -350,6 +364,7 @@ class ComandaDetalleSerializer(ComandaSerializer):
                         "precio": str(detalle.precio_de_la_bebida),
                         "cantidad": detalle.cant_bebida,
                         "disponible": bool(detalle.bebida and detalle.bebida.disponible_bebida),
+                        "observacion": detalle.observacion,
                     }
                 )
         return items

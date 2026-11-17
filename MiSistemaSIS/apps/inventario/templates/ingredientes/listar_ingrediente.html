@@ -34,20 +34,17 @@
       </div>
       <div class="page-header-texto">
         <h1>Ingredientes</h1>
-        <p>Adminstra los ingredientes e insumos de cocina.</p>
+        <p>Administra los ingredientes e insumos de cocina.</p>
       </div>
     </div>
     <div class="page-header-acciones">
-      <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">arrow_back</span> Volver a Platos
-      </a>
       <a href="{% url 'inventario:crear_ingrediente' %}" class="btn-primario">
         <span class="material-symbols-outlined">add</span> Nuevo ingrediente
       </a>
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     <aside class="filtros-panel">
       <form method="get">
         <div class="filtros-header">
@@ -146,11 +143,11 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>COSTO UNITARIO</th>
-            <th>UNIDAD DE MEDIDA</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Costo unitario</th>
+            <th>Unidad de medida</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -172,10 +169,6 @@
               </td>
               <td>
                 <div class="acciones-tabla">
-                  <a href="{% url 'inventario:detalle_ingrediente' ingrediente.pk %}" class="btn-icon btn-detalle"
-                    title="Ver detalle">
-                    <span class="material-symbols-outlined">visibility</span>
-                  </a>
                   <a href="{% url 'inventario:editar_ingrediente' ingrediente.pk %}" class="btn-icon btn-editar" title="Modificar">
                     <span class="material-symbols-outlined">edit</span>
                   </a>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Categoría{% endblock %}
+{% block title %}Editar categoría{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -21,9 +21,7 @@
     </a>
     <span class="breadcrumb-separator">></span>
 
-    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
-      Finanzas
-    </a>
+    <span class="breadcrumb-item">Finanzas</span>
     <span class="breadcrumb-separator">></span>
 
     <a href="{% url 'finanzas:listar_gastos' %}" class="breadcrumb-item">
@@ -31,12 +29,10 @@
     </a>
     <span class="breadcrumb-separator">></span>
 
-    <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">
-      Categorías
-    </a>
+    <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">Categorías de gasto</a>
     <span class="breadcrumb-separator">></span>
 
-    <span class="breadcrumb-item active">Editar Categoría</span>
+    <span class="breadcrumb-item active">Editar categoría</span>
   </nav>
 
   <div class="page-header">
@@ -52,7 +48,7 @@
       </div>
 
       <div class="page-header-texto">
-        <h1>Editar Categoría: {{ categoria.nombre_categoria_gasto }}</h1>
+        <h1>Editar categoría: {{ categoria.nombre_categoria_gasto }}</h1>
       </div>
 
     </div>
@@ -103,7 +99,7 @@
 
       <button type="submit" class="btn-primario">
         <span class="material-symbols-outlined">save</span>
-        Guardar Cambios
+        Guardar cambios
       </button>
     </div>
 

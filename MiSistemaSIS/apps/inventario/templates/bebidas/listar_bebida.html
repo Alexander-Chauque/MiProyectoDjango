@@ -29,19 +29,17 @@
       </div>
       <div class="page-header-texto">
         <h1>Bebidas</h1>
-        <p>Adminstra las bebidas del menú del restaurante.</p>
+        <p>Administra las bebidas del menú del restaurante.</p>
       </div>
     </div>
     <div class="page-header-acciones">
-      <a href="{% url 'inventario:listar_tipo_bebida' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">category</span> Tipos de bebidas
       <a href="{% url 'inventario:crear_bebida' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Nuevo bebida
+        <span class="material-symbols-outlined">add</span> Nueva bebida
       </a>
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     <aside class="filtros-panel">
       <form method="get">
         <div class="filtros-header">
@@ -125,11 +123,11 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>PRECIO</th>
-            <th>TIPO</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -151,10 +149,6 @@
             </td>
             <td>
               <div class="acciones-tabla">
-                <a href="{% url 'inventario:detalle_bebida' bebida.pk %}" class="btn-icon btn-detalle"
-                  title="Ver detalle">
-                  <span class="material-symbols-outlined">visibility</span>
-                </a>
                 <a href="{% url 'inventario:editar_bebida' bebida.pk %}" class="btn-icon btn-editar" title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>

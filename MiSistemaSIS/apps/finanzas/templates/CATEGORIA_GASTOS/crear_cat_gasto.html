@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Crear Categoría de Gasto{% endblock %}
+{% block title %}Crear categoría de gasto{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -21,9 +21,7 @@
 
     <span class="breadcrumb-separator">&gt;</span>
 
-    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
-      Finanzas
-    </a>
+    <span class="breadcrumb-item">Finanzas</span>
 
     <span class="breadcrumb-separator">&gt;</span>
 
@@ -34,7 +32,7 @@
     <span class="breadcrumb-separator">&gt;</span>
 
     <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">
-      Categorías de gastos
+      Categorías de gasto
     </a>
 
     <span class="breadcrumb-separator">&gt;</span>
@@ -57,7 +55,7 @@
       </div>
 
       <div class="page-header-texto">
-        <h1>Crear Categoría de Gasto</h1>
+        <h1>Crear categoría de gasto</h1>
         <p>Registra una nueva categoría para organizar los gastos.</p>
       </div>
 
@@ -114,7 +112,7 @@
 
       <button type="submit" class="btn-primario">
         <span class="material-symbols-outlined">save</span>
-        Guardar Categoría
+        Guardar categoría
       </button>
 
     </div>

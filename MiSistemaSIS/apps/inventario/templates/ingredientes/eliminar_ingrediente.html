@@ -1,7 +1,7 @@
 {% extends 'base_inventario.html' %}
 
-{% block content %}
-<h1 class="titulo">Eliminar Ingrediente</h1>
+{% block contenido_simple %}
+<h1 class="titulo">Eliminar ingrediente</h1>
 <p>¿Está seguro de que desea eliminar este ingrediente?</p>
 <form method="POST">
     {% csrf_token %}

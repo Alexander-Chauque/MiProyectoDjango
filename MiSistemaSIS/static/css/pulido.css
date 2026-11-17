@@ -1,0 +1,524 @@
+/*
+ * PULIDO VISUAL (se carga al final de base.html)
+ *
+ * Solo apariencia: no cambia pantallas ni funcionamiento. Mantiene la marca
+ * (naranja de Los Cardones, Inter para la interfaz y Oswald para los títulos)
+ * y busca un aspecto más limpio y parejo en todo el sistema:
+ *   - Menos sombras y bordes más suaves; más aire entre bloques.
+ *   - Botones y campos de la misma altura en todas las pantallas.
+ *   - Encabezado de página más compacto y con jerarquía clara.
+ *   - Tablas más livianas.
+ *   - Portadas de módulo (Empleados, Inventario) sin fotos de stock.
+ *
+ * Igual que interfaz.css, deja afuera los reportes (siguen el Documento
+ * Oficial) y el ticket y el comprobante (tienen diseño de impresión).
+ * Para volver atrás alcanza con quitar este archivo de base.html.
+ */
+
+/* ---------- Valores del tema claro (el oscuro sigue con los suyos) ---------- */
+:root:not([data-tema="oscuro"]) {
+  --fondo: #F6F6F7;
+  --borde: #E6E7EA;
+  --borde-suave: #EFF0F2;
+  --sombra-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --sombra: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 16px rgba(16, 24, 40, 0.05);
+  --tabla-cabecera-fondo: transparent;
+  --tabla-cabecera-texto: #6B7280;
+  --tabla-fila-hover: #FAFAFA;
+}
+
+:root {
+  --radio-control: 8px;
+  --alto-control: 40px;
+}
+
+/* ---------- Encabezado de página ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .breadcrumb {
+  margin-bottom: var(--espacio-3);
+  font-size: 13px;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .page-header {
+  margin-bottom: var(--espacio-5);
+  gap: var(--espacio-4);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.page-header-icono, .inventario-header .header-icono) {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background-color: var(--acento-suave);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.page-header-icono, .inventario-header .header-icono) .material-symbols-outlined {
+  font-size: 26px;
+  color: var(--acento-texto);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .page-header h1,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .inventario-header h1 {
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--texto);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .page-header-texto p,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .inventario-header p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+/* ---------- Botones: misma altura, forma y respuesta al tocar ---------- */
+:is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar) {
+  min-height: var(--alto-control);
+  border-radius: var(--radio-control);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+:is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar):active {
+  transform: scale(0.98);
+}
+
+.btn-primario,
+.btn-aplicar {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+}
+
+.btn-primario:hover,
+.btn-aplicar:hover {
+  background-color: var(--acento-hover);
+}
+
+.btn-secundario:hover,
+.btn-limpiar:hover {
+  background-color: var(--superficie-2);
+  border-color: var(--borde);
+}
+
+:is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar) .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Íconos de acción en tablas: zona cómoda y respuesta suave */
+.btn-icon {
+  border-radius: var(--radio-control);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* ---------- Campos ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.form-control, .input-buscar input, .tabla-header select, .filtros-panel select) {
+  min-height: var(--alto-control);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) textarea.form-control,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .form-control-textarea {
+  min-height: 0;
+  border-radius: var(--radio-control);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.form-control, .form-control-textarea, .input-buscar input, select):hover {
+  border-color: #D3D5DA;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.form-control, .form-control-textarea, .input-buscar input, select):focus {
+  border-color: var(--acento);
+  box-shadow: var(--foco-anillo);
+  outline: none;
+}
+
+/* "Mostrar 10 registros": como un campo más, no el control del navegador */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla-header select {
+  min-height: 34px;
+  padding: 4px 28px 4px 10px;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .grupo-campo > label,
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .filtro-grupo > label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+/* ---------- Tarjetas y paneles ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) :is(.tabla-panel, .filtros-panel, .tarjeta-comanda, .tarjeta-carrito, .tarjeta-empleado) {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+}
+
+/* ---------- Tablas ---------- */
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla thead th {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--borde);
+  background-color: var(--tabla-cabecera-fondo);
+  color: var(--tabla-cabecera-texto);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla tbody td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.contenido:not(:has(.tabs-reportes, .comprobante, .ticket)) .tabla-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---------- Barra superior y menú ---------- */
+.topbar {
+  border-bottom-color: var(--borde-suave);
+  box-shadow: 0 1px 0 rgba(16, 24, 40, 0.02);
+}
+
+.sidebar-item {
+  border-radius: var(--radio-control);
+}
+
+/* ---------- Portadas de módulo: tarjetas de ícono, sin fotos ---------- */
+.contenido :is(.empleados-grid, .inventario-grid) {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--espacio-4);
+  margin-top: 0;
+}
+
+.contenido :is(.empleados-card, .inventario-card) {
+  --c: var(--acento);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+  padding: var(--espacio-5);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.contenido :is(.empleados-card, .inventario-card):hover {
+  transform: none;
+  border-color: var(--acento);
+  box-shadow: var(--sombra);
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-imagen {
+  position: static;
+  flex-shrink: 0;
+  height: auto;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-imagen img {
+  display: none;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-icono-superpuesto {
+  position: static;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--acento-suave);
+  box-shadow: none;
+  transform: none;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-icono-superpuesto .material-symbols-outlined {
+  font-size: 26px;
+  color: var(--acento-texto);
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido {
+  flex: 1;
+  padding: 0;
+  text-align: left;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido h3 {
+  margin: 0 0 4px;
+  font-family: var(--fuente-ui);
+  font-size: 17px !important;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido h3::after,
+.contenido :is(.empleados-card, .inventario-card) .card-contenido h3::before {
+  display: none;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .card-contenido p {
+  margin: 0 0 var(--espacio-3);
+  color: var(--texto-suave);
+}
+
+/* "Ingresar" como enlace; toda la tarjeta se puede tocar */
+.contenido :is(.empleados-card, .inventario-card) {
+  position: relative;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .btn-ingresar {
+  width: auto;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: var(--acento-texto);
+  font-family: var(--fuente-ui);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .btn-ingresar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.contenido :is(.empleados-card, .inventario-card) .btn-ingresar:hover {
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ---------- Tema oscuro: las portadas usan sus colores ---------- */
+[data-tema="oscuro"] .contenido :is(.empleados-card, .inventario-card) {
+  background-color: var(--superficie);
+  border-color: var(--borde);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.btn-primario, .btn-secundario, .btn-danger, .btn-aplicar, .btn-limpiar):active {
+    transform: none;
+  }
+}
+
+/* ---------- Botones naranjas (Nuevo, Crear, Aplicar): texto e ícono en blanco ---------- */
+.btn-primario,
+.btn-aplicar,
+.btn-primario .material-symbols-outlined,
+.btn-aplicar .material-symbols-outlined {
+  color: #FFFFFF;
+}
+
+.btn-primario:hover,
+.btn-aplicar:hover {
+  color: #FFFFFF;
+}
+
+/* ---------- Acciones de las tablas con su color de siempre ---------- */
+.btn-icon.btn-detalle,
+.btn-icon.btn-ver {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.btn-icon.btn-editar {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.btn-icon.btn-baja {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.btn-icon.btn-clave {
+  background-color: #F3F4F6;
+  color: #4B5563;
+}
+
+.btn-icon.btn-reactivar {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+/* Al pasar el mouse se rellena con el color fuerte */
+.btn-icon.btn-detalle:is(:hover, :focus-visible),
+.btn-icon.btn-ver:is(:hover, :focus-visible) { background-color: #1E40AF; color: #FFFFFF; }
+.btn-icon.btn-editar:is(:hover, :focus-visible) { background-color: #92400E; color: #FFFFFF; }
+.btn-icon.btn-baja:is(:hover, :focus-visible) { background-color: #991B1B; color: #FFFFFF; }
+.btn-icon.btn-clave:is(:hover, :focus-visible) { background-color: #4B5563; color: #FFFFFF; }
+.btn-icon.btn-reactivar:is(:hover, :focus-visible) { background-color: #065F46; color: #FFFFFF; }
+
+/* Tema oscuro: los mismos colores, sobre fondo oscuro */
+[data-tema="oscuro"] .btn-icon.btn-detalle,
+[data-tema="oscuro"] .btn-icon.btn-ver { background-color: rgba(59, 130, 246, 0.18); color: #93C5FD; }
+[data-tema="oscuro"] .btn-icon.btn-editar { background-color: rgba(245, 158, 11, 0.18); color: #FCD34D; }
+[data-tema="oscuro"] .btn-icon.btn-baja { background-color: rgba(239, 68, 68, 0.18); color: #FCA5A5; }
+[data-tema="oscuro"] .btn-icon.btn-clave { background-color: rgba(156, 163, 175, 0.18); color: #D1D5DB; }
+[data-tema="oscuro"] .btn-icon.btn-reactivar { background-color: rgba(16, 185, 129, 0.18); color: #6EE7B7; }
+
+/* Acción que no se puede usar en esa fila: sigue apagada */
+.btn-icon.btn-icon--bloqueado,
+.btn-icon.btn-icon--bloqueado:hover {
+  background-color: transparent;
+  color: var(--icono-neutro);
+}
+
+/* ---------- Avisos flotantes: lo que salió bien, sin mover la pantalla ---------- */
+.avisos-flotantes {
+  position: fixed;
+  top: 76px;
+  right: 20px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.avisos-flotantes:empty {
+  display: none;
+}
+
+.aviso-flotante {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 10px 12px 14px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid #10B981;
+  border-radius: 10px;
+  background-color: var(--superficie);
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.16);
+  color: var(--texto);
+  font-family: var(--fuente-ui);
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  animation: aviso-entra 0.22s ease-out;
+}
+
+.aviso-flotante.saliendo {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.aviso-flotante p {
+  flex: 1;
+  margin: 1px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.aviso-flotante-icono {
+  flex-shrink: 0;
+  color: #10B981;
+  font-size: 22px !important;
+}
+
+.aviso-warning { border-left-color: var(--acento); }
+.aviso-warning .aviso-flotante-icono { color: var(--acento); }
+.aviso-info { border-left-color: #3B82F6; }
+.aviso-info .aviso-flotante-icono { color: #3B82F6; }
+
+.aviso-flotante-cerrar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.aviso-flotante-cerrar:hover {
+  background-color: var(--superficie-2);
+  color: var(--texto);
+}
+
+.aviso-flotante-cerrar .material-symbols-outlined {
+  font-size: 18px;
+}
+
+@keyframes aviso-entra {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* En celular: abajo al centro, a lo ancho */
+@media (max-width: 600px) {
+  .avisos-flotantes {
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    align-items: stretch;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso-flotante {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---------- Enlaces sin subrayado: color de marca y cambio de color al pasar ---------- */
+a,
+a:hover,
+a:focus {
+  text-decoration: none !important;
+}
+
+/* Enlaces sueltos dentro del texto (los que no son botones ni tarjetas) */
+.contenido a:not([class]) {
+  color: var(--acento-texto);
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.contenido a:not([class]):hover {
+  color: var(--acento-hover);
+}
+
+/* Ver caja / Abrir caja: botoncito redondeado del color del aviso */
+.contenido .aviso-caja a {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: background-color 0.15s ease;
+}
+
+.contenido .aviso-caja a:hover {
+  background-color: #FFFFFF;
+}
+
+[data-tema="oscuro"] .contenido .aviso-caja a {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Iniciales del usuario: blancas sobre el naranja ---------- */
+.user-avatar {
+  color: #FFFFFF;
+  text-shadow: 0 1px 1px rgba(120, 60, 0, 0.25);
+}

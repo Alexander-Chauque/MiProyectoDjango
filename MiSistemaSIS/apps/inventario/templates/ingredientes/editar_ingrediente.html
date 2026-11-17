@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Ingrediente{% endblock %}
+{% block title %}Editar ingrediente{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -27,7 +27,7 @@
   
     <a href="{% url 'inventario:listar_ingredientes' %}" class="breadcrumb-item"> Ingredientes</a>
     <span class="breadcrumb-separator">></span>
-    <span class="breadcrumb-item active">Editar un Ingrediente</span>
+    <span class="breadcrumb-item active">Editar un ingrediente</span>
   </nav>
 
   <div class="page-header">
@@ -39,7 +39,7 @@
         <span class="material-symbols-outlined">edit</span>
       </div>
       <div class="page-header-texto">
-        <h1>Editar Ingrediente: {{ ingrediente.nombre_ingrediente }}</h1>
+        <h1>Editar ingrediente: {{ ingrediente.nombre_ingrediente }}</h1>
       </div>
     </div>
   </div>
@@ -82,7 +82,7 @@
     <div class="acciones-formulario">
       <a href="{% url 'inventario:listar_ingredientes' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Cambios
+        <span class="material-symbols-outlined">save</span> Guardar cambios
       </button>
     </div>
   </form>

@@ -70,6 +70,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    # Solo los cargos con acceso (Mozo y Administrador) usan el sistema
+    'empleados.middleware.AccesoPorCargoMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Después de guardar, vuelve a la misma página y filtros del listado
     'core.middleware.RecordarListadoMiddleware',
@@ -88,6 +90,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "notificaciones.context_processors.sin_leer",
+                # Opciones del menú lateral según los permisos del cargo
+                "core.context_processors.menu",
             ],
         },
     },

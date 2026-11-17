@@ -178,12 +178,16 @@ def registrar_pago(id_comanda, tipo_pago, metodo_pago_id, monto_texto, empleado,
     return comanda, monto, saldo_restante, vuelto
 
 def _leer_items(items):
-    """Convierte [{"tipo": "plato", "id": 3, "cantidad": 2}] en {producto: cantidad}."""
+    """Convierte [{"tipo": "plato", "id": 3, "cantidad": 2, "observacion": "sin sal"}] en líneas.
+
+    Devuelve una lista de (producto, cantidad, observación). El mismo producto puede venir
+    en varias líneas con notas distintas (ej: 2 con hielo y 1 sin hielo).
+    """
     if not isinstance(items, list) or not items:
         raise ValueError("Agregá al menos un plato o una bebida.")
 
     modelos = {"plato": Plato, "bebida": Bebida}
-    cantidades = {}
+    lineas = []
     for item in items:
         if not isinstance(item, dict) or item.get("tipo") not in modelos:
             raise ValueError("Hay un producto inválido en la comanda.")
@@ -198,8 +202,39 @@ def _leer_items(items):
         producto = modelos[item["tipo"]].objects.filter(pk=id_producto).first()
         if not producto:
             raise ValueError("Hay un producto que ya no existe.")
+        observacion = str(item.get("observacion") or "").strip()[:120]
+        # Mismo producto con la misma nota: una sola línea
+        for i, (otro, otra_cantidad, otra_nota) in enumerate(lineas):
+            if otro == producto and otra_nota == observacion:
+                lineas[i] = (producto, otra_cantidad + cantidad, observacion)
+                break
+        else:
+            lineas.append((producto, cantidad, observacion))
+    return lineas
+
+
+def _sumar(lineas):
+    """{producto: cantidad total}, sin importar las notas."""
+    cantidades = {}
+    for producto, cantidad, _ in lineas:
         cantidades[producto] = cantidades.get(producto, 0) + cantidad
     return cantidades
+
+
+def _mozo_elegido(id_mozo, por_defecto):
+    """El mozo elegido en la pantalla; si no vino, el que se indica."""
+    from ventas.views import _mozos_disponibles
+
+    if id_mozo in (None, ""):
+        return por_defecto
+    try:
+        id_mozo = int(id_mozo)
+    except (TypeError, ValueError):
+        raise ValueError("Elegí un mozo válido.")
+    mozo = _mozos_disponibles().filter(pk=id_mozo).first()
+    if not mozo:
+        raise ValueError("Elegí un mozo válido.")
+    return mozo
 
 
 def _disponible(producto):
@@ -210,14 +245,29 @@ def _nombre(producto):
     return producto.nombre_plato if isinstance(producto, Plato) else producto.nombre_bebida
 
 
-def _guardar_detalles(comanda, cantidades):
-    """Reemplaza los productos de la comanda y recalcula el total."""
+def _guardar_detalles(comanda, lineas):
+    """Reemplaza los productos de la comanda (cada uno con su nota) y recalcula el total.
+
+    Lo que la estación ya marcó como listo se conserva si su cantidad no aumentó (como la web).
+    """
+    ya_listos = {
+        (d.plato_id, d.bebida_id, d.observacion): (d.listo, d.cant_plato + d.cant_bebida)
+        for d in comanda.detalles.filter(listo__isnull=False)
+    }
     comanda.detalles.all().delete()
-    for producto, cantidad in cantidades.items():
+    for producto, cantidad, observacion in lineas:
         if isinstance(producto, Plato):
-            DetalleComanda.objects.create(comanda=comanda, plato=producto, cant_plato=cantidad, cant_bebida=0)
+            DetalleComanda.objects.create(
+                comanda=comanda, plato=producto, cant_plato=cantidad, cant_bebida=0, observacion=observacion
+            )
         else:
-            DetalleComanda.objects.create(comanda=comanda, bebida=producto, cant_bebida=cantidad, cant_plato=0)
+            DetalleComanda.objects.create(
+                comanda=comanda, bebida=producto, cant_bebida=cantidad, cant_plato=0, observacion=observacion
+            )
+    for detalle in comanda.detalles.all():
+        previo = ya_listos.get((detalle.plato_id, detalle.bebida_id, detalle.observacion))
+        if previo and detalle.cant_plato + detalle.cant_bebida <= previo[1]:
+            DetalleComanda.objects.filter(pk=detalle.pk).update(listo=previo[0])
     comanda.calcular_total()
 
 
@@ -232,25 +282,28 @@ def _cantidades_actuales(comanda):
 
 
 @transaction.atomic
-def crear_comanda(id_mesa, empleado, observaciones, items):
+def crear_comanda(id_mesa, empleado, observaciones, items, id_mozo=None):
     try:
         mesa = Mesa.objects.select_for_update().filter(pk=int(id_mesa)).first()
     except (TypeError, ValueError):
         mesa = None
     if not mesa:
         raise ValueError("Seleccioná una mesa válida.")
-    if not mesa.estado_mesa or mesa.comandas.filter(estado_comanda__in=ESTADOS_ABIERTOS).exists():
+    # Una mesa marcada como ocupada a mano, pero sin comanda abierta, sí puede recibir su pedido
+    if mesa.comandas.filter(estado_comanda__in=ESTADOS_ABIERTOS).exists():
         raise ValueError(f"La mesa {mesa.numero_mesa} no está disponible.")
 
-    cantidades = _leer_items(items)
-    no_disponibles = [_nombre(p) for p in cantidades if not _disponible(p)]
+    lineas = _leer_items(items)
+    no_disponibles = [_nombre(p) for p in _sumar(lineas) if not _disponible(p)]
     if no_disponibles:
         raise ValueError(f"No está disponible: {', '.join(no_disponibles)}.")
 
+    mozo = _mozo_elegido(id_mozo, empleado)
+
     comanda = Comanda.objects.create(
-        mesa=mesa, empleado=empleado, observaciones_comanda=observaciones or ""
+        mesa=mesa, empleado=mozo, observaciones_comanda=observaciones or ""
     )
-    _guardar_detalles(comanda, cantidades)
+    _guardar_detalles(comanda, lineas)
     mesa.estado_mesa = False
     mesa.save()
 
@@ -266,13 +319,35 @@ def crear_comanda(id_mesa, empleado, observaciones, items):
 
 
 @transaction.atomic
-def actualizar_comanda(id_comanda, empleado, observaciones, items):
+def _cambiar_mesa(comanda, id_mesa):
+    """Pasa la comanda a otra mesa libre: libera la anterior y ocupa la nueva (como la web)."""
+    if id_mesa in (None, "") or str(id_mesa) == str(comanda.mesa_id):
+        return
+    try:
+        nueva = Mesa.objects.select_for_update().filter(pk=int(id_mesa)).first()
+    except (TypeError, ValueError):
+        nueva = None
+    if not nueva:
+        raise ValueError("Seleccioná una mesa válida.")
+    if nueva.comandas.filter(estado_comanda__in=ESTADOS_ABIERTOS).exclude(pk=comanda.pk).exists():
+        raise ValueError(f"La mesa {nueva.numero_mesa} ya tiene un pedido abierto.")
+    anterior = comanda.mesa
+    anterior.estado_mesa = True
+    anterior.save()
+    nueva.estado_mesa = False
+    nueva.save()
+    comanda.mesa = nueva
+
+
+@transaction.atomic
+def actualizar_comanda(id_comanda, empleado, observaciones, items, id_mozo=None, id_mesa=None):
     """Aplica las mismas reglas que la web: con pagos solo se puede agregar."""
     comanda = get_object_or_404(Comanda.objects.select_for_update(), id_comanda=id_comanda)
     if not comanda.esta_abierta:
         raise ValueError(f"La comanda #{comanda.id_comanda} está cerrada: no se puede editar.")
 
-    nuevas = _leer_items(items)
+    lineas = _leer_items(items)
+    nuevas = _sumar(lineas)
     anteriores = _cantidades_actuales(comanda)
 
     if comanda.pagos.exists():
@@ -288,8 +363,10 @@ def actualizar_comanda(id_comanda, empleado, observaciones, items):
     total_anterior = comanda.total_comanda
     if observaciones is not None:
         comanda.observaciones_comanda = observaciones
+    comanda.empleado = _mozo_elegido(id_mozo, comanda.empleado)
+    _cambiar_mesa(comanda, id_mesa)
     comanda.save()
-    _guardar_detalles(comanda, nuevas)
+    _guardar_detalles(comanda, lineas)
 
     # Al recalcular con precios actuales, el total podría quedar debajo de lo cobrado
     if comanda.total_comanda < comanda.total_pagado:

@@ -22,9 +22,9 @@
             Inicio
         </a>
         <span class="breadcrumb-separator">&gt;</span>
-        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">Finanzas</a>
+        <span class="breadcrumb-item">Finanzas</span>
         <span class="breadcrumb-separator">&gt;</span>
-        <a href="{% url 'finanzas:listar_cajas' %}" class="breadcrumb-item">Cajas</a>
+        <a href="{% url 'finanzas:listar_cajas' %}" class="breadcrumb-item">Caja</a>
         <span class="breadcrumb-separator">&gt;</span>
         <a href="{% url 'finanzas:detalle_caja' caja.pk %}" class="breadcrumb-item">
             Caja #{{ caja.pk }}
@@ -274,7 +274,7 @@
             </div>
 
             <!-- BOTONES -->
-            <div class="botones-carrito">
+            <div class="acciones-formulario">
                 <a href="{% url 'finanzas:detalle_caja' caja.pk %}"
                    class="btn-secundario">
                     <span class="material-symbols-outlined">close</span>

@@ -63,6 +63,7 @@ class YoView(APIView):
         acciones = [clave for clave, _ in TipoPermiso._meta.get_field("accion").choices]
         return Response(
             {
+                "id_empleado": empleado.pk,
                 "nombre": empleado.get_full_name(),
                 "usuario": request.user.username,
                 "correo": empleado.correo,
@@ -96,8 +97,19 @@ class ResumenView(APIView):
                 "comandas_en_preparacion": Comanda.objects.filter(
                     estado_comanda="en_preparacion"
                 ).count(),
+                # Lo cobrado hoy, igual que la tarjeta "Ventas de hoy" del inicio de Django
+                **_cobrado_hoy(),
             }
         )
+
+
+def _cobrado_hoy():
+    from django.utils import timezone
+
+    from core.views import _resumen_caja
+
+    caja = _resumen_caja(timezone.localdate())
+    return {"ventas_hoy": caja["ventas_hoy"], "cobros_hoy": caja["cobros_hoy"]}
 
 
 # ---------- INGREDIENTES ----------
@@ -407,6 +419,7 @@ class ComandaListaView(APIView):
             request.user.empleado,
             str(request.data.get("observaciones") or "").strip(),
             request.data.get("items"),
+            request.data.get("mozo"),
         )
         return Response(ComandaDetalleSerializer(comanda).data, status=status.HTTP_201_CREATED)
 
@@ -428,6 +441,8 @@ class ComandaDetalleView(APIView):
             request.user.empleado,
             None if observaciones is None else str(observaciones).strip(),
             request.data.get("items"),
+            request.data.get("mozo"),
+            request.data.get("mesa"),
         )
         return Response(ComandaDetalleSerializer(comanda).data)
 
@@ -478,6 +493,45 @@ class ComandaConsultaView(APIView):
         return responder_paginado(
             request, comandas, lambda comanda: ComandaSerializer(comanda).data,
             {"fecha_desde": desde, "fecha_hasta": hasta},
+        )
+
+
+class ComandaMetodosPagoView(APIView):
+    """GET /api/comandas/metodos-pago/: los métodos activos, para cobrar sin necesitar el permiso de caja."""
+
+    permission_classes = [PermisoDeModulo]
+    modulo = "comandas"
+
+    def get(self, request):
+        from finanzas.models import metodo_pago
+
+        metodos = metodo_pago.objects.filter(estado_metodo_pago=True).order_by("nombre_metodo_pago")
+        return Response(
+            [
+                {"id": m.pk, "nombre": m.nombre_metodo_pago, "permite_cambio": bool(m.permite_cambio)}
+                for m in metodos
+            ]
+        )
+
+
+class ComandaMozosView(APIView):
+    """GET /api/comandas/mozos/: quienes pueden tomar pedidos, para elegir el mozo de la comanda."""
+
+    permission_classes = [PermisoDeModulo]
+    modulo = "comandas"
+
+    def get(self, request):
+        from ventas.views import _mozos_disponibles
+
+        return Response(
+            [
+                {
+                    "id": mozo.pk,
+                    "nombre": mozo.get_full_name(),
+                    "cargo": mozo.cargo.nombre_cargo if mozo.cargo else "",
+                }
+                for mozo in _mozos_disponibles()
+            ]
         )
 
 
@@ -540,13 +594,21 @@ class ComandaPagoView(APIView):
     accion = "modificar"
 
     def post(self, request, pk):
+        # Desde la app solo se cobra lo que ya se llevó a la mesa
+        comanda = get_object_or_404(Comanda, pk=pk)
+        if comanda.estado_comanda in ("pendiente", "en_preparacion"):
+            raise ValidationError(
+                {"detail": f"La comanda #{comanda.id_comanda} todavía no se entregó: marcala como entregada antes de cobrar."}
+            )
         with transaction.atomic():
-            comanda, _, _ = _ejecutar(
+            comanda, monto, _, vuelto = _ejecutar(
                 registrar_pago,
                 pk,
                 request.data.get("tipo_pago"),
                 request.data.get("metodo_pago"),
                 request.data.get("monto"),
                 request.user.empleado,
+                str(request.data.get("monto_recibido") or "").strip(),
             )
-        return Response(ComandaDetalleSerializer(comanda).data)
+        # Además de la comanda: lo cobrado y el vuelto a entregar (si pagó con más, en efectivo)
+        return Response({**ComandaDetalleSerializer(comanda).data, "monto_cobrado": str(monto), "vuelto": str(vuelto or 0)})

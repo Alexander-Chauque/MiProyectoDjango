@@ -1,8 +1,10 @@
 """Pruebas de los módulos de la API que usa la web en React.
 
-Igual que tests.py, se ejecutan con ajustes que usan SQLite y omiten las migraciones.
+Corren en MySQL (como el sistema) o en SQLite. Ver _desactivado_hace() por el trigger de MySQL.
 """
 from datetime import timedelta
+from types import SimpleNamespace
+from unittest.mock import patch
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -14,6 +16,7 @@ from rest_framework.test import APIClient
 from auditoria.models import LogAuditoria
 from empleados.models import Asistencia, Cargo, Empleado, PermisoXCargo, TipoAsistencia, TipoPermiso
 from finanzas.models import Venta, caja, categoria_gasto, gasto, metodo_pago
+from inventario import servicios
 from inventario.models import Bebida, CategoriaPlato, DetallePlato, Ingrediente, Plato, TipoBebida
 from ventas.models import Comanda, DetalleComanda, Mesa, Pago
 
@@ -28,7 +31,8 @@ class BaseApi(TestCase):
 
     def _empleado(self, nombre, nivel=1, permisos=()):
         user = User.objects.create_user(f"{nombre}.prueba", password=CONTRASENA)
-        cargo = Cargo.objects.create(nombre_cargo=f"Cargo {nombre}", nivel_acceso=nivel)
+        # Estas pruebas revisan los permisos por módulo: el cargo puede ingresar al sistema
+        cargo = Cargo.objects.create(nombre_cargo=f"Cargo {nombre}", nivel_acceso=nivel, acceso_sistema=True)
         for modulo, accion in permisos:
             tipo, _ = TipoPermiso.objects.get_or_create(modulo=modulo, accion=accion)
             PermisoXCargo.objects.create(cargo=cargo, tipo_permiso=tipo)
@@ -111,12 +115,105 @@ class MesasYComandasTests(BaseApi):
         self.assertEqual(self.cliente.delete(f"/api/comandas/{comanda['id_comanda']}/").status_code, 204)
         self.assertTrue(Mesa.objects.get(pk=comanda["mesa"]).estado_mesa)
 
+    def test_notas_por_producto_y_unidad_separada(self):
+        mesa = Mesa.objects.create(numero_mesa=50, ubicacion="salon")
+        items = [
+            {"tipo": "plato", "id": self.plato.pk, "cantidad": 2, "observacion": "jugoso"},
+            {"tipo": "plato", "id": self.plato.pk, "cantidad": 1, "observacion": "bien cocido"},
+        ]
+        r = self.cliente.post("/api/comandas/", {"mesa": mesa.pk, "items": items}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual([(i["cantidad"], i["observacion"]) for i in r.data["items"]], [(2, "jugoso"), (1, "bien cocido")])
+        self.assertEqual(Comanda.objects.get(pk=r.data["id_comanda"]).total_comanda, 300)
+
+    def test_elegir_mozo(self):
+        mozo = self._empleado("mozo", permisos=[("comandas", "escribir")])
+        cocinero = self._empleado("cocinero", permisos=[("comandas", "leer")])
+        nombres = [m["id"] for m in self.cliente.get("/api/comandas/mozos/").data]
+        self.assertIn(mozo.pk, nombres)
+        self.assertNotIn(cocinero.pk, nombres)
+        mesa = Mesa.objects.create(numero_mesa=51, ubicacion="salon")
+        items = [{"tipo": "plato", "id": self.plato.pk, "cantidad": 1}]
+        r = self.cliente.post("/api/comandas/", {"mesa": mesa.pk, "items": items, "mozo": cocinero.pk}, format="json")
+        self.assertEqual(r.status_code, 400)
+        r = self.cliente.post("/api/comandas/", {"mesa": mesa.pk, "items": items, "mozo": mozo.pk}, format="json")
+        self.assertEqual(r.status_code, 201, r.data)
+        self.assertEqual(r.data["mozo_id"], mozo.pk)
+
+    def test_editar_cambia_de_mesa(self):
+        comanda = self._comanda()
+        libre = Mesa.objects.create(numero_mesa=60, ubicacion="salon")
+        items = [{"tipo": "plato", "id": self.plato.pk, "cantidad": 2}]
+        r = self.cliente.patch(f"/api/comandas/{comanda['id_comanda']}/", {"items": items, "mesa": libre.pk}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["mesa_numero"], 60)
+        self.assertTrue(Mesa.objects.get(pk=comanda["mesa"]).estado_mesa)
+        self.assertFalse(Mesa.objects.get(pk=libre.pk).estado_mesa)
+        otra = self._comanda()
+        r = self.cliente.patch(f"/api/comandas/{otra['id_comanda']}/", {"items": items, "mesa": libre.pk}, format="json")
+        self.assertEqual(r.status_code, 400)
+
+    def test_ventas_lista_los_cobros(self):
+        comanda = self._comanda()
+        caja.objects.create(empleado_apertura=self.admin)
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/estado/", {"estado": "entregado"}, format="json")
+        self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/pago/", {"tipo_pago": "total", "metodo_pago": efectivo.pk}, format="json")
+        r = self.cliente.get("/api/ventas/cobros/", {"buscar": "efect"})
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["total"], 1)
+        fila = r.data["resultados"][0]
+        self.assertEqual((fila["comanda"], fila["metodo"], fila["monto"]), (comanda["id_comanda"], "Efectivo", "200.00"))
+        self.assertIsNotNone(r.data["caja_abierta"])
+        self.assertEqual(r.data["por_metodo"], [{"metodo": "Efectivo", "total": "200.00"}])
+        self.assertEqual(self.cliente.get("/api/ventas/cobros/", {"buscar": "tarjeta"}).data["total"], 0)
+
+    def test_metodos_de_pago_para_cobrar(self):
+        metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        metodo_pago.objects.create(nombre_metodo_pago="Viejo", estado_metodo_pago=False)
+        mozo = self._cliente(self._empleado("mozo", permisos=[("comandas", "leer")]))
+        r = mozo.get("/api/comandas/metodos-pago/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual([m["nombre"] for m in r.data], ["Efectivo"])
+
+    def test_cobra_comanda_entregada_con_metodo_de_finanzas(self):
+        comanda = self._comanda()
+        caja.objects.create(empleado_apertura=self.admin)
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/estado/", {"estado": "entregado"}, format="json")
+        datos = {"tipo_pago": "total", "metodo_pago": efectivo.pk, "monto_recibido": "500"}
+        r = self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/pago/", datos, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(r.data["estado_comanda"], "pagado")
+        self.assertEqual(Decimal(r.data["vuelto"]), Decimal("300"))
+
+    def test_no_cobra_comanda_sin_entregar(self):
+        comanda = self._comanda()
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        datos = {"tipo_pago": "total", "metodo_pago": efectivo.pk, "monto": "200"}
+        r = self.cliente.post(f"/api/comandas/{comanda['id_comanda']}/pago/", datos, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("entregada", r.data["detail"])
+        self.assertFalse(Pago.objects.exists())
+
     def _desactivado_hace(self, producto, dias):
-        """Marca el producto como no disponible hace `dias` días (en MySQL lo haría el trigger)."""
-        campo = {"Plato": "estado_plato", "Bebida": "disponible_bebida", "Ingrediente": "estado_ingrediente"}[type(producto).__name__]
-        type(producto).objects.filter(pk=producto.pk).update(
-            **{campo: False, "fecha_desactivacion": timezone.now() - timedelta(days=dias)}
-        )
+        """Marca el producto como no disponible hace `dias` días.
+
+        En SQLite alcanza con guardar la fecha. En MySQL el trigger anota la fecha real
+        y no deja cambiarla, así que se adelanta el reloj con el que inventario.servicios
+        decide si ya se puede eliminar.
+        """
+        modelo = type(producto)
+        campo = {"Plato": "estado_plato", "Bebida": "disponible_bebida", "Ingrediente": "estado_ingrediente"}[modelo.__name__]
+        hace = timezone.now() - timedelta(days=dias)
+        modelo.objects.filter(pk=producto.pk).update(**{campo: False, "fecha_desactivacion": hace})
+        guardada = modelo.objects.filter(pk=producto.pk).values_list("fecha_desactivacion", flat=True).get()
+        if guardada and abs((guardada - hace).total_seconds()) > 60:
+            adelanto = guardada - hace
+            reloj = SimpleNamespace(now=lambda: timezone.now() + adelanto, localtime=timezone.localtime)
+            parche = patch.object(servicios, "timezone", reloj)
+            parche.start()
+            self.addCleanup(parche.stop)
 
     def test_no_elimina_un_plato_disponible(self):
         r = self.cliente.delete(f"/api/platos/{self.plato.pk}/")
@@ -183,7 +280,8 @@ class MesasYComandasTests(BaseApi):
 
     def test_no_elimina_comanda_con_pagos(self):
         comanda = self._comanda()
-        Pago.objects.create(comanda_id=comanda["id_comanda"], monto=10, metodo_pago="efectivo")
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        Pago.objects.create(comanda_id=comanda["id_comanda"], monto=10, metodo_pago=efectivo)
         self.assertEqual(self.cliente.delete(f"/api/comandas/{comanda['id_comanda']}/").status_code, 400)
 
     def test_consulta_paginada_con_filtros(self):
@@ -213,6 +311,8 @@ class FinanzasTests(BaseApi):
 
         detalle = self.cliente.get(f"/api/cajas/{id_caja}/").data
         self.assertEqual(Decimal(detalle["saldo_esperado_actual"]), Decimal("849.50"))
+        for campo in ("ventas_efectivo", "ventas_otros_medios", "pagos", "ventas_por_metodo"):
+            self.assertIn(campo, detalle)
 
         r = self.cliente.post(f"/api/cajas/{id_caja}/arqueo/", {"saldo_contado": "840"}, format="json")
         self.assertEqual(Decimal(r.data["diferencia_caja"]), Decimal("-9.50"))
@@ -309,6 +409,13 @@ class CuentaYAsistenciasTests(BaseApi):
         r = self.cliente.patch("/api/perfil/", {"telefono": "letras"}, format="json")
         self.assertEqual(r.status_code, 400)
 
+    def test_perfil_trae_mi_dia_como_en_django(self):
+        r = self.cliente.get("/api/perfil/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(set(r.data["mi_dia"]), {"comandas", "abiertas", "cobrado"})
+        self.assertIn("debe_cambiar_contrasena", r.data)
+        self.assertIn("ultimo_ingreso", r.data)
+
     def test_cambiar_contrasena_exige_la_actual_y_una_segura(self):
         r = self.cliente.post("/api/perfil/contrasena/", {"actual": "mal", "nueva": "Nueva-Clave-789", "confirmar": "Nueva-Clave-789"}, format="json")
         self.assertEqual(r.status_code, 400)
@@ -326,7 +433,7 @@ class CuentaYAsistenciasTests(BaseApi):
         self.assertEqual(anonimo.post("/api/token/cambiar-clave/", {**datos, "password": "mal"}, format="json").status_code, 400)
         r = anonimo.post("/api/token/cambiar-clave/", datos, format="json")
         self.assertEqual(r.status_code, 200, r.data)
-        r = anonimo.post("/api/token/", {"username": "ana.prueba", "password": "Nueva-Clave-789"}, format="json")
+        r = anonimo.post("/api/token/", {"username": self.admin.user_auto, "password": "Nueva-Clave-789"}, format="json")
         self.assertEqual(r.status_code, 200, r.data)
 
     def test_asistencia_una_por_dia_y_turnos(self):

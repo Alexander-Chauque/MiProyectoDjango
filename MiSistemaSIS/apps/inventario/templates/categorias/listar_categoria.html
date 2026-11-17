@@ -30,21 +30,18 @@
         <span class="material-symbols-outlined">category</span>
       </div>
       <div class="page-header-texto">
-        <h1>Categorías de Platos</h1>
+        <h1>Categorías de platos</h1>
         <p>Administra las categorías del menú del restaurante.</p>
       </div>
     </div>
     <div class="page-header-acciones">
-      <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">arrow_back</span> Volver a Platos
-      </a>
       <a href="{% url 'inventario:crear_categoria' %}" class="btn-primario">
-        <span class="material-symbols-outlined">add</span> Nuevo categoría
+        <span class="material-symbols-outlined">add</span> Nueva categoría
       </a>
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     <aside class="filtros-panel">
       <form method="get">
         <div class="filtros-header">
@@ -112,10 +109,10 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>DESCRIPCIÓN</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -132,10 +129,6 @@
             </td>
             <td>
               <div class="acciones-tabla">
-                <a href="{% url 'inventario:detalle_categoria' categoria.pk %}" class="btn-icon btn-detalle"
-                  title="Ver detalle">
-                  <span class="material-symbols-outlined">visibility</span>
-                </a>
                 <a href="{% url 'inventario:editar_categoria' categoria.pk %}" class="btn-icon btn-editar" title="Modificar">
                   <span class="material-symbols-outlined">edit</span>
                 </a>

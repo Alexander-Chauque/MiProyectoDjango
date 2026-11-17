@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static l10n %}
 
-{% block title %}Editar Comanda{% endblock %}
+{% block title %}Editar comanda{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 <link rel="stylesheet" href="{% static 'css/comandas.css' %}">
-<link rel="stylesheet" href="{% static 'css/selector_mesa.css' %}">
+<link rel="stylesheet" href="{% static 'css/plano_salon.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -20,22 +20,42 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'ventas:comanda_listar' %}" class="breadcrumb-item">Comandas</a>
     <span class="breadcrumb-separator">></span>
-    </a>
     <span class="breadcrumb-item active">Editar</span>
   </nav>
+
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver-flecha" title="Volver a Comandas">
+      <a href="{% url 'ventas:comanda_listar' %}" class="btn-volver-flecha" title="Volver a comandas">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
-        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="material-symbols-outlined">edit</span>
       </div>
       <div class="page-header-texto">
-        <h1>Editar Comanda # {{ comanda.id_comanda }}</h1>
+        <h1>Editar comanda #{{ comanda.id_comanda }}</h1>
+        <p>Mesa {{ comanda.mesa.numero_mesa }} · desde las {{ comanda.fecha_hora|date:"H:i" }}. Cambiá la mesa, el mozo o los productos.</p>
       </div>
     </div>
+    <div class="page-header-acciones">
+      <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">
+        <span class="material-symbols-outlined">list</span> Ver comandas
+      </a>
+    </div>
   </div>
+
+  {% if form.non_field_errors or formset.non_form_errors %}
+    <div class="alert alert-error" style="margin-bottom: 20px; border-left: 4px solid #DC2626; background-color: #FEE2E2; color: #991B1B; padding: 15px; border-radius: 8px;">
+      <strong><span class="material-symbols-outlined" style="vertical-align: middle;">warning</span> Error en la comanda:</strong>
+      <ul style="margin-top: 10px; margin-bottom: 0; padding-left: 20px;">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+        {% for error in formset.non_form_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
 
   {% if tiene_pagos %}
   <div class="alert" id="aviso-pagos" style="margin-bottom: 20px; border-left: 4px solid #F5A623; background-color: #FFF8E7; color: #3D3D3D; padding: 15px; border-radius: 8px;">
@@ -51,40 +71,55 @@
     <span class="producto-retenido" hidden data-tipo="{{ producto.tipo }}" data-id="{{ producto.id }}"
       data-nombre="{{ producto.nombre }}" data-precio="{{ producto.precio|stringformat:".2f" }}"></span>
     {% endfor %}
+
+    <div class="tarjeta-comanda tarjeta-plano">
+      <div class="titulo-tarjeta">
+        <span class="paso-numero">1</span>
+        <h3>Mesa</h3>
+      </div>
+      <div class="cuerpo-tarjeta">
+        {% include "comandas/_plano_mesas.html" %}
+        {% if form.mesa.errors %}
+          <div class="error-mensaje">{% for error in form.mesa.errors %}<span>{{ error }}</span>{% endfor %}</div>
+        {% endif %}
+      </div>
+    </div>
+
     <div class="layout-comanda">
       <div class="columna-izquierda">
         <!-- Datos del pedido -->
         <div class="tarjeta-comanda">
           <div class="titulo-tarjeta">
-            <span class="material-symbols-outlined icono-naranja">receipt_long</span>
+            <span class="paso-numero">2</span>
             <h3>Datos del pedido</h3>
           </div>
           <div class="cuerpo-tarjeta">
-            <div class="grupo-campo">
-              <label>Mesa <span class="req">*</span></label>
-              {% include "comandas/_selector_mesa.html" %}
-              <span class="texto-ayuda">Mesa disponible para tomar el pedido.</span>
-              {{ form.mesa.errors }}
-            </div>
-
-            <div class="fila-doble">
-              <div class="grupo-campo">
-                <label>Mozo</label>
-                <div class="mozo-info">
-                  <div class="avatar-mozo">
-                    <span class="material-symbols-outlined">person</span>
-                  </div>
-                  <div>
-                    <span class="nombre-mozo">{{comanda.get_full|default:request.user.username}}</span>
-                    <span class="rol-mozo-badge">{{ request.user.empleado.cargo.nombre_cargo|default:"Mozo" }}</span>
-                  </div>
-                </div>
+            <fieldset class="grupo-campo elegir-mozo">
+              <legend>Mozo</legend>
+              <div class="mozos-opciones">
+                {% for mozo in mozos %}
+                <label class="mozo-opcion">
+                  <input type="radio" name="mozo" value="{{ mozo.pk }}"{% if mozo_elegido == mozo.pk|stringformat:"s" %} checked{% endif %}>
+                  <span class="mozo-iniciales" aria-hidden="true">{{ mozo.nombre_empleado|first }}{{ mozo.apellido_empleado|first }}</span>
+                  <span class="mozo-nombre">{{ mozo.nombre_empleado }} {{ mozo.apellido_empleado }}</span>
+                </label>
+                {% empty %}
+                <p class="texto-ayuda">Queda el mozo que tomó el pedido.</p>
+                {% endfor %}
               </div>
-            </div>
+            </fieldset>
+
             <div class="grupo-campo">
               <label>Observaciones (opcional)</label>
               <textarea name="observaciones_comanda" class="form-control-textarea" rows="3"
-                placeholder="Ej:  sin cebolla, bien cocida ...">{{ form.observaciones_comanda.value|default:''}}</textarea>
+                placeholder="Ej: sin cebolla, bien cocida ...">{{ form.observaciones_comanda.value|default:''}}</textarea>
+              {% if form.observaciones_comanda.errors %}
+                <div class="error-mensaje" style="color: #DC2626; font-size: 12px; font-weight: 600; margin-top: 5px;">
+                  {% for error in form.observaciones_comanda.errors %}
+                    <span>{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -92,14 +127,16 @@
         <!-- Agregar productos -->
         <div class="tarjeta-comanda">
           <div class="titulo-tarjeta">
-            <span class="material-symbols-outlined icono-naranja">shopping_basket</span>
-            <h3>Agregar productos</h3>
-            <span class="subtitulo">Seleccioná platos y bebidas para la comanda.</span>
+            <span class="paso-numero">3</span>
+            <h3>Productos</h3>
+            <span class="subtitulo">Tocá un producto para sumarlo. Primero aparece lo más pedido.</span>
           </div>
           <div class="buscador-productos">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" id="buscador-productos" placeholder="Buscar plato o bebida...">
+            <input type="text" id="buscador-productos" placeholder="Buscar plato o bebida..."
+              aria-describedby="ayuda-buscador" autocomplete="off">
           </div>
+          <p class="ayuda-buscador" id="ayuda-buscador">Escribí y apretá <kbd>Enter</kbd> para sumar el primero de la lista.</p>
           <div class="tabs-productos">
             <button type="button" class="tab-btn activo" data-filtro="todos">Todos</button>
             <button type="button" class="tab-btn" data-filtro="plato"><span
@@ -131,13 +168,15 @@
             {% for plato in platos %}
             <div class="producto-card" data-id="{{ plato.id_plato }}" data-tipo="plato"
               data-categoria="{{ plato.categoria.nombre_categoria_plato|lower }}"
-              data-nombre="{{ plato.nombre_plato }}" data-precio="{{ plato.precio_plato }}">
+              data-nombre="{{ plato.nombre_plato }}" data-precio="{{ plato.precio_plato|unlocalize }}">
               <div class="prod-info">
+                {% if plato.destacado %}<span class="prod-destacado">Más pedido</span>{% endif %}
                 <strong>{{ plato.nombre_plato }}</strong>
                 <span>Platos | {{ plato.categoria.nombre_categoria_plato }}</span>
                 <span class="precio">$ {{ plato.precio_plato }}</span>
               </div>
-              <button type="button" class="btn-agregar-prod"><span class="material-symbols-outlined">add</span></button>
+              <span class="prod-en-pedido" data-en-pedido hidden></span>
+              <button type="button" class="btn-agregar-prod" aria-label="Sumar {{ plato.nombre_plato }}"><span class="material-symbols-outlined">add</span></button>
             </div>
             {% endfor %}
 
@@ -145,13 +184,15 @@
             {% for bebida in bebidas %}
             <div class="producto-card" data-id="{{ bebida.id_bebida }}" data-tipo="bebida"
               data-categoria="{{ bebida.id_tipo_bebida.nombre_tipo_bebida|lower }}"
-              data-nombre="{{ bebida.nombre_bebida }}" data-precio="{{ bebida.precio_bebida }}">
+              data-nombre="{{ bebida.nombre_bebida }}" data-precio="{{ bebida.precio_bebida|unlocalize }}">
               <div class="prod-info">
+                {% if bebida.destacado %}<span class="prod-destacado">Más pedido</span>{% endif %}
                 <strong>{{ bebida.nombre_bebida }}</strong>
                 <span>Bebidas | {{ bebida.id_tipo_bebida.nombre_tipo_bebida }}</span>
                 <span class="precio">$ {{ bebida.precio_bebida }}</span>
               </div>
-              <button type="button" class="btn-agregar-prod"><span class="material-symbols-outlined">add</span></button>
+              <span class="prod-en-pedido" data-en-pedido hidden></span>
+              <button type="button" class="btn-agregar-prod" aria-label="Sumar {{ bebida.nombre_bebida }}"><span class="material-symbols-outlined">add</span></button>
             </div>
             {% endfor %}
 
@@ -181,7 +222,7 @@
           <div class="botones-carrito">
             <a href="{% url 'ventas:comanda_listar' %}" class="btn-secundario">Cancelar</a>
             <button type="submit" class="btn-primario">
-              <span class="material-symbols-outlined">save</span> Guardar Cambios
+              <span class="material-symbols-outlined">save</span> Guardar cambios
             </button>
           </div>
         </div>
@@ -198,6 +239,7 @@
             <td>{{ form_detalle.cant_plato }}</td>
             <td>{{ form_detalle.bebida }}</td>
             <td>{{ form_detalle.cant_bebida }}</td>
+            <td>{{ form_detalle.observacion }}</td>
             <td>{{ form_detalle.DELETE }}</td>
           </tr>
           {% endfor %}
@@ -206,6 +248,7 @@
     </div>
   </form>
 </div>
+<script src="{% static 'js/notas_rapidas.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
@@ -233,30 +276,67 @@
       };
     });
 
+    // Separar una unidad en otra línea, para darle una nota distinta (ej: 2 con hielo y 1 sin hielo)
+    let siguienteLinea = 1;
+    function nuevaClave(base) {
+      return `${base}#${siguienteLinea++}`;
+    }
+    function separar(key) {
+      const origen = carrito[key];
+      if (!origen || origen.cantidad < 2) return;
+      const clave = nuevaClave(`${origen.tipo}_${origen.id}`);
+      const nuevo = { ...origen, key: clave, cantidad: 1, nota: '' };
+      origen.cantidad--;
+      // Lo ya cobrado (mínimo) y lo no disponible (máximo) se reparten entre las dos líneas
+      if (origen.minimo > origen.cantidad) {
+        nuevo.minimo = origen.minimo - origen.cantidad;
+        origen.minimo = origen.cantidad;
+      } else {
+        nuevo.minimo = 0;
+      }
+      if (origen.maximo) {
+        origen.maximo = origen.maximo - 1;
+        nuevo.maximo = 1;
+      }
+      // La línea nueva va justo debajo de la original
+      const entradas = Object.entries(carrito);
+      Object.keys(carrito).forEach(k => delete carrito[k]);
+      entradas.forEach(([k, v]) => {
+        carrito[k] = v;
+        if (k === key) carrito[clave] = nuevo;
+      });
+      renderizarCarrito();
+      const campo = carritoContainer.querySelector(`.nota-item[data-key="${clave}"]`);
+      if (campo) campo.focus();
+    }
+
     // 2. LEER DATOS EXISTENTES (Para Editar)
     document.querySelectorAll('#formset-tbody tr').forEach(fila => {
       const selectPlato = fila.querySelector('select[name*="plato"]');
       const cantPlato = fila.querySelector('input[name*="cant_plato"]');
       const selectBebida = fila.querySelector('select[name*="bebida"]');
       const cantBebida = fila.querySelector('input[name*="cant_bebida"]');
+      const notaGuardada = (fila.querySelector('input[name$="-observacion"]') || {}).value || '';
 
       if (selectPlato && selectPlato.value) {
         const id = selectPlato.value;
-        const key = `plato_${id}`;
+        let key = `plato_${id}`;
+        if (carrito[key]) key = nuevaClave(key);  // el mismo producto en otra línea, con otra nota
         const cant = cantPlato ? (parseInt(cantPlato.value) || 1) : 1;
-        const info = infoProductos[key];
+        const info = infoProductos[`plato_${id}`];
         if (info) {
-          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null };
+          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
       }
 
       if (selectBebida && selectBebida.value) {
         const id = selectBebida.value;
-        const key = `bebida_${id}`;
+        let key = `bebida_${id}`;
+        if (carrito[key]) key = nuevaClave(key);  // el mismo producto en otra línea, con otra nota
         const cant = cantBebida ? (parseInt(cantBebida.value) || 1) : 1;
-        const info = infoProductos[key];
+        const info = infoProductos[`bebida_${id}`];
         if (info) {
-          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null };
+          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
       }
     });
@@ -270,6 +350,7 @@
         carritoContainer.innerHTML = `<div class="carrito-vacio"><span class="material-symbols-outlined">remove_shopping_cart</span><p>No hay productos agregados</p></div>`;
         totalComanda.textContent = '$ 0.00';
         actualizarFormset();
+        if (typeof marcarEnPedido === 'function') marcarEnPedido();
         return;
       }
 
@@ -289,10 +370,31 @@
                     ${item.minimo ? '' : `<button type="button" class="btn-eliminar" data-key="${item.key}"><span class="material-symbols-outlined">delete</span></button>`}
                 </div>`;
         carritoContainer.appendChild(div);
+        // Nota para la cocina sobre este producto (sale en su ticket)
+        const nota = document.createElement('input');
+        nota.type = 'text';
+        nota.className = 'nota-item';
+        nota.maxLength = 120;
+        nota.placeholder = 'Nota para la cocina (ej: sin sal)';
+        nota.value = item.nota || '';
+        nota.setAttribute('aria-label', `Nota para ${item.nombre}`);
+        nota.dataset.key = item.key;
+        nota.addEventListener('input', () => { item.nota = nota.value; actualizarFormset(); });
+        div.appendChild(nota);
+        if (window.agregarNotasRapidas) agregarNotasRapidas(nota, item.tipo);
+        if (item.cantidad > 1) {
+          const separarBtn = document.createElement('button');
+          separarBtn.type = 'button';
+          separarBtn.className = 'btn-separar';
+          separarBtn.dataset.key = item.key;
+          separarBtn.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">call_split</span> Separar 1 con otra nota';
+          div.appendChild(separarBtn);
+        }
       });
 
       totalComanda.textContent = `$ ${total.toFixed(2)}`;
       actualizarFormset();
+      if (typeof marcarEnPedido === 'function') marcarEnPedido();
     }
 
     function actualizarFormset() {
@@ -330,6 +432,12 @@
             }
             <input type="hidden" name="detalles-${index}-DELETE" id="id_detalles-${index}-DELETE">
         `;
+        // La nota viaja con el producto
+        const observacion = document.createElement('input');
+        observacion.type = 'hidden';
+        observacion.name = `detalles-${index}-observacion`;
+        observacion.value = item.nota || '';
+        tr.appendChild(observacion);
         formsetTbody.appendChild(tr);
         index++;
     });
@@ -340,20 +448,47 @@
     }
 }
 
-    document.querySelectorAll('.btn-agregar-prod').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const card = this.closest('.producto-card');
-        const key = `${card.dataset.tipo}_${card.dataset.id}`;
-        if (carrito[key]) { carrito[key].cantidad++; }
-        else { carrito[key] = { key, tipo: card.dataset.tipo, id: card.dataset.id, nombre: card.dataset.nombre, precio: parseFloat(card.dataset.precio), cantidad: 1 }; }
-        renderizarCarrito();
-      });
+    // Sumar tocando cualquier parte de la tarjeta (respeta el máximo de un producto no disponible)
+    function agregar(card) {
+      const key = `${card.dataset.tipo}_${card.dataset.id}`;
+      if (carrito[key]) {
+        if (carrito[key].maximo && carrito[key].cantidad >= carrito[key].maximo) return;
+        carrito[key].cantidad++;
+      }
+      else { carrito[key] = { key, tipo: card.dataset.tipo, id: card.dataset.id, nombre: card.dataset.nombre, precio: parseFloat(card.dataset.precio), cantidad: 1 }; }
+      renderizarCarrito();
+      card.classList.remove('recien-agregado');
+      void card.offsetWidth;
+      card.classList.add('recien-agregado');
+    }
+    document.querySelectorAll('.producto-card').forEach(card => {
+      card.addEventListener('click', () => agregar(card));
     });
+
+    // Cantidad de cada producto en la comanda (sumando sus líneas), sobre su tarjeta
+    function marcarEnPedido() {
+      document.querySelectorAll('.producto-card').forEach(card => {
+        const cantidad = Object.values(carrito)
+          .filter(i => i.tipo === card.dataset.tipo && String(i.id) === card.dataset.id)
+          .reduce((suma, i) => suma + i.cantidad, 0);
+        const marca = card.querySelector('[data-en-pedido]');
+        card.classList.toggle('en-pedido', cantidad > 0);
+        if (marca) {
+          marca.hidden = !cantidad;
+          marca.textContent = cantidad ? `${cantidad} en la comanda` : '';
+        }
+      });
+    }
 
     carritoContainer.addEventListener('click', function (e) {
       if (e.target.closest('.btn-sumar')) { const key = e.target.closest('.btn-sumar').dataset.key; carrito[key].cantidad++; renderizarCarrito(); }
       if (e.target.closest('.btn-restar')) { const key = e.target.closest('.btn-restar').dataset.key; if (carrito[key].cantidad > 1) { carrito[key].cantidad--; renderizarCarrito(); } }
       if (e.target.closest('.btn-eliminar')) { const key = e.target.closest('.btn-eliminar').dataset.key; delete carrito[key]; renderizarCarrito(); }
+    });
+
+    carritoContainer.addEventListener('click', function (e) {
+      const separarBtn = e.target.closest('.btn-separar');
+      if (separarBtn) separar(separarBtn.dataset.key);
     });
 
     // Buscador
@@ -373,7 +508,19 @@
         card.style.display = (coincideTexto && coincideTipo && coincideCategoria) ? 'flex' : 'none';
       });
     }
-    if (buscador) buscador.addEventListener('input', filtrarProductos);
+    if (buscador) {
+      buscador.addEventListener('input', filtrarProductos);
+      // Enter suma el primer producto visible y deja el buscador listo para el siguiente
+      buscador.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const primero = Array.from(productosCards).find(card => card.style.display !== 'none');
+        if (!primero || !buscador.value.trim()) return;
+        agregar(primero);
+        buscador.value = '';
+        filtrarProductos();
+      });
+    }
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('activo'));

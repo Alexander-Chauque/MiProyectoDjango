@@ -1,0 +1,12 @@
+
+@font-face {
+    font-family: 'Segoe UI';
+    src: local('Segoe UI Semibold'), local('SegoeUI-Semibold');
+    font-weight: 400 500;
+}
+
+@font-face {
+    font-family: 'Segoe UI';
+    src: local('Segoe UI Bold'), local('SegoeUI-Bold');
+    font-weight: 600 900;
+}

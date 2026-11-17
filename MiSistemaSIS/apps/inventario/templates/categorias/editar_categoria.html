@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Categoría{% endblock %}
+{% block title %}Editar categoría{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -23,7 +23,7 @@
     <span class="breadcrumb-separator">></span>
     <a href="{% url 'inventario:listar_categorias' %}" class="breadcrumb-item">Categorías</a>
     <span class="breadcrumb-separator">></span>
-    <span class="breadcrumb-item active">Editar Categoría</span>
+    <span class="breadcrumb-item active">Editar categoría</span>
   </nav>
   <div class="page-header">
     <div class="page-header-info">
@@ -34,7 +34,7 @@
         <span class="material-symbols-outlined">edit</span>
       </div>
       <div class="page-header-texto">
-        <h1>Editar Categoría: {{ categoria.nombre_categoria_plato }}</h1>
+        <h1>Editar categoría: {{ categoria.nombre_categoria_plato }}</h1>
       </div>
     </div>
   </div>
@@ -62,7 +62,7 @@
     <div class="acciones-formulario">
       <a href="{% url 'inventario:listar_categorias' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Cambios
+        <span class="material-symbols-outlined">save</span> Guardar cambios
       </button>
     </div>
   </form>

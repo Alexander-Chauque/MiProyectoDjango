@@ -21,10 +21,7 @@
 
         <span class="breadcrumb-separator">&gt;</span>
 
-        <a href="{% url 'finanzas:finanzas_home' %}"
-           class="breadcrumb-item">
-            Finanzas
-        </a>
+        <span class="breadcrumb-item">Finanzas</span>
 
         <span class="breadcrumb-separator">&gt;</span>
 
@@ -42,17 +39,11 @@
 
             <div class="page-header-texto">
                 <h1>Gastos</h1>
-                <p>Administra los gastos registrados.</p>
+                <p>Lo que sale de la caja: compras, servicios y otros pagos del turno.</p>
             </div>
         </div>
 
         <div class="page-header-acciones">
-            <a href="{% url 'finanzas:listar_cat_gasto' %}"
-               class="btn-secundario">
-                <span class="material-symbols-outlined">category</span>
-                Categorías de gastos
-            </a>
-
             {% if caja_abierta %}
                 <a href="{% url 'finanzas:crear_gasto' %}"
                    class="btn-primario">
@@ -80,7 +71,7 @@
 
 
 
-    <div class="listado-layout">
+    <div class="listado-layout listado-layout--barra">
 
         <!-- Filtros -->
         <aside class="filtros-panel">
@@ -195,13 +186,13 @@
                 <table class="tabla">
                     <thead>
                         <tr>
-                            <th>N.º GASTO</th>
-                            <th>FECHA Y HORA</th>
-                            <th>CATEGORÍA</th>
-                            <th>DESCRIPCIÓN</th>
-                            <th>EMPLEADO</th>
-                            <th>MONTO</th>
-                            <th>ACCIONES</th>
+                            <th>N.º gasto</th>
+                            <th>Fecha y hora</th>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th>Empleado</th>
+                            <th>Monto</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
 

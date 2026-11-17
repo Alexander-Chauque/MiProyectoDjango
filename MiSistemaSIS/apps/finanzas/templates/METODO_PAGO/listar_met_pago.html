@@ -2,7 +2,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Listado de Métodos de Pago{% endblock %}
+{% block title %}Listado de Métodos de pago{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -18,9 +18,7 @@
             <span class="material-symbols-outlined">home</span> Inicio
         </a>
         <span class="breadcrumb-separator">&gt;</span>
-        <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
-            Finanzas
-        </a>
+        <span class="breadcrumb-item">Finanzas</span>
         <span class="breadcrumb-separator">&gt;</span>
         <span class="breadcrumb-item active">Métodos de pago</span>
     </nav>
@@ -33,18 +31,12 @@
             </div>
 
             <div class="page-header-texto">
-                <h1>Métodos de Pago</h1>
-                <p>Administra los métodos de pago del sistema.</p>
+                <h1>Métodos de pago</h1>
+                <p>Con qué se puede cobrar una comanda (efectivo, transferencia...). Si ya se usó, solo se puede desactivar.</p>
             </div>
         </div>
 
         <div class="page-header-acciones">
-            <a href="{% url 'finanzas:finanzas_home' %}"
-               class="btn-secundario">
-                <span class="material-symbols-outlined">arrow_back</span>
-                Volver a Finanzas
-            </a>
-
             <a href="{% url 'finanzas:crear_met_pago' %}"
                class="btn-primario">
                 <span class="material-symbols-outlined">add</span>
@@ -54,7 +46,7 @@
     </div>
 
     <!-- Filtros y listado -->
-    <div class="listado-layout">
+    <div class="listado-layout listado-layout--barra">
 
         <aside class="filtros-panel">
             <form method="get"
@@ -181,10 +173,11 @@
             <table class="tabla">
                 <thead>
                     <tr>
-                        <th>NOMBRE</th>
-                        <th>DESCRIPCIÓN</th>
-                        <th>ESTADO</th>
-                        <th>ACCIONES</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Vuelto</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
 
@@ -199,6 +192,8 @@
                             {{ met_pago.descripcion_metodo_pago|default:'Sin descripción' }}
                         </td>
 
+                        <td>{% if met_pago.permite_cambio %}Sí{% else %}No{% endif %}</td>
+
                         <td>
                             {% if met_pago.estado_metodo_pago %}
                                 <span class="badge badge-activo">Activo</span>
@@ -209,13 +204,6 @@
 
                         <td>
                             <div class="acciones-tabla">
-
-                                <!-- Ver detalle -->
-                                <a href="{% url 'finanzas:detalle_met_pago' met_pago.pk %}"
-                                   class="btn-icon btn-detalle"
-                                   title="Ver detalle">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </a>
 
                                 <!-- Editar -->
                                 <a href="{% url 'finanzas:editar_met_pago' met_pago.pk %}"
@@ -232,11 +220,18 @@
                                 </a>
 
                                 <!-- Eliminar -->
+                                {% if met_pago.en_uso %}
+                                <span class="btn-icon btn-icon--bloqueado" aria-disabled="true"
+                      title="Ya se usó en cobros: no se puede eliminar (sí desactivar)">
+                  <span class="material-symbols-outlined">delete_forever</span>
+                </span>
+                                {% else %}
                                 <a href="{% url 'finanzas:eliminar_met_pago' met_pago.pk %}"
                                    class="btn-icon btn-clave"
                                    title="Eliminar">
                                     <span class="material-symbols-outlined">delete</span>
                                 </a>
+                                {% endif %}
 
                             </div>
                         </td>
@@ -244,7 +239,7 @@
 
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="sin-resultados">
+                        <td colspan="5" class="sin-resultados">
                             No hay métodos de pago que coincidan con los filtros.
                         </td>
                     </tr>

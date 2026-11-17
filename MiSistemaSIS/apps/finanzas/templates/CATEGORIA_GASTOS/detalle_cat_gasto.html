@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Detalle de Categoría{% endblock %}
+{% block title %}Detalle de categoría{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -24,9 +24,7 @@
 
     <span class="breadcrumb-separator">></span>
 
-    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
-      Finanzas
-    </a>
+    <span class="breadcrumb-item">Finanzas</span>
 
     <span class="breadcrumb-separator">></span>
 
@@ -36,9 +34,7 @@
 
     <span class="breadcrumb-separator">></span>
 
-    <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">
-      Categorías
-    </a>
+    <a href="{% url 'finanzas:listar_cat_gasto' %}" class="breadcrumb-item">Categorías de gasto</a>
 
     <span class="breadcrumb-separator">></span>
 
@@ -59,7 +55,7 @@
       </div>
 
       <div class="page-header-texto">
-        <h1>Detalle de la Categoría</h1>
+        <h1>Detalle de la categoría</h1>
         <p>Información general de la categoría de gastos.</p>
       </div>
 
@@ -107,11 +103,13 @@
         Volver
       </a>
 
+      {% if not tiene_gastos %}
       <a href="{% url 'finanzas:editar_cat_gasto' categoria.pk %}"
          class="btn-primario">
         <span class="material-symbols-outlined">edit</span>
-        Editar Categoría
+        Editar categoría
       </a>
+      {% endif %}
     </div>
 
   </div>

@@ -34,7 +34,7 @@
       </div>
       <div class="page-header-texto">
         <h1>Alta de empleado</h1>
-        <p>Registrá un nuevo integrante del personal.</p>
+        <p>Registra un nuevo integrante del personal.</p>
       </div>
     </div>
   </div>
@@ -196,15 +196,21 @@
       </div>
     </div>
 
-    <!-- Datos de acceso -->
-    <div class="tarjeta-empleado" style="margin-top: 25px">
+    <!-- Aviso: el cargo elegido no ingresa al sistema -->
+    <div class="alert alert-info" id="aviso-sin-acceso" style="margin-top: 25px; display: none">
+      <span class="material-symbols-outlined">info</span>
+      <span>El cargo <strong id="nombre-cargo-sin-acceso"></strong> no ingresa al sistema: el empleado queda registrado sin contraseña. Si más adelante pasa a Mozo o Administrador, asignale una desde <em>Restablecer contraseña</em>.</span>
+    </div>
+
+    <!-- Datos de acceso (solo para los cargos que ingresan al sistema) -->
+    <div class="tarjeta-empleado" id="tarjeta-acceso" style="margin-top: 25px">
       <div class="tarjeta-cabecera">
         <div class="tarjeta-icono">
           <span class="material-symbols-outlined">lock</span>
         </div>
         <div>
           <h2>Datos de acceso</h2>
-          <p>Credenciales para ingresar al sistema.</p>
+          <p>Credenciales para ingresar al sistema (solo Mozo y Administrador).</p>
         </div>
       </div>
       <div class="tarjeta-cuerpo">
@@ -230,7 +236,7 @@
             </div>
           </div>
 
-          <!-- Confirmar Contraseña -->
+          <!-- Confirmar contraseña -->
           <div class="grupo-campo">
             <label>Confirmar contraseña <span class="req">*</span></label>
             <div class="input-icono input-password">
@@ -285,6 +291,31 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    // Datos de acceso: solo para los cargos que pueden ingresar al sistema
+    const selectCargo = document.querySelector('select[name="cargo"]');
+    const tarjetaAcceso = document.getElementById("tarjeta-acceso");
+    const avisoSinAcceso = document.getElementById("aviso-sin-acceso");
+    if (selectCargo && tarjetaAcceso) {
+      const conAcceso = (selectCargo.dataset.cargosConAcceso || "").split(",").filter(Boolean);
+      const claves = tarjetaAcceso.querySelectorAll("input");
+      const actualizarAcceso = () => {
+        const elegido = selectCargo.value;
+        const ingresa = !elegido || conAcceso.includes(elegido);
+        tarjetaAcceso.style.display = ingresa ? "" : "none";
+        claves.forEach((campo) => {
+          campo.required = !!elegido && ingresa;
+          campo.disabled = !ingresa;
+        });
+        avisoSinAcceso.style.display = ingresa ? "none" : "";
+        if (!ingresa) {
+          document.getElementById("nombre-cargo-sin-acceso").textContent =
+            selectCargo.options[selectCargo.selectedIndex].text;
+        }
+      };
+      selectCargo.addEventListener("change", actualizarAcceso);
+      actualizarAcceso();
+    }
+
     const dniInput = document.querySelector('input[name="dni"]');
     if (dniInput) {
       dniInput.addEventListener("input", function (e) {

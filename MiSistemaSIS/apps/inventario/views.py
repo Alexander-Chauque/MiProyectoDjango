@@ -498,15 +498,6 @@ def eliminar_ingrediente(request, pk):
 
 
 @login_required
-@permiso_requerido("ingredientes", "leer")
-def detalle_ingrediente(request, pk):
-    ingrediente = get_object_or_404(Ingrediente, pk=pk)
-    return render(
-        request, "ingredientes/detalle_ingrediente.html", {"ingrediente": ingrediente}
-    )
-
-
-@login_required
 @permiso_requerido("ingredientes", "modificar")
 def estado_ingrediente(request, pk):
     ingrediente = get_object_or_404(Ingrediente, pk=pk)
@@ -648,18 +639,6 @@ def eliminar_categoria(request, pk):
         return render(
             request, "categorias/eliminar_categoria.html", {"categoria": categoria}
         )
-
-
-@login_required
-@permiso_requerido("categorias", "leer")
-def detalle_categoria(request, pk):
-    categoria = get_object_or_404(CategoriaPlato, pk=pk)
-    platos = categoria.plato_set.all().order_by("nombre_plato")
-    return render(
-        request,
-        "categorias/detalle_categoria.html",
-        {"categoria": categoria, "platos": platos},
-    )
 
 
 @login_required
@@ -933,13 +912,6 @@ def bebida_eliminar(request, pk):
         messages.success(request, f'Bebida "{nombre}" eliminada')
         return redirect("inventario:listar_bebida")
     return render(request, "bebidas/eliminar_bebida.html", {"bebida": bebida})
-
-
-@login_required
-@permiso_requerido("bebidas", "leer")
-def bebida_detalle(request, pk):
-    bebida = get_object_or_404(Bebida, pk=pk)
-    return render(request, "bebidas/detalle_bebida.html", {"bebida": bebida})
 
 
 @login_required

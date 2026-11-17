@@ -1,0 +1,329 @@
+/* =========================================
+   MI PERFIL
+   ========================================= */
+.perfil {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.perfil .breadcrumb {
+  margin-bottom: 0;
+}
+
+/* Cabecera: quién soy */
+.perfil-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-4);
+  padding: var(--espacio-5);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background:
+    linear-gradient(135deg, var(--acento-suave) 0%, var(--superficie) 60%);
+  box-shadow: var(--sombra-sm);
+}
+
+.perfil-hero-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border: 4px solid var(--superficie);
+  border-radius: 50%;
+  background-color: var(--acento);
+  box-shadow: var(--sombra-sm);
+  color: var(--texto-sobre-acento);
+  font-family: var(--fuente-titulos);
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.perfil-hero-texto {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  min-width: 0;
+}
+
+.perfil-hero-texto h1 {
+  margin: 0;
+  font-family: var(--fuente-titulos);
+  font-size: 30px;
+  line-height: 1.1;
+  color: var(--texto);
+}
+
+.perfil-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--espacio-3);
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+.perfil-cargo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.perfil-cargo .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.perfil-hero-accion {
+  flex-shrink: 0;
+}
+
+/* Contraseña temporal */
+.perfil-aviso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2) var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid var(--advertencia-borde);
+  border-radius: var(--radio);
+  background-color: var(--advertencia-fondo);
+  color: var(--advertencia-texto);
+  font-size: 14px;
+}
+
+.perfil-aviso a {
+  margin-left: auto;
+  color: inherit;
+  font-weight: 700;
+}
+
+/* Mi día */
+.perfil-dia {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--espacio-3);
+}
+
+.perfil-dato-dia {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background-color: var(--superficie);
+}
+
+.perfil-dato-dia > .material-symbols-outlined {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radio);
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+  font-size: 24px;
+}
+
+.perfil-dato-dia div {
+  display: flex;
+  flex-direction: column;
+}
+
+.perfil-dato-dia strong {
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.perfil-dato-dia span {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+/* Tarjetas */
+.perfil-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--espacio-4);
+  align-items: start;
+}
+
+.perfil-tarjeta {
+  padding: var(--espacio-4) var(--espacio-5) var(--espacio-5);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+}
+
+.perfil-tarjeta-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-3);
+  padding-bottom: var(--espacio-3);
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.perfil-tarjeta-cabecera h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  margin: 0;
+  font-size: 16px;
+  color: var(--texto);
+}
+
+.perfil-tarjeta-cabecera h2 .material-symbols-outlined {
+  color: var(--acento-texto);
+}
+
+.perfil-editar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.perfil-editar:hover {
+  border-color: var(--acento);
+  color: var(--acento-texto);
+}
+
+.perfil-editar .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.perfil-datos-lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.perfil-datos-lista > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px var(--espacio-3);
+  padding: var(--espacio-3) 0;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.perfil-datos-lista > div:last-child {
+  border-bottom: none;
+}
+
+.perfil-datos-lista dt {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.perfil-datos-lista dd {
+  margin: 0;
+  color: var(--texto);
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.perfil-fila-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.perfil-fila-accion a {
+  color: var(--acento-texto);
+  font-weight: 700;
+}
+
+.perfil-vacio {
+  color: var(--texto-suave);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.perfil-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  margin: var(--espacio-3) 0 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.perfil-nota .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.perfil-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.perfil-formulario .grupo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.perfil-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+}
+
+@media (max-width: 600px) {
+  .perfil-hero {
+    padding: var(--espacio-4);
+  }
+
+  .perfil-hero-avatar {
+    width: 68px;
+    height: 68px;
+    font-size: 26px;
+  }
+
+  .perfil-hero-texto h1 {
+    font-size: 24px;
+  }
+
+  .perfil-hero-accion {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.perfil-formulario .texto-ayuda {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.perfil-formulario label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+}

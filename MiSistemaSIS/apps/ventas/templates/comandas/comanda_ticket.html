@@ -55,6 +55,8 @@
                 </dl>
 
                 {% if anulada %}<div class="ticket-anulada">Comanda anulada: no preparar</div>{% endif %}
+                {% if agregado %}<div class="ticket-aviso">AGREGADO: preparar solo esto</div>{% endif %}
+                {% if modificada %}<div class="ticket-aviso">COMANDA MODIFICADA</div>{% endif %}
 
                 <!-- Productos -->
                 <table class="ticket-tabla">
@@ -65,7 +67,7 @@
                         {% for producto in ticket.productos %}
                         <tr>
                             <td class="ticket-cantidad">{{ producto.cantidad }}</td>
-                            <td>{{ producto.nombre }}</td>
+                            <td>{{ producto.nombre }}{% if producto.nota %}<span class="ticket-nota">→ {{ producto.nota }}</span>{% endif %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -104,8 +106,8 @@
         <a href="{% url 'ventas:comanda_detalle' comanda.id_comanda %}" class="ticket-volver">
             <span class="material-symbols-outlined">receipt_long</span> Volver al detalle
         </a>
-        <a href="{% url 'ventas:comanda_listar' %}" class="ticket-volver">
-            <span class="material-symbols-outlined">list</span> Volver al listado
+        <a href="{{ url_listado }}" class="ticket-volver" data-ir-listado>
+            <span class="material-symbols-outlined">list</span> {% if imprimir_al_abrir %}Ir al listado de comandas{% else %}Volver al listado{% endif %}
         </a>
     </div>
 
@@ -124,6 +126,15 @@
         document.querySelectorAll(".ticket-elegido").forEach((c) => c.classList.remove("ticket-elegido"));
     });
     document.querySelector("[data-imprimir-todos]")?.addEventListener("click", () => window.print());
+    {% if imprimir_al_abrir and tickets %}
+    // Recién guardada: se imprimen todos los tickets y, al cerrar la impresión, se va al listado
+    window.addEventListener("load", () => {
+        window.addEventListener("afterprint", () => {
+            window.location.href = "{{ url_listado|escapejs }}";
+        }, { once: true });
+        setTimeout(() => window.print(), 300);
+    });
+    {% endif %}
     </script>
 </body>
 </html>

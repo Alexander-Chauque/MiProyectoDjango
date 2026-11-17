@@ -1,12 +1,15 @@
 from django.db.models import Count, DecimalField, F, Q, Sum
+from django.http import Http404
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from auditoria.models import LogAuditoria
 from empleados.models import Empleado
+from reportes.consolidados import REPORTES, SOLO_ADMINISTRADOR
 from reportes.productos import CATEGORIA_PLATO, CON_BEBIDA, CON_PLATO, NOMBRE_BEBIDA, NOMBRE_PLATO, PRECIO_PLATO
-from reportes.views import obtener_comandas, obtener_totales_metodos
+from reportes.views import obtener_comandas, obtener_totales_metodos, puede_ver_consolidado, reporte_consolidado_pdf
 from ventas.models import DetalleComanda
 
 from .permisos import PermisoDeModulo
@@ -154,3 +157,82 @@ class AuditoriaView(APIView):
                 ],
             },
         )
+
+
+# --- Reportes consolidados (Parcial Nº 2, módulo M2) ------------------------
+# Usan las mismas funciones que la web de Django (reportes/consolidados.py),
+# así React y Django muestran siempre los mismos números y el mismo PDF.
+
+
+def _consolidado_permitido(request, clave):
+    """Comprueba que el reporte exista y que el perfil del usuario lo pueda ver."""
+    if clave not in REPORTES:
+        raise Http404("Reporte inexistente.")
+    if not puede_ver_consolidado(request.user, clave):
+        nombre = REPORTES[clave]["nombre"]
+        raise PermissionDenied(f'El reporte "{nombre}" está restringido a tu perfil.')
+
+
+class ConsolidadosView(APIView):
+    """GET /api/reportes/consolidados/: los reportes consolidados que puede ver el usuario."""
+
+    def get(self, request):
+        return Response(
+            [
+                {
+                    "clave": clave,
+                    "nombre": reporte["nombre"],
+                    "icono": reporte["icono"],
+                    # Reporte sensible: solo lo ve el Administrador
+                    "restringido": reporte["permiso"] == SOLO_ADMINISTRADOR,
+                }
+                for clave, reporte in REPORTES.items()
+                if puede_ver_consolidado(request.user, clave)
+            ]
+        )
+
+
+class ConsolidadoView(APIView):
+    """GET /api/reportes/consolidados/<clave>/: columnas, filas y totales del reporte.
+
+    Filtros: ?fecha_desde y ?fecha_hasta, más el filtro propio de cada reporte
+    (?categoria en rentabilidad, ?estado en cajas y ?empleado en personal).
+    """
+
+    def get(self, request, clave):
+        _consolidado_permitido(request, clave)
+        # Las funciones de la web leen request.GET, que también existe en el pedido de la API
+        datos = REPORTES[clave]["funcion"](request)
+        extra = datos["filtro_extra"]
+        return Response(
+            {
+                "clave": clave,
+                "titulo": datos["titulo"],
+                "descripcion": datos["descripcion"],
+                "procesos": datos["procesos"],
+                "nota": datos.get("nota", ""),
+                "columnas": [{"nombre": nombre, "numero": numero} for nombre, numero in datos["columnas"]],
+                "filas": datos["filas"],
+                "totales": datos["totales"],
+                "filtro_extra": {
+                    "nombre": extra["nombre"],
+                    "etiqueta": extra["etiqueta"],
+                    "valor": extra["valor"],
+                    "opciones": [{"valor": str(valor), "texto": str(texto)} for valor, texto in extra["opciones"]],
+                },
+                "filtros": datos["filtros"],
+                "filtros_texto": datos["filtros_texto"],
+            }
+        )
+
+
+class ConsolidadoPdfView(APIView):
+    """GET /api/reportes/consolidados/<clave>/pdf/: el mismo PDF que exporta la web de Django.
+
+    Encabezado institucional y, al pie, los filtros aplicados, el usuario, la fecha y la hora.
+    """
+
+    def get(self, request, clave):
+        _consolidado_permitido(request, clave)
+        # La API ya identificó al usuario con el token: la vista de Django lo recibe en el pedido
+        return reporte_consolidado_pdf(request._request, clave)

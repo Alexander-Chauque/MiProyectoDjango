@@ -29,23 +29,17 @@
       </div>
       <div class="page-header-texto">
         <h1>Platos</h1>
-        <p>Adminstra los platos del menú del restaurante.</p>
+        <p>Administra los platos del menú del restaurante.</p>
       </div>
     </div>
     <div class="page-header-acciones">
-      <a href="{% url 'inventario:listar_categorias' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">category</span> Categorías
-      </a>
-      <a href="{% url 'inventario:listar_ingredientes' %}" class="btn-secundario">
-        <span class="material-symbols-outlined">eco</span> Ingredientes
-      </a>
       <a href="{% url 'inventario:crear_plato' %}" class="btn-primario">
         <span class="material-symbols-outlined">add</span> Nuevo plato
       </a>
     </div>
   </div>
 
-  <div class="listado-layout">
+  <div class="listado-layout listado-layout--barra">
     <aside class="filtros-panel">
       <form method="get">
         <div class="filtros-header">
@@ -129,11 +123,11 @@
       <table class="tabla">
         <thead>
           <tr>
-            <th>NOMBRE</th>
-            <th>PRECIO</th>
-            <th>CATEGORÍA</th>
-            <th>ESTADO</th>
-            <th>ACCIONES</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>

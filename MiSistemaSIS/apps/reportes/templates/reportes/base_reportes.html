@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load static reportes_extras %}
 
+{# Igual que en el Documento Oficial: sin el texto más grueso #}
+{% block fuente_gruesa %}{% endblock %}
 {% block extra_css %}
 
 
@@ -235,14 +237,11 @@
     <a href="{% url 'reportes:categorias' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == 'categorias' %}activo{% endif %}"><span class="material-symbols-outlined">category</span> Categorías</a>
     <a href="{% url 'reportes:mozos' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == 'mozos' %}activo{% endif %}"><span class="material-symbols-outlined">groups</span> Mozos</a>
     <a href="{% url 'reportes:metodos' %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == 'metodos' %}activo{% endif %}"><span class="material-symbols-outlined">payments</span> Pagos</a>
-    {% comment %}
-    OCULTO TEMPORALMENTE (exposición de otra materia). Para volver a mostrar las pestañas
-    de los reportes consolidados del Parcial 2, borrar este {% comment %} y su cierre.
+    {# Reportes consolidados del Parcial 2: solo los que el perfil puede ver #}
     {% consolidados_visibles as consolidados %}
     {% for r in consolidados %}
     <a href="{% url 'reportes:consolidado' r.clave %}?fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}" class="tab-btn {% if tab == r.clave %}activo{% endif %}"><span class="material-symbols-outlined">{{ r.icono }}</span> {{ r.nombre }}</a>
     {% endfor %}
-    {% endcomment %}
   </div>
 
   {% block filtros %}

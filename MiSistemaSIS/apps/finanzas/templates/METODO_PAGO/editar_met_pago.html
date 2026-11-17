@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Método de Pago{% endblock %}
+{% block title %}Editar método de pago{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -20,19 +20,17 @@
 
     <span class="breadcrumb-separator">&gt;</span>
 
-    <a href="{% url 'finanzas:finanzas_home' %}" class="breadcrumb-item">
-      Finanzas
-    </a>
+    <span class="breadcrumb-item">Finanzas</span>
 
     <span class="breadcrumb-separator">&gt;</span>
 
     <a href="{% url 'finanzas:listar_met_pago' %}" class="breadcrumb-item">
-      Métodos de Pago
+      Métodos de pago
     </a>
 
     <span class="breadcrumb-separator">&gt;</span>
 
-    <span class="breadcrumb-item active">Editar Método de Pago</span>
+    <span class="breadcrumb-item active">Editar método de pago</span>
   </nav>
 
   <div class="page-header">
@@ -49,7 +47,7 @@
       </div>
 
       <div class="page-header-texto">
-        <h1>Editar Método de Pago: {{ metodo.nombre_metodo_pago }}</h1>
+        <h1>Editar método de pago: {{ metodo.nombre_metodo_pago }}</h1>
         <p>Modifica los datos del método de pago seleccionado.</p>
       </div>
 
@@ -112,7 +110,7 @@
 
       <button type="submit" class="btn-primario">
         <span class="material-symbols-outlined">save</span>
-        Guardar Cambios
+        Guardar cambios
       </button>
 
     </div>

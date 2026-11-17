@@ -23,4 +23,6 @@ urlpatterns = [
     path('comandas/cobrar/', views.comanda_cobrar, name='comanda_cobrar'),
     path('comandas/comprobante/<int:pk>/', views.comanda_comprobante, name='comanda_comprobante'),
     path('comanda/<int:pk>/ticket/', views.comanda_ticket, name='comanda_ticket'),
+    path('estacion/<slug:clave>/', views.estacion, name='estacion'),
+    path('estacion/<slug:clave>/<int:pk>/listo/', views.estacion_listo, name='estacion_listo'),
 ]

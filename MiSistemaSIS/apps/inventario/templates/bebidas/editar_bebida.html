@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Bebida{% endblock %}
+{% block title %}Editar bebida{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -26,14 +26,14 @@
   <!-- Header -->
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'inventario:listar_bebida' %}" class="btn-volver-flecha" title="Volver a Bebidas">
+      <a href="{% url 'inventario:listar_bebida' %}" class="btn-volver-flecha" title="Volver a bebidas">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
         <span class="material-symbols-outlined">edit</span> <!-- Ícono de editar -->
       </div>
       <div class="page-header-texto">
-        <h1>Editar Bebida: {{ bebida.nombre_bebida }}</h1>
+        <h1>Editar bebida: {{ bebida.nombre_bebida }}</h1>
         <p>Modificá los datos de la bebida seleccionada</p>
       </div>
     </div>
@@ -97,7 +97,7 @@
     <div class="acciones-formulario-bebida">
       <a href="{% url 'inventario:listar_bebida' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Cambios
+        <span class="material-symbols-outlined">save</span> Guardar cambios
       </button>
     </div>
   </form>

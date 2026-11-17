@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Plato {% endblock %}
+{% block title %}Editar plato {% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet"
@@ -25,7 +25,7 @@
   <!-- Header -->
   <div class="page-header">
     <div class="page-header-info">
-      <a href="{% url 'inventario:listar_platos' %}" class="btn-volver-flecha" title="Volver a Platos">
+      <a href="{% url 'inventario:listar_platos' %}" class="btn-volver-flecha" title="Volver a platos">
         <span class="material-symbols-outlined">arrow_back</span>
       </a>
       <div class="page-header-icono">
@@ -33,7 +33,7 @@
         <span class="material-symbols-outlined">edit</span>
       </div>
       <div class="page-header-texto">
-        <h1>Editar Plato: {{ plato.nombre_plato}}</h1>
+        <h1>Editar plato: {{ plato.nombre_plato}}</h1>
       </div>
     </div>
   </div>
@@ -117,7 +117,7 @@
     <div class="acciones-formulario">
       <a href="{% url 'inventario:listar_platos' %}" class="btn-secundario">Cancelar</a>
       <button type="submit" class="btn-primario">
-        <span class="material-symbols-outlined">save</span> Guardar Cambios
+        <span class="material-symbols-outlined">save</span> Guardar cambios
       </button>
     </div>
   </form>

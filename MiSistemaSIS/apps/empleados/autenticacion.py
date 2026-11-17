@@ -2,6 +2,7 @@
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from empleados.decorators import motivo_sin_acceso
 from empleados.models import Empleado
 
 
@@ -17,4 +18,8 @@ class JWTEmpleadoAuthentication(JWTAuthentication):
         ).exists()
         if not activo:
             raise AuthenticationFailed("Tu usuario ya no tiene acceso al sistema.")
+        # También si le cambian el cargo por uno sin acceso
+        motivo = motivo_sin_acceso(user)
+        if motivo:
+            raise AuthenticationFailed(motivo)
         return user

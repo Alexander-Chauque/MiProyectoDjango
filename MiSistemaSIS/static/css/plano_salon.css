@@ -1,0 +1,988 @@
+/*
+ * PLANO DEL SALÓN
+ * El plano se dibuja con posiciones en porcentajes (ver ventas/plano_salon.py),
+ * así se adapta al ancho. Los textos usan "cqw" (porcentaje del ancho del plano)
+ * para achicarse junto con el dibujo. Colores tomados de las variables comunes.
+ */
+
+.plano-panel {
+  margin-bottom: var(--espacio-5);
+  padding: var(--espacio-4) var(--espacio-5);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+}
+
+.plano-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+}
+
+.plano-cabecera h2,
+.plano-fuera h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.plano-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2) var(--espacio-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.plano-leyenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plano-muestra {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+}
+
+.plano-muestra--libre { background-color: var(--exito-fondo); border-color: var(--exito-borde); }
+.plano-muestra--ocupada { background-color: var(--acento); border-color: var(--acento-hover); }
+.plano-muestra--sin-cargar { border: 2px dashed var(--borde); }
+
+/* En pantallas angostas el plano no se achica de más: se desplaza de costado */
+.plano-desplazable {
+  overflow-x: auto;
+  /* Lugar para los nombres de las zonas, que van arriba de cada una */
+  padding-top: 22px;
+  scrollbar-width: thin;
+}
+
+.plano {
+  position: relative;
+  min-width: 860px;
+  container-type: inline-size;
+}
+
+.plano > * {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+/* Zonas */
+.plano-zona {
+  border-radius: 10px;
+}
+
+.zona-salon {
+  background-color: var(--superficie-2);
+  border: 1px solid var(--borde);
+}
+
+.zona-patio {
+  border: 2px dashed var(--borde);
+}
+
+.zona-servicio {
+  background-color: var(--superficie-2);
+  border: 1px solid var(--borde);
+  opacity: 0.6;
+}
+
+.plano-zona-nombre {
+  position: absolute;
+  top: -0.2cqw;
+  left: 0.6cqw;
+  transform: translateY(-100%);
+  font-size: max(11px, 0.85cqw);
+  font-weight: 600;
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+/* Elementos fijos (escenario, barras, cocina, baños) */
+.plano-elemento {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background-color: var(--superficie);
+  font-size: max(9px, 0.7cqw);
+  line-height: 1.15;
+  text-align: center;
+  color: var(--texto-suave);
+  overflow: hidden;
+}
+
+.elemento-destacado {
+  font-size: max(11px, 0.95cqw);
+  font-weight: 600;
+  color: var(--texto);
+  border-color: var(--texto-suave);
+}
+
+.elemento-vertical span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.plano-pilar {
+  border-radius: 50%;
+  background-color: var(--borde);
+}
+
+/* Mesas */
+.plano-mesa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  text-decoration: none;
+  line-height: 1.05;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.plano-mesa strong {
+  font-size: max(13px, 1.25cqw);
+  font-weight: 700;
+}
+
+.plano-mesa small {
+  font-size: max(9px, 0.62cqw);
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.plano-mesa--libre {
+  background-color: var(--exito-fondo);
+  border-color: var(--exito-borde);
+  color: var(--exito-texto);
+}
+
+.plano-mesa--ocupada {
+  background-color: var(--acento);
+  border-color: var(--acento-hover);
+  color: var(--texto-sobre-acento);
+}
+
+.plano-mesa--sin-cargar {
+  border: 2px dashed var(--borde);
+  color: var(--texto-suave);
+  background-color: var(--superficie);
+}
+
+/* La mesa existe, pero en el sistema figura en otra ubicación (salón/patio) */
+.plano-mesa--aviso::after {
+  content: "!";
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--peligro);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+a.plano-mesa:hover {
+  transform: scale(1.08);
+  box-shadow: var(--sombra);
+  z-index: 2;
+}
+
+.plano-pie,
+.plano-fuera p {
+  margin: var(--espacio-3) 0 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.plano-pie a,
+.plano-fuera a {
+  color: var(--acento-texto);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plano-mesa {
+    transition: none;
+  }
+}
+
+/* =========================================
+   TOMAR PEDIDO (Nueva comanda)
+   ========================================= */
+
+/* Pasos numerados: 1 Mesa, 2 Datos del pedido, 3 Productos */
+.paso-numero {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tarjeta-plano {
+  margin-bottom: var(--espacio-5);
+}
+
+.plano-elegida {
+  margin: 0;
+  font-size: 15px;
+  color: var(--texto);
+}
+
+.plano-elegida strong {
+  color: var(--acento-texto);
+}
+
+/* Las mesas libres son botones: sin el estilo del navegador */
+button.plano-mesa {
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.plano-mesa:hover {
+  transform: scale(1.08);
+  box-shadow: var(--sombra);
+  z-index: 2;
+}
+
+.plano-mesa--elegida,
+.plano-muestra--elegida {
+  background-color: var(--exito-borde);
+  border-color: var(--exito-texto);
+  color: #fff;
+}
+
+.plano-mesa--elegida {
+  box-shadow: 0 0 0 3px var(--exito-fondo), 0 0 0 5px var(--exito-borde);
+  z-index: 3;
+}
+
+/* Mozo: un botón por mozo, se elige con un toque */
+.elegir-mozo {
+  margin: 0 0 var(--espacio-4);
+  padding: 0;
+  border: 0;
+}
+
+.elegir-mozo legend {
+  margin-bottom: var(--espacio-2);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.mozos-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+.mozo-opcion {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: 44px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.mozo-opcion input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mozo-iniciales {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--superficie-2);
+  color: var(--texto-suave);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mozo-opcion:hover {
+  border-color: var(--acento);
+}
+
+.mozo-opcion:has(input:checked) {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+  font-weight: 600;
+}
+
+.mozo-opcion:has(input:checked) .mozo-iniciales {
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}
+
+.mozo-opcion:has(input:focus-visible) {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* Le gana al estilo general de etiquetas de los formularios (display: block) */
+.elegir-mozo label.mozo-opcion {
+  display: inline-flex;
+  margin: 0;
+}
+
+/* =========================================
+   PASO 3: PRODUCTOS (rápido con el dedo)
+   ========================================= */
+.ayuda-buscador {
+  margin: calc(-1 * var(--espacio-2)) 20px var(--espacio-3);
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.ayuda-buscador kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  background-color: var(--superficie-2);
+  font-family: var(--fuente-ui);
+  font-size: 11px;
+}
+
+/* Pestañas y categorías más grandes, para tocarlas sin errar */
+.tabs-productos .tab-btn,
+.tabs-categorias .cat-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+/* Toda la tarjeta se toca para sumar */
+.grilla-productos {
+  max-height: 520px;
+}
+
+.producto-card {
+  position: relative;
+  min-height: 76px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.producto-card:active {
+  transform: scale(0.98);
+}
+
+.btn-agregar-prod {
+  width: 40px;
+  height: 40px;
+}
+
+.prod-destacado {
+  display: inline-block !important;
+  margin-bottom: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: var(--acento-suave);
+  color: var(--acento-texto) !important;
+  font-size: 11px !important;
+  font-weight: 600;
+}
+
+/* Ya está en el pedido: borde marcado y la cantidad arriba */
+.producto-card.en-pedido {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+}
+
+.prod-en-pedido {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.producto-card.recien-agregado {
+  animation: producto-sumado 0.35s ease-out;
+}
+
+@keyframes producto-sumado {
+  0% { box-shadow: 0 0 0 0 var(--acento); }
+  100% { box-shadow: 0 0 0 8px transparent; }
+}
+
+@media (max-width: 600px) {
+  .grilla-productos {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .producto-card.recien-agregado {
+    animation: none;
+  }
+
+  .producto-card:active {
+    transform: none;
+  }
+}
+
+/* El modo oscuro pinta todas las tarjetas igual: esta regla le gana para marcar las del pedido */
+[data-tema="oscuro"] .producto-card.en-pedido {
+  border-color: var(--acento);
+  background-color: var(--acento-suave);
+}
+
+/* Ocupada a mano (clientes sentados) y todavía sin comanda: se puede tomar su pedido */
+.plano-mesa--sin-pedido,
+.plano-muestra--sin-pedido {
+  border: 2px dashed var(--acento);
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+}
+
+/* Panel de una mesa con pedido (agregar, cobrar, ver) */
+.panel-mesa {
+  max-width: 420px;
+}
+
+.modal-icono-alerta.panel-mesa-icono {
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+}
+
+.panel-mesa-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espacio-3);
+  margin: 0 0 var(--espacio-5);
+}
+
+.panel-mesa-datos dt {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.panel-mesa-datos dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.panel-mesa-saldo {
+  color: var(--acento-texto) !important;
+}
+
+.panel-mesa-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.panel-mesa-boton {
+  justify-content: center;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.panel-mesa-ver {
+  margin-top: var(--espacio-1);
+  font-size: 13px;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.panel-mesa-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  margin: 0;
+  padding: var(--espacio-3);
+  border-radius: var(--radio-sm);
+  background-color: var(--advertencia-fondo);
+  color: var(--advertencia-texto);
+  font-size: 13px;
+}
+
+.panel-mesa [hidden] {
+  display: none !important;
+}
+
+[data-tema="oscuro"] .modal-icono-alerta.panel-mesa-icono {
+  background-color: var(--acento-suave);
+  color: var(--acento-texto);
+}
+
+/* Agregar a una mesa con pedido: resumen de la mesa y lo ya pedido */
+.resumen-mesa-agregar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3) var(--espacio-4);
+  margin-bottom: var(--espacio-5);
+  padding: var(--espacio-4) var(--espacio-5);
+}
+
+.resumen-mesa-agregar > div {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resumen-mesa-agregar strong {
+  font-size: 17px;
+  color: var(--texto);
+}
+
+.resumen-mesa-agregar span:not(.material-symbols-outlined) {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.resumen-mesa-icono {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}
+
+.ya-pedido {
+  margin: 0 20px var(--espacio-3);
+  padding: var(--espacio-3);
+  border-radius: var(--radio-sm);
+  background-color: var(--superficie-2);
+}
+
+.ya-pedido-titulo {
+  margin: 0 0 var(--espacio-1);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.ya-pedido ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--texto);
+}
+
+.ya-pedido li {
+  padding: 2px 0;
+}
+
+.ya-pedido-total {
+  margin: var(--espacio-2) 0 0;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+/* Minutos de espera de una mesa con pedido, y demora (mismo límite que la alerta) */
+.plano-espera {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background-color: var(--superficie);
+  border: 1px solid var(--acento-hover);
+  color: var(--texto);
+  font-size: max(9px, 0.6cqw);
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.plano-mesa--demorada,
+.plano-muestra--demorada {
+  background-color: var(--peligro);
+  border-color: var(--peligro);
+  color: #fff;
+}
+
+.plano-mesa--demorada .plano-espera {
+  border-color: var(--peligro);
+  color: var(--peligro);
+}
+
+.plano-mesa--demorada {
+  animation: mesa-demorada 1.6s ease-in-out infinite;
+}
+
+@keyframes mesa-demorada {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.3); }
+}
+
+.panel-mesa-demorada {
+  color: var(--peligro) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plano-mesa--demorada {
+    animation: none;
+  }
+}
+
+/* "Tus mesas": las mesas abiertas del mozo, arriba del plano */
+.mis-mesas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-4);
+  padding-bottom: var(--espacio-4);
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.mis-mesas-titulo {
+  margin-right: var(--espacio-1);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.mis-mesas-boton {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--acento);
+  border-radius: var(--radio);
+  background-color: var(--acento-suave);
+  color: var(--texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mis-mesas-boton strong {
+  font-size: 14px;
+}
+
+.mis-mesas-boton span {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.mis-mesas-boton:hover {
+  box-shadow: var(--sombra);
+}
+
+.mis-mesas-boton--demorada {
+  border-color: var(--peligro);
+  background-color: var(--peligro-suave);
+}
+
+.mis-mesas-boton--demorada span {
+  color: var(--peligro);
+}
+
+/* Nota para la cocina en cada producto del pedido */
+.item-carrito .nota-item {
+  width: 100%;
+  margin-top: var(--espacio-2);
+  padding: 6px 10px;
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio-sm);
+  background-color: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: 13px;
+}
+
+.item-carrito .nota-item:focus {
+  border-style: solid;
+  border-color: var(--acento);
+  outline: none;
+}
+
+.item-carrito {
+  flex-wrap: wrap;
+}
+
+/* Todo lo de la mesa está preparado: listo para llevar */
+.plano-mesa--lista,
+.plano-muestra--lista {
+  background-color: var(--exito-borde);
+  border-color: var(--exito-texto);
+  color: #fff;
+}
+
+.plano-listo {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 5px;
+  border-radius: 999px;
+  background-color: var(--exito-texto);
+  color: #fff;
+  font-size: max(8px, 0.55cqw);
+  font-weight: 700;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+/* =========================================
+   PANTALLA POR ESTACIÓN (Cocina, Bar, Parrilla)
+   ========================================= */
+.estaciones-pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-5);
+}
+
+.estacion-pestana {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background-color: var(--superficie);
+  color: var(--texto);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.estacion-pestana.activa {
+  border-color: var(--acento);
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}
+
+.estacion-pedidos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--espacio-4);
+  align-items: start;
+}
+
+.estacion-pedido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4);
+  border: 1px solid var(--borde);
+  border-top: 5px solid var(--acento);
+  border-radius: var(--radio);
+  background-color: var(--superficie);
+  box-shadow: var(--sombra-sm);
+}
+
+.estacion-pedido--demorada {
+  border-top-color: var(--peligro);
+}
+
+.estacion-pedido header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+}
+
+.estacion-pedido header strong {
+  display: block;
+  font-size: 20px;
+  color: var(--texto);
+}
+
+.estacion-pedido header span {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.estacion-espera {
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background-color: var(--superficie-2);
+  font-weight: 700;
+  font-size: 13px !important;
+  color: var(--texto) !important;
+  white-space: nowrap;
+}
+
+.estacion-pedido--demorada .estacion-espera {
+  background-color: var(--peligro);
+  color: #fff !important;
+}
+
+.estacion-pedido ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.estacion-pedido li {
+  display: flex;
+  gap: var(--espacio-3);
+  padding: 6px 0;
+  border-top: 1px solid var(--borde-suave);
+  font-size: 16px;
+  color: var(--texto);
+}
+
+.estacion-cantidad {
+  min-width: 28px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--acento-texto);
+}
+
+.estacion-nota {
+  display: block;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--peligro);
+}
+
+.estacion-observaciones {
+  margin: 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio-sm);
+  background-color: var(--advertencia-fondo);
+  color: var(--advertencia-texto);
+  font-size: 13px;
+}
+
+.estacion-listo {
+  width: 100%;
+  justify-content: center;
+  min-height: 48px;
+  font-size: 16px;
+}
+
+.estacion-vacia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: var(--espacio-6);
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.estacion-vacia .material-symbols-outlined {
+  font-size: 40px;
+  color: var(--exito-borde);
+}
+
+.estacion-vacia strong {
+  color: var(--texto);
+}
+
+/* Notas rápidas debajo de cada producto del carrito */
+.notas-rapidas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.nota-rapida {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background-color: var(--superficie);
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.nota-rapida:hover {
+  border-color: var(--acento);
+  color: var(--texto);
+}
+
+.nota-rapida.activa {
+  border-color: var(--acento);
+  background-color: var(--acento);
+  color: var(--texto-sobre-acento);
+}
+
+/* Separar una unidad en otra línea con su propia nota */
+.btn-separar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--acento-texto);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-separar .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.btn-separar:hover {
+  text-decoration: underline;
+}
+
+/* Al editar: las mesas de otras comandas se ven, pero no se eligen */
+.plano-mesa--bloqueada {
+  cursor: not-allowed;
+  opacity: 0.55;
+}

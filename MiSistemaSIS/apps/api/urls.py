@@ -11,6 +11,8 @@ from . import (
     vistas_empleados,
     vistas_finanzas,
     vistas_login,
+    vistas_estaciones,
+    vistas_notificaciones,
     vistas_reportes,
 )
 
@@ -54,10 +56,14 @@ urlpatterns = [
     # Comandas
     path("comandas/", views.ComandaListaView.as_view(), name="comandas"),
     path("comandas/productos/", views.ComandaProductosView.as_view(), name="comanda_productos"),
+    path("comandas/mozos/", views.ComandaMozosView.as_view(), name="comanda_mozos"),
+    path("comandas/metodos-pago/", views.ComandaMetodosPagoView.as_view(), name="comanda_metodos_pago"),
     path("comandas/consulta/", views.ComandaConsultaView.as_view(), name="comandas_consulta"),
     path("comandas/<int:pk>/", views.ComandaDetalleView.as_view(), name="comanda"),
     path("comandas/<int:pk>/estado/", views.ComandaEstadoView.as_view(), name="comanda_estado"),
     path("comandas/<int:pk>/pago/", views.ComandaPagoView.as_view(), name="comanda_pago"),
+    path("estaciones/<slug:clave>/", vistas_estaciones.EstacionView.as_view(), name="estacion"),
+    path("estaciones/<slug:clave>/<int:pk>/listo/", vistas_estaciones.EstacionListoView.as_view(), name="estacion_listo"),
     # Empleados
     path("empleados/", vistas_empleados.EmpleadoListaView.as_view(), name="empleados"),
     path("empleados/cargos/", vistas_empleados.CargosParaEmpleadoView.as_view(), name="empleados_cargos"),
@@ -89,7 +95,18 @@ urlpatterns = [
     path("gastos/", vistas_finanzas.GastoListaView.as_view(), name="gastos"),
     path("gastos/<int:pk>/", vistas_finanzas.GastoDetalleView.as_view(), name="gasto"),
     path("ventas/", vistas_finanzas.VentaListaView.as_view(), name="ventas"),
+    path("ventas/cobros/", vistas_finanzas.CobroListaView.as_view(), name="ventas_cobros"),
     # Reportes y auditoría
     path("reportes/", vistas_reportes.ReporteView.as_view(), name="reportes"),
     path("auditoria/", vistas_reportes.AuditoriaView.as_view(), name="auditoria"),
+    # Reportes consolidados (Parcial Nº 2, M2)
+    path("reportes/consolidados/", vistas_reportes.ConsolidadosView.as_view(), name="consolidados"),
+    path("reportes/consolidados/<slug:clave>/", vistas_reportes.ConsolidadoView.as_view(), name="consolidado"),
+    path("reportes/consolidados/<slug:clave>/pdf/", vistas_reportes.ConsolidadoPdfView.as_view(), name="consolidado_pdf"),
+    # Notificaciones (Parcial Nº 2, M3)
+    path("notificaciones/", vistas_notificaciones.NotificacionListaView.as_view(), name="notificaciones"),
+    path("notificaciones/sin-leer/", vistas_notificaciones.NotificacionSinLeerView.as_view(), name="notificaciones_sin_leer"),
+    path("notificaciones/evaluar/", vistas_notificaciones.NotificacionEvaluarView.as_view(), name="notificaciones_evaluar"),
+    path("notificaciones/marcar-todas/", vistas_notificaciones.NotificacionMarcarTodasView.as_view(), name="notificaciones_marcar_todas"),
+    path("notificaciones/<int:pk>/leida/", vistas_notificaciones.NotificacionLeidaView.as_view(), name="notificacion_leida"),
 ]

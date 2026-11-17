@@ -1,7 +1,7 @@
 """Pruebas del login de la web en React.
 
-Las migraciones actuales del proyecto fallan al crear la base de pruebas en MySQL,
-así que estas pruebas se ejecutan con ajustes que usan SQLite y omiten las migraciones.
+Al guardar un empleado, el sistema le asigna un usuario automático (apellido +
+inicial del nombre: "Ana Prueba" -> "pruebaa"), así que se ingresa con ese usuario.
 """
 
 from django.contrib.auth.models import User
@@ -30,7 +30,9 @@ class LoginWebTests(TestCase):
             cargo=cargo,
         )
 
-    def _login(self, identificador="ana.prueba", contrasena=CONTRASENA):
+    def _login(self, identificador=None, contrasena=CONTRASENA):
+        if identificador is None:
+            identificador = self.empleado.user_auto
         return self.cliente.post(
             "/api/token/", {"username": identificador, "password": contrasena}, format="json"
         )
@@ -41,7 +43,8 @@ class LoginWebTests(TestCase):
         return cliente
 
     def test_entra_con_usuario_o_correo(self):
-        for identificador in ("ana.prueba", "ANA@prueba.com", "  ana.prueba  "):
+        usuario = self.empleado.user_auto
+        for identificador in (usuario, "ANA@prueba.com", f"  {usuario}  "):
             with self.subTest(identificador):
                 respuesta = self._login(identificador)
                 self.assertEqual(respuesta.status_code, 200, respuesta.data)
@@ -76,9 +79,12 @@ class LoginWebTests(TestCase):
         cliente = self._con_token(token)
         yo = cliente.get("/api/yo/")
         self.assertEqual(yo.status_code, 200, yo.data)
-        self.assertEqual(yo.data["usuario"], "ana.prueba")
+        self.assertEqual(yo.data["usuario"], self.empleado.user_auto)
         self.assertIn("ingredientes:leer", yo.data["permisos"])
-        self.assertEqual(cliente.get("/api/resumen/").status_code, 200)
+        r = cliente.get("/api/resumen/")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("ventas_hoy", r.data)
+        self.assertIn("cobros_hoy", r.data)
 
     def test_sin_token_responde_401(self):
         self.assertEqual(APIClient().get("/api/yo/").status_code, 401)

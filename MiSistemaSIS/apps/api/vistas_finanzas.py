@@ -4,7 +4,7 @@ Usa las mismas reglas que la web de Django. Todo pide el permiso del módulo "ca
 salvo las ventas, que piden el del módulo "ventas".
 """
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
@@ -357,7 +357,30 @@ class CajaDetalleView(APIView):
         datos["gastos"] = [_gasto_a_dict(g) for g in gastos]
         datos["total_egresos"] = str(actual.calcular_total_egresos())
         datos["saldo_esperado_actual"] = str(actual.calcular_saldo_esperado())
-        datos["total_ventas"] = str(sum((v.total_venta for v in actual.ventas.all()), 0))
+        # Lo mismo que el detalle de caja de Django: cobros, efectivo, otros medios y por método
+        total_ventas = actual.calcular_total_ventas()
+        efectivo = actual.calcular_total_ventas_efectivo()
+        datos["total_ventas"] = str(total_ventas)
+        datos["ventas_efectivo"] = str(efectivo)
+        datos["ventas_otros_medios"] = str(total_ventas - efectivo)
+        pagos = actual.pagos.select_related("comanda", "empleado", "metodo_pago").order_by("-fecha_hora")
+        datos["pagos"] = [
+            {
+                "id_pago": p.id_pago,
+                "comanda": p.comanda_id,
+                "fecha_hora": p.fecha_hora,
+                "empleado": _nombre(p.empleado) if p.empleado else "No disponible",
+                "metodo": p.metodo_pago.nombre_metodo_pago if p.metodo_pago else "No disponible",
+                "monto": str(p.monto),
+            }
+            for p in pagos
+        ]
+        datos["ventas_por_metodo"] = [
+            {"metodo": v["metodo_pago__nombre_metodo_pago"], "total": str(v["total"])}
+            for v in actual.pagos.values("metodo_pago__nombre_metodo_pago")
+            .annotate(total=Sum("monto"))
+            .order_by("metodo_pago__nombre_metodo_pago")
+        ]
         return Response(datos)
 
 
@@ -536,6 +559,53 @@ def _comandas_para_vender():
         .select_related("mesa")
         .order_by("fecha_hora")
     )
+
+
+class CobroListaView(APIView):
+    """GET /api/ventas/cobros/: cada cobro de una comanda (cuánto, con qué método y en qué caja),
+    como la pantalla Ventas de Django. ?buscar (responsable, método o n.º de comanda), ?fecha_desde, ?fecha_hasta."""
+
+    permission_classes = [PermisoDeModulo]
+    modulo = "ventas"
+
+    def get(self, request):
+        from ventas.models import Pago
+
+        pagos = Pago.objects.select_related("comanda", "empleado", "caja", "metodo_pago").order_by("-fecha_hora")
+        buscar = request.query_params.get("buscar", "").strip()
+        if buscar:
+            pagos = pagos.filter(
+                Q(comanda__id_comanda__icontains=buscar)
+                | Q(empleado__nombre_empleado__icontains=buscar)
+                | Q(empleado__apellido_empleado__icontains=buscar)
+                | Q(metodo_pago__nombre_metodo_pago__icontains=buscar)
+            )
+        desde, hasta = rango_pedido(request)
+        pagos = filtrar_entre_fechas(pagos, "fecha_hora", desde, hasta)
+        abierta = _caja_abierta()
+        return responder_paginado(
+            request,
+            pagos,
+            lambda p: {
+                "id_pago": p.id_pago,
+                "comanda": p.comanda_id,
+                "fecha_hora": p.fecha_hora,
+                "responsable": _nombre(p.empleado),
+                "caja": p.caja_id,
+                "metodo": p.metodo_pago.nombre_metodo_pago if p.metodo_pago_id else "",
+                "monto": str(p.monto),
+            },
+            {
+                "caja_abierta": abierta.id_caja if abierta else None,
+                # Total recaudado por método de pago, con los mismos filtros
+                "por_metodo": [
+                    {"metodo": fila["metodo_pago__nombre_metodo_pago"], "total": str(fila["total"])}
+                    for fila in pagos.values("metodo_pago__nombre_metodo_pago")
+                    .annotate(total=Sum("monto"))
+                    .order_by("metodo_pago__nombre_metodo_pago")
+                ],
+            },
+        )
 
 
 class VentaListaView(APIView):

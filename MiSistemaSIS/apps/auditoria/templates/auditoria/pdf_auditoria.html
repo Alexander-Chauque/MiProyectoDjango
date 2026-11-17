@@ -2,54 +2,78 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <!-- Mismo diseño que los PDF de los reportes consolidados (reportes/pdf_consolidado.html) -->
   <style>
     @page {
       size: A4 landscape;
-      margin: 1.5cm;
+      margin: 1.5cm 1.5cm 2.4cm 1.5cm;
+      /* Pie repetido en todas las hojas: filtros, usuario, fecha y hora */
       @frame pie {
         -pdf-frame-content: pie;
-        bottom: 0.6cm; height: 0.8cm; left: 1.5cm; right: 1.5cm;
+        bottom: 0.6cm; height: 1.4cm; left: 1.5cm; right: 1.5cm;
       }
     }
     body { font-family: Helvetica, Arial, sans-serif; color: #333; font-size: 9px; }
     .encabezado { border-bottom: 2px solid #F5A623; padding-bottom: 6px; margin-bottom: 10px; }
+    .encabezado td { vertical-align: middle; border: none; padding: 0; }
     .encabezado h1 { color: #F5A623; margin: 0; font-size: 20px; }
-    .encabezado p { margin: 2px 0 0 0; font-size: 10px; color: #666; }
-    .filtros { font-size: 9px; color: #555; margin-bottom: 8px; }
-    .aviso { color: #B45309; font-size: 9px; margin-bottom: 6px; }
-    table { width: 100%; border-collapse: collapse; }
-    th { background-color: #3D3D3D; color: #FFFFFF; padding: 5px 4px; text-align: left; font-size: 9px; }
-    td { padding: 4px; border-bottom: 1px solid #E5E5E5; vertical-align: top; }
-    .crear { background-color: #D1FAE5; }
-    .modificar { background-color: #FEF3C7; }
-    .anular { background-color: #FEE2E2; }
-    .eliminar { background-color: #E5E7EB; }
+    .encabezado .sub { font-size: 10px; color: #666; }
+    .encabezado .titulo { font-size: 14px; font-weight: bold; color: #333; text-align: right; }
+    .procesos { font-size: 9px; color: #B7791F; text-align: right; }
+    .descripcion { font-size: 9px; color: #555; margin-bottom: 8px; }
+    .aviso { font-size: 9px; color: #B45309; margin-bottom: 6px; }
+
+    /* Resumen por acción */
+    table.resumen { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    table.resumen td { padding: 6px 8px; text-align: center; border: 1px solid #E5E5E5; font-size: 9px; color: #555; }
+    table.resumen td strong { display: block; font-size: 14px; color: #333; }
+    table.resumen td.total-movimientos { background-color: #FFF8E7; border-color: #F5A623; }
+
+    table.datos { width: 100%; border-collapse: collapse; }
+    table.datos th { background-color: #3D3D3D; color: #FFFFFF; padding: 5px 4px; text-align: left; font-size: 8.5px; }
+    table.datos td { padding: 4px; border-bottom: 1px solid #E5E5E5; vertical-align: top; }
+    .crear { background-color: #D1FAE5; color: #065F46; font-weight: bold; }
+    .modificar { background-color: #FEF3C7; color: #92400E; font-weight: bold; }
+    .anular { background-color: #FEE2E2; color: #991B1B; font-weight: bold; }
+    .eliminar { background-color: #E5E7EB; color: #374151; font-weight: bold; }
     .vacio { text-align: center; color: #888; padding: 20px; }
-    #pie { font-size: 8px; color: #888; text-align: right; }
+    #pie { font-size: 8px; color: #555; border-top: 1px solid #DDD; padding-top: 4px; }
   </style>
 </head>
 <body>
-  <div class="encabezado">
-    <h1>Los Cardones</h1>
-    <p>Log de Auditoría · Generado el {% now "d/m/Y H:i" %}</p>
+  <table class="encabezado">
+    <tr>
+      {% if logo %}<td style="width: 1.6cm;"><img src="{{ logo }}" width="42" height="42"></td>{% endif %}
+      <td>
+        <h1>Los Cardones</h1>
+        <div class="sub">Sistema de Gestión Gastronómica · Auditoría</div>
+      </td>
+      <td>
+        <div class="titulo">Log de Auditoría</div>
+        <div class="procesos">Período: {{ periodo }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="descripcion">
+    Registro de las altas, modificaciones, anulaciones y eliminaciones hechas en el sistema:
+    quién las hizo, cuándo y qué valores cambiaron.
   </div>
 
-  <div class="filtros">
-    <strong>Filtros:</strong>
-    Tabla: {{ filtros.tabla|default:"todas" }} ·
-    Acción: {{ filtros.accion|default:"todas" }} ·
-    Usuario: {{ usuario_nombre|default:"todos" }} ·
-    Desde: {{ filtros.fecha_desde|default:"—" }} ·
-    Hasta: {{ filtros.fecha_hasta|default:"—" }}
-    {% if filtros.detalle %} · Texto: "{{ filtros.detalle }}"{% endif %}
-    <br><strong>Total de movimientos:</strong> {{ total }}
-  </div>
+  <table class="resumen">
+    <tr>
+      <td class="total-movimientos">Movimientos<strong>{{ total }}</strong></td>
+      {% for nombre, cantidad in resumen %}
+      <td>{{ nombre }}<strong>{{ cantidad }}</strong></td>
+      {% endfor %}
+    </tr>
+  </table>
 
   {% if recortado %}
-  <div class="aviso">Se muestran los {{ maximo }} movimientos más recientes. Acotá los filtros para ver el resto.</div>
+  <div class="aviso">Se muestran los {{ maximo }} movimientos más recientes de {{ total }}. Acotá los filtros para ver el resto.</div>
   {% endif %}
 
-  <table repeat="1">
+  <table class="datos" repeat="1">
     <thead>
       <tr>
         <th style="width: 11%;">Fecha y hora</th>
@@ -67,17 +91,22 @@
         <td>{{ log.fecha_hora|date:"d/m/Y H:i:s" }}</td>
         <td>{% if log.empleado %}{{ log.empleado.nombre_empleado }} {{ log.empleado.apellido_empleado }}{% else %}Sistema{% endif %}</td>
         <td>{{ log.tabla }}</td>
-        <td class="{{ log.accion|lower }}">{{ log.accion }}</td>
+        <td class="{{ log.accion|lower }}">{{ log.get_accion_display }}</td>
         <td>#{{ log.registro_id }}</td>
         <td>{{ log.valores_anteriores|default:"—" }}</td>
         <td>{{ log.valores_actuales|default:"—" }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="7" class="vacio">No hay movimientos con estos filtros.</td></tr>
+      <tr><td colspan="7" class="vacio">No hay movimientos para los filtros elegidos.</td></tr>
       {% endfor %}
     </tbody>
   </table>
 
-  <div id="pie">Página <pdf:pagenumber> de <pdf:pagecount></div>
+  <div id="pie">
+    <strong>Filtros aplicados:</strong> {{ filtros_texto }}<br>
+    <strong>Usuario:</strong> {{ usuario }} ·
+    <strong>Generado:</strong> {{ generado|date:"d/m/Y" }} a las {{ generado|date:"H:i" }} hs ·
+    Página <pdf:pagenumber> de <pdf:pagecount>
+  </div>
 </body>
 </html>

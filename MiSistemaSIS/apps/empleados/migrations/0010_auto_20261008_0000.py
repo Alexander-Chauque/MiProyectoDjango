@@ -9,15 +9,11 @@ class Migration(migrations.Migration):
         ('empleados', '0009_auto_20261006_2310'),
     ]
 
+    # Antes: RemoveField("id") + AddField(nueva clave primaria). En una base nueva eso
+    # fallaba (otras tablas ya apuntan a "id"), y no se podía crear la base de pruebas.
+    # Renombrar la columna deja el mismo resultado sin borrarla. Las bases donde esta
+    # migración ya se aplicó no la vuelven a ejecutar.
     operations = [
-        migrations.RemoveField(
-            model_name='permisoxcargo',
-            name='id',
-        ),
-        migrations.AddField(
-            model_name='permisoxcargo',
-            name='id_permiso_x_cargo',
-            field=models.AutoField(default=1, primary_key=True, serialize=False),
-            preserve_default=False,
-        ),
+        migrations.RenameField(model_name='permisoxcargo', old_name='id', new_name='id_permiso_x_cargo'),
+        migrations.AlterField(model_name='permisoxcargo', name='id_permiso_x_cargo', field=models.AutoField(primary_key=True, serialize=False)),
     ]
