@@ -97,8 +97,19 @@ class ResumenView(APIView):
                 "comandas_en_preparacion": Comanda.objects.filter(
                     estado_comanda="en_preparacion"
                 ).count(),
+                # Lo cobrado hoy, igual que la tarjeta "Ventas de hoy" del inicio de Django
+                **_cobrado_hoy(),
             }
         )
+
+
+def _cobrado_hoy():
+    from django.utils import timezone
+
+    from core.views import _resumen_caja
+
+    caja = _resumen_caja(timezone.localdate())
+    return {"ventas_hoy": caja["ventas_hoy"], "cobros_hoy": caja["cobros_hoy"]}
 
 
 # ---------- INGREDIENTES ----------

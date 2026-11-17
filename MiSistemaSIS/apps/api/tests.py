@@ -81,7 +81,10 @@ class LoginWebTests(TestCase):
         self.assertEqual(yo.status_code, 200, yo.data)
         self.assertEqual(yo.data["usuario"], self.empleado.user_auto)
         self.assertIn("ingredientes:leer", yo.data["permisos"])
-        self.assertEqual(cliente.get("/api/resumen/").status_code, 200)
+        r = cliente.get("/api/resumen/")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("ventas_hoy", r.data)
+        self.assertIn("cobros_hoy", r.data)
 
     def test_sin_token_responde_401(self):
         self.assertEqual(APIClient().get("/api/yo/").status_code, 401)
