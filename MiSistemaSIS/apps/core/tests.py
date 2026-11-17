@@ -137,3 +137,29 @@ class FiltrosDeFechaEnPantallasTests(TestCase):
                 {"empleado": self.empleado.pk, "tipo_asistencia": self.tipo.pk},
             )
         self.assertEqual(Asistencia.objects.get().fecha_asistencia.isoformat(), "2026-11-05")
+
+
+class TarjetasDelInicioTests(TestCase):
+    """Las tarjetas de arriba no repiten los paneles: comandas de hoy y lo que falta cobrar."""
+
+    def test_comandas_de_hoy_y_por_cobrar(self):
+        from finanzas.models import metodo_pago
+        from ventas.models import Comanda, Mesa, Pago
+
+        from core.views import _comandas_de_hoy, _por_cobrar
+
+        mozo = Empleado.objects.create(nombre_empleado="Teo", apellido_empleado="Mozo", dni="99000002", correo="teo@prueba.com")
+        mesa = Mesa.objects.create(numero_mesa=1, ubicacion="salon")
+        entregada = Comanda.objects.create(mesa=mesa, empleado=mozo, estado_comanda="entregado", total_comanda=1000)
+        Comanda.objects.create(mesa=mesa, empleado=mozo, estado_comanda="pendiente", total_comanda=500)
+        Comanda.objects.create(mesa=mesa, empleado=mozo, estado_comanda="anulado", total_comanda=9999)
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo")
+        Pago.objects.create(comanda=entregada, monto=300, metodo_pago=efectivo)
+
+        por_cobrar = _por_cobrar()
+        self.assertEqual(por_cobrar["cantidad"], 1)
+        self.assertEqual(por_cobrar["monto"], 700)
+
+        hoy = _comandas_de_hoy(timezone.localdate())
+        self.assertEqual(hoy["cantidad"], 2)
+        self.assertEqual(hoy["ticket_promedio"], 750)

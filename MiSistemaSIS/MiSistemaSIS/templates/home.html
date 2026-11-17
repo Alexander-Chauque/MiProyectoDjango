@@ -33,21 +33,25 @@
     </a>
     {% endif %}
 
-    {% if mesas %}
-    <a href="{% url 'ventas:listar_mesa' %}" class="inicio-indicador">
-      <span class="inicio-indicador-icono material-symbols-outlined" aria-hidden="true">table_restaurant</span>
-      <span class="inicio-indicador-nombre">Mesas ocupadas</span>
-      <strong class="inicio-indicador-valor">{{ mesas.ocupadas }} <small>de {{ mesas.total }}</small></strong>
-      <span class="inicio-indicador-detalle">{{ mesas.porcentaje }}% de ocupación</span>
-    </a>
-    {% endif %}
-
+    {# La ocupación de mesas y las comandas activas ya están en los paneles de abajo: #}
+    {# arriba van los números del día que no se repiten #}
     {% if comandas %}
-    <a href="{% url 'ventas:comanda_listar' %}?estado=pendiente&amp;estado=en_preparacion" class="inicio-indicador">
+    <a href="{% url 'ventas:comanda_listar' %}" class="inicio-indicador">
       <span class="inicio-indicador-icono material-symbols-outlined" aria-hidden="true">receipt_long</span>
-      <span class="inicio-indicador-nombre">Comandas pendientes</span>
-      <strong class="inicio-indicador-valor">{{ comandas.pendientes }}</strong>
-      <span class="inicio-indicador-detalle">{{ comandas.en_preparacion }} en preparación</span>
+      <span class="inicio-indicador-nombre">Comandas de hoy</span>
+      <strong class="inicio-indicador-valor">{{ comandas.hoy.cantidad }}</strong>
+      <span class="inicio-indicador-detalle">
+        {% if comandas.hoy.cantidad %}Ticket promedio ${{ comandas.hoy.ticket_promedio|floatformat:0 }}{% else %}Todavía no se tomaron pedidos{% endif %}
+      </span>
+    </a>
+
+    <a href="{% url 'ventas:comanda_listar' %}?estado=entregado" class="inicio-indicador">
+      <span class="inicio-indicador-icono material-symbols-outlined" aria-hidden="true">payments</span>
+      <span class="inicio-indicador-nombre">Por cobrar</span>
+      <strong class="inicio-indicador-valor">${{ comandas.por_cobrar.monto|floatformat:0 }}</strong>
+      <span class="inicio-indicador-detalle">
+        {{ comandas.por_cobrar.cantidad }} entregada{{ comandas.por_cobrar.cantidad|pluralize }} sin cobrar · {{ comandas.pendientes }} sin entregar
+      </span>
     </a>
     {% endif %}
 

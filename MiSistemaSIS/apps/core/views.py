@@ -1,4 +1,4 @@
-from django.db.models import Count, Sum
+from django.db.models import Avg, Count, Sum
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -52,6 +52,23 @@ def _resumen_mesas():
     }
 
 
+def _por_cobrar():
+    """Comandas ya entregadas que faltan cobrar y cuánto suman (lo que falta de cada una)."""
+    entregadas = Comanda.objects.filter(estado_comanda='entregado').annotate(pagado=Sum('pagos__monto'))
+    saldos = [max(c.total_comanda - (c.pagado or 0), 0) for c in entregadas]
+    saldos = [s for s in saldos if s > 0]
+    return {'cantidad': len(saldos), 'monto': sum(saldos)}
+
+
+def _comandas_de_hoy(hoy):
+    """Comandas tomadas hoy (sin las anuladas) y su ticket promedio."""
+    datos = (
+        filtrar_por_fecha(Comanda.objects.exclude(estado_comanda='anulado'), 'fecha_hora', hoy, hoy)
+        .aggregate(cantidad=Count('id_comanda'), promedio=Avg('total_comanda'))
+    )
+    return {'cantidad': datos['cantidad'], 'ticket_promedio': datos['promedio'] or 0}
+
+
 def _resumen_comandas():
     """Cantidad de comandas activas por estado y las más recientes (dos consultas)."""
     por_estado = dict(
@@ -71,6 +88,9 @@ def _resumen_comandas():
         'activas': sum(por_estado.values()),
         'pendientes': por_estado.get('pendiente', 0) + en_preparacion,
         'en_preparacion': en_preparacion,
+        # Las tarjetas de arriba no repiten los paneles: lo de hoy y lo que falta cobrar
+        'hoy': _comandas_de_hoy(timezone.localdate()),
+        'por_cobrar': _por_cobrar(),
     }
 
 

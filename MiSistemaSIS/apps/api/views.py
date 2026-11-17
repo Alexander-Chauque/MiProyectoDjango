@@ -108,8 +108,21 @@ def _cobrado_hoy():
 
     from core.views import _resumen_caja
 
-    caja = _resumen_caja(timezone.localdate())
-    return {"ventas_hoy": caja["ventas_hoy"], "cobros_hoy": caja["cobros_hoy"]}
+    from core.views import _comandas_de_hoy, _por_cobrar
+
+    hoy = timezone.localdate()
+    caja = _resumen_caja(hoy)
+    comandas = _comandas_de_hoy(hoy)
+    por_cobrar = _por_cobrar()
+    return {
+        "ventas_hoy": caja["ventas_hoy"],
+        "cobros_hoy": caja["cobros_hoy"],
+        # Tarjetas del inicio que no repiten los paneles: comandas de hoy y lo que falta cobrar
+        "comandas_hoy": comandas["cantidad"],
+        "ticket_promedio": comandas["ticket_promedio"],
+        "por_cobrar_cantidad": por_cobrar["cantidad"],
+        "por_cobrar_monto": por_cobrar["monto"],
+    }
 
 
 # ---------- INGREDIENTES ----------
