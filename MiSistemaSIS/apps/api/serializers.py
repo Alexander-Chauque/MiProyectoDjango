@@ -284,6 +284,8 @@ class ComandaSerializer(serializers.ModelSerializer):
     mozo = serializers.CharField(source="empleado.get_full_name", read_only=True)
     mozo_id = serializers.IntegerField(source="empleado_id", read_only=True)
     mesa_ubicacion = serializers.CharField(source="mesa.get_ubicacion_display", read_only=True)
+    # Todo lo pedido ya está preparado y falta llevarlo a la mesa (como el plano de Django)
+    listo_para_llevar = serializers.SerializerMethodField()
     estado_nombre = serializers.SerializerMethodField()
     total_pagado = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     saldo_pendiente = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -299,6 +301,7 @@ class ComandaSerializer(serializers.ModelSerializer):
             "mozo",
             "mozo_id",
             "mesa_ubicacion",
+            "listo_para_llevar",
             "estado_comanda",
             "estado_nombre",
             "total_comanda",
@@ -308,6 +311,12 @@ class ComandaSerializer(serializers.ModelSerializer):
             "esta_abierta",
             "puede_modificarse",
         ]
+
+    def get_listo_para_llevar(self, comanda):
+        if comanda.estado_comanda not in ("pendiente", "en_preparacion"):
+            return False
+        detalles = list(comanda.detalles.all())
+        return bool(detalles) and all(d.listo for d in detalles)
 
     def get_estado_nombre(self, comanda):
         # "anulado" no está en la lista de estados del modelo

@@ -11,6 +11,7 @@ from . import (
     vistas_empleados,
     vistas_finanzas,
     vistas_login,
+    vistas_estaciones,
     vistas_notificaciones,
     vistas_reportes,
 )
@@ -61,6 +62,8 @@ urlpatterns = [
     path("comandas/<int:pk>/", views.ComandaDetalleView.as_view(), name="comanda"),
     path("comandas/<int:pk>/estado/", views.ComandaEstadoView.as_view(), name="comanda_estado"),
     path("comandas/<int:pk>/pago/", views.ComandaPagoView.as_view(), name="comanda_pago"),
+    path("estaciones/<slug:clave>/", vistas_estaciones.EstacionView.as_view(), name="estacion"),
+    path("estaciones/<slug:clave>/<int:pk>/listo/", vistas_estaciones.EstacionListoView.as_view(), name="estacion_listo"),
     # Empleados
     path("empleados/", vistas_empleados.EmpleadoListaView.as_view(), name="empleados"),
     path("empleados/cargos/", vistas_empleados.CargosParaEmpleadoView.as_view(), name="empleados_cargos"),

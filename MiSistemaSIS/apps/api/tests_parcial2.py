@@ -169,3 +169,54 @@ class NotificacionesTests(BaseApi):
         from rest_framework.test import APIClient
 
         self.assertEqual(APIClient().get("/api/notificaciones/sin-leer/").status_code, 401)
+
+
+class EstacionesTests(BaseApi):
+    """Pantalla por estación: cada una ve lo suyo, lo marca listo y la comanda queda lista para llevar."""
+
+    def setUp(self):
+        super().setUp()
+        from inventario.models import Bebida, CategoriaPlato, Plato, TipoBebida
+        from ventas.models import Mesa
+
+        self.plato = Plato.objects.create(nombre_plato="Locro", precio_plato=100, categoria=CategoriaPlato.objects.create(nombre_categoria_plato="Guisos"))
+        self.bebida = Bebida.objects.create(nombre_bebida="Agua", precio_bebida=50, id_tipo_bebida=TipoBebida.objects.create(nombre_tipo_bebida="Sin alcohol"))
+        mesa = Mesa.objects.create(numero_mesa=80, ubicacion="salon")
+        items = [
+            {"tipo": "plato", "id": self.plato.pk, "cantidad": 2, "observacion": "sin sal"},
+            {"tipo": "bebida", "id": self.bebida.pk, "cantidad": 1},
+        ]
+        self.comanda = self.cliente.post("/api/comandas/", {"mesa": mesa.pk, "items": items}, format="json").data
+
+    def test_cada_estacion_ve_lo_suyo_y_lo_marca_listo(self):
+        cocina = self.cliente.get("/api/estaciones/cocina/").data
+        self.assertEqual([p["id_comanda"] for p in cocina["pedidos"]], [self.comanda["id_comanda"]])
+        self.assertEqual(cocina["pedidos"][0]["productos"], [{"nombre": "Locro", "cantidad": 2, "nota": "sin sal"}])
+        bar = self.cliente.get("/api/estaciones/bar/").data
+        self.assertEqual(bar["pedidos"][0]["productos"][0]["nombre"], "Agua")
+
+        r = self.cliente.post(f"/api/estaciones/cocina/{self.comanda['id_comanda']}/listo/")
+        self.assertEqual(r.data["listos"], 1)
+        self.assertEqual(self.cliente.get("/api/estaciones/cocina/").data["pedidos"], [])
+        detalle = self.cliente.get(f"/api/comandas/{self.comanda['id_comanda']}/").data
+        self.assertEqual(detalle["estado_comanda"], "en_preparacion")
+        self.assertFalse(detalle["listo_para_llevar"])
+
+        self.cliente.post(f"/api/estaciones/bar/{self.comanda['id_comanda']}/listo/")
+        self.assertTrue(self.cliente.get(f"/api/comandas/{self.comanda['id_comanda']}/").data["listo_para_llevar"])
+
+    def test_editar_conserva_lo_ya_preparado(self):
+        self.cliente.post(f"/api/estaciones/cocina/{self.comanda['id_comanda']}/listo/")
+        items = [
+            {"tipo": "plato", "id": self.plato.pk, "cantidad": 2, "observacion": "sin sal"},
+            {"tipo": "bebida", "id": self.bebida.pk, "cantidad": 2},
+        ]
+        self.cliente.patch(f"/api/comandas/{self.comanda['id_comanda']}/", {"items": items}, format="json")
+        self.assertEqual(self.cliente.get("/api/estaciones/cocina/").data["pedidos"], [])
+        self.assertEqual(len(self.cliente.get("/api/estaciones/bar/").data["pedidos"]), 1)
+
+    def test_estacion_inexistente_y_permiso(self):
+        self.assertEqual(self.cliente.get("/api/estaciones/nada/").status_code, 404)
+        solo_ver = self._cliente(self._empleado("eli", nivel=1, permisos=[("comandas", "leer")]))
+        self.assertEqual(solo_ver.get("/api/estaciones/cocina/").status_code, 200)
+        self.assertEqual(solo_ver.post(f"/api/estaciones/cocina/{self.comanda['id_comanda']}/listo/").status_code, 403)

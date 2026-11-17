@@ -246,7 +246,14 @@ def _nombre(producto):
 
 
 def _guardar_detalles(comanda, lineas):
-    """Reemplaza los productos de la comanda (cada uno con su nota) y recalcula el total."""
+    """Reemplaza los productos de la comanda (cada uno con su nota) y recalcula el total.
+
+    Lo que la estación ya marcó como listo se conserva si su cantidad no aumentó (como la web).
+    """
+    ya_listos = {
+        (d.plato_id, d.bebida_id, d.observacion): (d.listo, d.cant_plato + d.cant_bebida)
+        for d in comanda.detalles.filter(listo__isnull=False)
+    }
     comanda.detalles.all().delete()
     for producto, cantidad, observacion in lineas:
         if isinstance(producto, Plato):
@@ -257,6 +264,10 @@ def _guardar_detalles(comanda, lineas):
             DetalleComanda.objects.create(
                 comanda=comanda, bebida=producto, cant_bebida=cantidad, cant_plato=0, observacion=observacion
             )
+    for detalle in comanda.detalles.all():
+        previo = ya_listos.get((detalle.plato_id, detalle.bebida_id, detalle.observacion))
+        if previo and detalle.cant_plato + detalle.cant_bebida <= previo[1]:
+            DetalleComanda.objects.filter(pk=detalle.pk).update(listo=previo[0])
     comanda.calcular_total()
 
 
