@@ -44,7 +44,8 @@ class NotificacionListaView(APIView):
         buscar = parametros.get("buscar", "").strip()
         if buscar:
             notificaciones = notificaciones.filter(mensaje__icontains=buscar)
-        tipos = [tipo for tipo in parametros.getlist("tipo") if tipo]
+        # ?tipo=A&tipo=B o ?tipo=A,B (la web en React manda las casillas separadas por coma)
+        tipos = [tipo for valor in parametros.getlist("tipo") for tipo in valor.split(",") if tipo]
         if tipos:
             notificaciones = notificaciones.filter(tipo__in=tipos)
         estado = parametros.get("estado", "")

@@ -113,6 +113,9 @@ class NotificacionesTests(BaseApi):
         self.assertEqual([n["id"] for n in r.data["resultados"]], [self.nueva.pk])
         r = self.cliente.get("/api/notificaciones/", {"tipo": "VENTA_INUSUAL"})
         self.assertEqual(r.data["total"], 1)
+        # Varios tipos separados por coma, como los manda la web en React
+        r = self.cliente.get("/api/notificaciones/", {"tipo": "VENTA_INUSUAL,CAJA_ABIERTA"})
+        self.assertEqual(r.data["total"], 2)
         r = self.cliente.get("/api/notificaciones/", {"buscar": "13 horas"})
         self.assertEqual(r.data["total"], 1)
 
