@@ -60,7 +60,7 @@
   {% if tiene_pagos %}
   <div class="alert" id="aviso-pagos" style="margin-bottom: 20px; border-left: 4px solid #F5A623; background-color: #FFF8E7; color: #3D3D3D; padding: 15px; border-radius: 8px;">
     <span class="material-symbols-outlined" style="vertical-align: middle;">info</span>
-    Esta comanda ya tiene ${{ comanda.total_pagado|floatformat:2 }} abonados. Podés agregar productos o aumentar cantidades, pero no quitar ni reducir lo que ya tenía.
+    Ya se pagaron ${{ comanda.total_pagado|floatformat:2 }} de esta comanda. Podés agregar productos o subir cantidades, pero no quitar ni bajar lo que ya estaba, porque parte ya está cobrado.
   </div>
   {% endif %}
 

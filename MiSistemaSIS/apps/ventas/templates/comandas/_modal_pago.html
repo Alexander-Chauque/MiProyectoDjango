@@ -28,15 +28,15 @@
         </div>
 
         <div class="grupo-campo">
-          <label>¿Cómo desea abonar?</label>
+          <label>¿Cuánto se paga ahora?</label>
           <div style="display: flex; gap: 10px; margin-top: 5px;">
             <label class="checkbox-item" style="flex: 1; border: 1px solid #E5E7EB; padding: 10px; border-radius: 8px; cursor: pointer;">
               <input type="radio" name="tipo_pago" value="total" checked>
-              <span>Pagar todo de una vez</span>
+              <span>Toda la cuenta</span>
             </label>
             <label class="checkbox-item" style="flex: 1; border: 1px solid #E5E7EB; padding: 10px; border-radius: 8px; cursor: pointer;">
               <input type="radio" name="tipo_pago" value="parcial">
-              <span>Pagar por partes</span>
+              <span>Solo una parte</span>
             </label>
           </div>
         </div>
@@ -60,14 +60,16 @@
         </div>
         
         <div class="grupo-campo" id="campo-monto-parcial" style="display: none; margin-top: 15px;">
-          <label>Monto a abonar <span class="req">*</span></label>
+          <label>¿Cuánto de la cuenta se paga ahora? <span class="req">*</span></label>
           <input type="number" name="monto_abonado" class="form-control" step="0.01" min="0.01" placeholder="Ej: 1500.00">
+          <small class="text-gris" style="display: block; margin-top: 6px;">Por ejemplo, si cada uno paga lo suyo. El resto queda pendiente en la comanda.</small>
         </div>
 
         <!-- Solo con métodos que permiten dar vuelto (por ejemplo, Efectivo) -->
         <div class="grupo-campo" id="campo-monto-recibido" style="display: none; margin-top: 15px;">
-          <label>Monto recibido (opcional)</label>
-          <input type="number" name="monto_recibido" class="form-control" step="0.01" min="0.01" placeholder="Con cuánto paga el cliente">
+          <label>¿Con cuánto paga el cliente? (opcional)</label>
+          <input type="number" name="monto_recibido" class="form-control" step="0.01" min="0.01" placeholder="Ej: 10000">
+          <small class="text-gris" style="display: block; margin-top: 6px;">Los billetes que te da. Sirve solo para calcular el vuelto.</small>
           <small class="text-gris" id="texto-vuelto" style="display: block; margin-top: 6px;"></small>
         </div>
       </div>
