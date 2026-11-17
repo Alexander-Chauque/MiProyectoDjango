@@ -458,7 +458,12 @@ def grafico_dashboard(comandas, args, resumen):
     ax.pie([lleno, 1 - lleno], colors=[VERDE if cumplimiento >= 1 else NARANJA, "#E5E7EB"],
            startangle=90, counterclock=False, wedgeprops={"width": 0.3})
     ax.text(0, 0, f"{cumplimiento:.0%}", ha="center", va="center", fontsize=20, fontweight="bold", color=GRIS)
-    ax.set_title("Cumplimiento del objetivo", fontsize=11)
+    # El mes y los montos a la vista, para que se entienda qué se compara sin explicarlo
+    ax.set_title(f"Cumplimiento del objetivo · {etiqueta_mes(mes_ref)}", fontsize=11)
+    # \$: con dos signos $ en el mismo texto, matplotlib lo tomaría como una fórmula
+    facturado_texto = f"{pesos_cortos(completos.iloc[-1])} facturado de {pesos_cortos(objetivo)}".replace("$", r"\$")
+    ax.text(0, -1.35, facturado_texto,
+            ha="center", va="center", fontsize=10, color=GRIS)
 
     # Top 5 mozos por facturación
     ax = fig.add_subplot(gs[2, :2])
