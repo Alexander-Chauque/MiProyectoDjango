@@ -407,6 +407,13 @@ class CuentaYAsistenciasTests(BaseApi):
         r = self.cliente.patch("/api/perfil/", {"telefono": "letras"}, format="json")
         self.assertEqual(r.status_code, 400)
 
+    def test_perfil_trae_mi_dia_como_en_django(self):
+        r = self.cliente.get("/api/perfil/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(set(r.data["mi_dia"]), {"comandas", "abiertas", "cobrado"})
+        self.assertIn("debe_cambiar_contrasena", r.data)
+        self.assertIn("ultimo_ingreso", r.data)
+
     def test_cambiar_contrasena_exige_la_actual_y_una_segura(self):
         r = self.cliente.post("/api/perfil/contrasena/", {"actual": "mal", "nueva": "Nueva-Clave-789", "confirmar": "Nueva-Clave-789"}, format="json")
         self.assertEqual(r.status_code, 400)

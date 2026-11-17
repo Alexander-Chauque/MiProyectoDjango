@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from empleados.decorators import nivel_de
 from empleados.forms import CambiarContrasenaForm, MiPerfilForm, NuevaContrasenaForm
 from empleados.models import Empleado
+from empleados.views import _mi_dia
 
 from .views import _auditar
 from .vistas_empleados import _rechazar_formulario
@@ -30,6 +31,10 @@ def _perfil(request):
         "cargo": empleado.cargo.nombre_cargo if empleado.cargo else None,
         "nivel": nivel_de(request.user),
         "fecha_ingreso": empleado.fecha_ingreso,
+        # Lo mismo que muestra Mi perfil en Django
+        "debe_cambiar_contrasena": empleado.debe_cambiar_contrasena,
+        "ultimo_ingreso": request.user.last_login,
+        "mi_dia": _mi_dia(empleado),
     }
 
 
