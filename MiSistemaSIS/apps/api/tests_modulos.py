@@ -278,6 +278,20 @@ class MesasYComandasTests(BaseApi):
         self.assertEqual(ids, {primera["id_comanda"], segunda["id_comanda"]})
         self.assertNotIn(tercera["id_comanda"], ids)
 
+    def test_con_pago_parcial_se_puede_quitar_sin_bajar_de_lo_pagado(self):
+        # 2 vacíos ($200) y se pagaron $100: se puede bajar a 1, pero no quitar todo
+        comanda = self._comanda()
+        efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)
+        Pago.objects.create(comanda_id=comanda["id_comanda"], monto=100, metodo_pago=efectivo)
+        url = f"/api/comandas/{comanda['id_comanda']}/"
+        r = self.cliente.patch(url, {"items": [{"tipo": "plato", "id": self.plato.pk, "cantidad": 1}]}, format="json")
+        self.assertEqual(r.status_code, 200, r.data)
+        self.assertEqual(Decimal(r.data["total_comanda"]), Decimal("100"))
+        otro = Plato.objects.create(nombre_plato="Chorizo", precio_plato=50, categoria=self.plato.categoria)
+        r = self.cliente.patch(url, {"items": [{"tipo": "plato", "id": otro.pk, "cantidad": 1}]}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("ya cobrado", str(r.data))
+
     def test_no_elimina_comanda_con_pagos(self):
         comanda = self._comanda()
         efectivo = metodo_pago.objects.create(nombre_metodo_pago="Efectivo", permite_cambio=True)

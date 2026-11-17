@@ -534,7 +534,11 @@ def _sumar_cantidades(filas):
 
 
 def _validar_cambios_detalle(id_comanda, formset, tiene_pagos):
-    """Un producto no disponible no puede aumentar. Con pagos, tampoco se puede quitar ni reducir nada."""
+    """Un producto no disponible no puede aumentar.
+
+    Con pagos se puede quitar o reducir (por ejemplo, algo cargado por error): lo único que se
+    controla después es que el total no quede por debajo de lo ya cobrado.
+    """
     anteriores = _sumar_cantidades(
         (d.plato, d.cant_plato, d.bebida, d.cant_bebida)
         for d in DetalleComanda.objects.filter(comanda_id=id_comanda).select_related("plato", "bebida")
@@ -549,12 +553,6 @@ def _validar_cambios_detalle(id_comanda, formset, tiene_pagos):
         for form in formset.forms
         if not form.cleaned_data.get("DELETE")
     )
-    if tiene_pagos:
-        for producto, cantidad in anteriores.items():
-            if nuevas.get(producto, 0) < cantidad:
-                raise ValueError(
-                    "La comanda tiene pagos registrados: podés agregar productos, pero no quitar ni reducir los que ya tenía."
-                )
     for producto, cantidad in nuevas.items():
         disponible = producto.estado_plato if isinstance(producto, Plato) else producto.disponible_bebida
         if not disponible and cantidad > anteriores.get(producto, 0):

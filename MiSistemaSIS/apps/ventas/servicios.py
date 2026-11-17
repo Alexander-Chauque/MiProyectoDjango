@@ -341,7 +341,8 @@ def _cambiar_mesa(comanda, id_mesa):
 
 @transaction.atomic
 def actualizar_comanda(id_comanda, empleado, observaciones, items, id_mozo=None, id_mesa=None):
-    """Aplica las mismas reglas que la web: con pagos solo se puede agregar."""
+    """Aplica las mismas reglas que la web. Con pagos se puede cambiar el pedido (incluso quitar
+    algo cargado por error), siempre que el total no quede por debajo de lo ya cobrado."""
     comanda = get_object_or_404(Comanda.objects.select_for_update(), id_comanda=id_comanda)
     if not comanda.esta_abierta:
         raise ValueError(f"La comanda #{comanda.id_comanda} está cerrada: no se puede editar.")
@@ -350,12 +351,6 @@ def actualizar_comanda(id_comanda, empleado, observaciones, items, id_mozo=None,
     nuevas = _sumar(lineas)
     anteriores = _cantidades_actuales(comanda)
 
-    if comanda.pagos.exists():
-        for producto, cantidad in anteriores.items():
-            if nuevas.get(producto, 0) < cantidad:
-                raise ValueError(
-                    "La comanda tiene pagos registrados: podés agregar productos, pero no quitar ni reducir los que ya tenía."
-                )
     for producto, cantidad in nuevas.items():
         if not _disponible(producto) and cantidad > anteriores.get(producto, 0):
             raise ValueError(f"{_nombre(producto)} no está disponible: no se puede agregar ni aumentar.")

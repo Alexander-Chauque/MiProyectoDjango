@@ -60,7 +60,7 @@
   {% if tiene_pagos %}
   <div class="alert" id="aviso-pagos" style="margin-bottom: 20px; border-left: 4px solid #F5A623; background-color: #FFF8E7; color: #3D3D3D; padding: 15px; border-radius: 8px;">
     <span class="material-symbols-outlined" style="vertical-align: middle;">info</span>
-    Ya se pagaron ${{ comanda.total_pagado|floatformat:2 }} de esta comanda. Podés agregar productos o subir cantidades, pero no quitar ni bajar lo que ya estaba, porque parte ya está cobrado.
+    Ya se pagaron ${{ comanda.total_pagado|floatformat:2 }} de esta comanda. Podés cambiar el pedido y quitar lo que se cargó por error, mientras el total no quede por debajo de lo ya pagado.
   </div>
   {% endif %}
 
@@ -258,8 +258,7 @@
     const formsetTbody = document.getElementById('formset-tbody');
     const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
     const infoProductos = {};
-    // Con pagos registrados, lo que ya tenía la comanda no se puede quitar ni reducir
-    const tienePagos = {{ tiene_pagos|yesno:"true,false" }};
+    // Con pagos se puede quitar lo cargado por error: al guardar se controla que el total no baje de lo pagado
 
     // 1. Llenamos diccionario de productos
     document.querySelectorAll('.producto-card').forEach(card => {
@@ -325,7 +324,7 @@
         const cant = cantPlato ? (parseInt(cantPlato.value) || 1) : 1;
         const info = infoProductos[`plato_${id}`];
         if (info) {
-          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
+          carrito[key] = { key, tipo: 'plato', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
       }
 
@@ -336,7 +335,7 @@
         const cant = cantBebida ? (parseInt(cantBebida.value) || 1) : 1;
         const info = infoProductos[`bebida_${id}`];
         if (info) {
-          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: tienePagos ? cant : 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
+          carrito[key] = { key, tipo: 'bebida', id, nombre: info.nombre, precio: info.precio, cantidad: cant, minimo: 0, maximo: info.noDisponible ? cant : null, nota: notaGuardada };
         }
       }
     });
